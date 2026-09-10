@@ -1,0 +1,61 @@
+{
+  "phase": "MULTI-PLATFORM CONNECTOR HARDENING - SIMULTANEOUS PLATFORM ISOLATION PROOF",
+  "classification": {
+    "REAL_LOCAL_INFRASTRUCTURE": [
+      "Postgres",
+      "WooCommerce (WordPress + WooCommerce, real REST API + webhooks)"
+    ],
+    "SIMULATED_EXTERNAL_PLATFORM": [
+      "ShopifyConnector (Merchant A's channel)"
+    ],
+    "LIVE_EXTERNAL_PLATFORM": []
+  },
+  "checks": {
+    "woocommerce_credentials_cannot_reach_shopify_merchant": {
+      "status": "PASS",
+      "evidence": "Merchant B's operator key against Merchant A's URL: status=403 (must be 403)"
+    },
+    "shopify_credentials_cannot_reach_woocommerce_merchant": {
+      "status": "PASS",
+      "evidence": "Merchant A's operator key against Merchant B's URL: status=403 (must be 403)"
+    },
+    "catalogue_publication_uses_correct_connector": {
+      "status": "PASS",
+      "evidence": "A published via simulator (outcome=published), B published to REAL WooCommerce (outcome=published, real read-back status=200, name='Isolation Test Product')"
+    },
+    "order_ingestion_uses_correct_connector_shopify": {
+      "status": "PASS",
+      "evidence": "Shopify webhook for Merchant A: status=200 result={'order_id': 'ord_38a3a7796efa470985684cef23638840', 'status': 'PAID', 'idempotent_replay': False}"
+    },
+    "order_ingestion_uses_correct_connector_woocommerce": {
+      "status": "PASS",
+      "evidence": "real WooCommerce order 123 -> real webhook -> canonical order for Merchant B: found=True"
+    },
+    "cross_platform_webhook_routing_shopify_merchant_rejects_woocommerce_url": {
+      "status": "PASS",
+      "evidence": "WooCommerce-shaped webhook at Merchant A's (Shopify) URL: status=404 (must be 404, ChannelMismatchError - never processed)"
+    },
+    "cross_platform_webhook_routing_woocommerce_merchant_rejects_shopify_url": {
+      "status": "PASS",
+      "evidence": "Shopify-shaped webhook at Merchant B's (WooCommerce) URL: status=404 (must be 404, ChannelMismatchError - never processed)"
+    },
+    "external_ids_namespaced_by_platform": {
+      "status": "PASS",
+      "evidence": "Merchant A's order external_refs system(s): ['shopify'] (must be ['shopify'] only, never mixed with 'woocommerce')"
+    },
+    "refund_uses_correct_connector": {
+      "status": "PASS",
+      "evidence": "Merchant A refund executed via simulator: status=completed; Merchant B's real WooCommerce order untouched by A's refund: refunds_on_b_order=0 (must be 0)"
+    },
+    "broken_woocommerce_merchant_actually_fails_not_assumed": {
+      "status": "PASS",
+      "evidence": "merchant C's publish raised (connector correctly failed to reach localhost:1): (500, 'Internal Server Error')"
+    },
+    "one_platform_failure_does_not_fallback_to_another_connector": {
+      "status": "PASS",
+      "evidence": "Merchant A's Shopify webhook processed normally immediately after Merchant C's genuinely-failed WooCommerce publish attempt: status=200 result={'order_id': 'ord_6e61d802fca34988bbddfb9a996c10f9', 'status': 'PAID', 'idempotent_replay': False} (must succeed - no shared state/fallback between merchants' connector resolution)"
+    }
+  },
+  "runtime_seconds": 52.6527,
+  "verdict": "PASS"
+}

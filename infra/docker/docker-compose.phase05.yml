@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: sanocea
+      POSTGRES_PASSWORD: sanocea
+      POSTGRES_DB: sanocea
+    ports:
+      - "54329:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sanocea -d sanocea"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  temporal:
+    image: temporalio/auto-setup:1.31
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB: postgresql
+      DB_PORT: 5432
+      POSTGRES_USER: sanocea
+      POSTGRES_PWD: sanocea
+      POSTGRES_SEEDS: postgres
+    ports:
+      - "7233:7233"
+
+  temporal-ui:
+    image: temporalio/ui:2.40.1
+    depends_on:
+      - temporal
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CORS_ORIGINS: http://localhost:3000
+    ports:
+      - "8233:8080"
+
+  minio:
+    image: minio/minio:RELEASE.2026-08-29T02-39-06Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: sanocea
+      MINIO_ROOT_PASSWORD: sanocea-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  imgproxy:
+    image: ghcr.io/imgproxy/imgproxy:v3.29
+    environment:
+      IMGPROXY_BIND: ":8080"
+      IMGPROXY_KEY: ""
+      IMGPROXY_SALT: ""
+    ports:
+      - "8088:8080"
+
+  api:
+    build:
+      context: ../..
+      dockerfile: sanocea/infra/docker/sanocea.Dockerfile
+    command: python -m uvicorn sanocea.apps.api.app:app --host 0.0.0.0 --port 8010
+    depends_on:
+      - postgres
+      - temporal
+      - minio
+    environment:
+      SANOCEA_PG_DSN: postgresql://sanocea:sanocea@postgres:5432/sanocea
+      SANOCEA_TEMPORAL_TARGET: temporal:7233
+      SANOCEA_S3_ENDPOINT: http://minio:9000
+      SANOCEA_S3_ACCESS_KEY: sanocea
+      SANOCEA_S3_SECRET_KEY: sanocea-secret
+      SANOCEA_S3_BUCKET: sanocea-phase05
+    ports:
+      - "8010:8010"
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: sanocea/infra/docker/sanocea.Dockerfile
+    command: python -m sanocea.workers.workflow.worker_process
+    depends_on:
+      - temporal
+      - postgres
+    environment:
+      SANOCEA_PG_DSN: postgresql://sanocea:sanocea@postgres:5432/sanocea
+      SANOCEA_TEMPORAL_TARGET: temporal:7233
+

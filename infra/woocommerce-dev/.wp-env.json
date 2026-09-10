@@ -1,0 +1,11 @@
+{
+  "core": null,
+  "plugins": [
+    "https://downloads.wordpress.org/plugin/woocommerce.latest-stable.zip"
+  ],
+  "port": 8890,
+  "testsPort": 8891,
+  "config": {
+    "WP_DEBUG": true
+  }
+}

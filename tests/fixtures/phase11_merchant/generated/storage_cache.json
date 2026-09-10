@@ -1,0 +1,2390 @@
+{
+  "phase11_northstar:phase1/supplier/catalog.xlsx:0a9318d769aaf369f20a5d0f9505528adf74bcd95e5f0429958eaafe7e8bf532": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/phase1/supplier/catalog.xlsx",
+    "checksum": "0a9318d769aaf369f20a5d0f9505528adf74bcd95e5f0429958eaafe7e8bf532",
+    "size": 9946,
+    "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  "phase11_northstar:phase1/supplier/catalog.csv:5ed9e430bc5e0bd012059f7f29da7369e1e22aa07efab9de596aaf2af98d019e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/phase1/supplier/catalog.csv",
+    "checksum": "5ed9e430bc5e0bd012059f7f29da7369e1e22aa07efab9de596aaf2af98d019e",
+    "size": 13000,
+    "content_type": "text/csv"
+  },
+  "phase11_northstar:media/source/NST-OUT-1000-NAV-XS.png:0c0e6033f6ed77d2286f946705f60c3291e4ac40b1e45ff78fac8b9ce1aba457": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1000-NAV-XS.png",
+    "checksum": "0c0e6033f6ed77d2286f946705f60c3291e4ac40b1e45ff78fac8b9ce1aba457",
+    "size": 8616,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1000-NAV-XS.webp:2c94c2db2190c4dd3875085400d8a80e03852d04480c12d9debf5a8d4c7fac06": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1000-NAV-XS.webp",
+    "checksum": "2c94c2db2190c4dd3875085400d8a80e03852d04480c12d9debf5a8d4c7fac06",
+    "size": 764,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1001-GRE-M.png:c334f69b53ba4beb6068fc14a6f7e1fdc0ae72bb118cda005d77ead53375a213": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1001-GRE-M.png",
+    "checksum": "c334f69b53ba4beb6068fc14a6f7e1fdc0ae72bb118cda005d77ead53375a213",
+    "size": 8529,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1001-GRE-M.webp:b7a1edad8dedbda9dfdde409afd7ddd2a7c46cbafda567eea4b74088c4ac5d40": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1001-GRE-M.webp",
+    "checksum": "b7a1edad8dedbda9dfdde409afd7ddd2a7c46cbafda567eea4b74088c4ac5d40",
+    "size": 626,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1002-KHA-34.png:e494932028138731b06010212539afa08045c815efa75ab91a263d3cb7db84f8": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1002-KHA-34.png",
+    "checksum": "e494932028138731b06010212539afa08045c815efa75ab91a263d3cb7db84f8",
+    "size": 8712,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1002-KHA-34.webp:d9e4d059ed273542e1926ec6da23abef9ac905e4505373d2db4cbe0f121ec31e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1002-KHA-34.webp",
+    "checksum": "d9e4d059ed273542e1926ec6da23abef9ac905e4505373d2db4cbe0f121ec31e",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1003-NAV-OneSize.png:3acf1308c42bf873d202674f59d2afe1e722dbf46911351d1ec38087bcb6dc34": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1003-NAV-OneSize.png",
+    "checksum": "3acf1308c42bf873d202674f59d2afe1e722dbf46911351d1ec38087bcb6dc34",
+    "size": 9186,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1003-NAV-OneSize.webp:9fa0089ef681bdc09bd9afa418393a910af8811df41a554ad847e6f78d9d7c61": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1003-NAV-OneSize.webp",
+    "checksum": "9fa0089ef681bdc09bd9afa418393a910af8811df41a554ad847e6f78d9d7c61",
+    "size": 774,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1004-NAV-OneSize.png:4ec0fa225287cb865f1072751063ed18f35698c1fb3c259e70816d8a918d6f32": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1004-NAV-OneSize.png",
+    "checksum": "4ec0fa225287cb865f1072751063ed18f35698c1fb3c259e70816d8a918d6f32",
+    "size": 9098,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1004-NAV-OneSize.webp:45a19ce49209951934e4a5c6f969f4aa9030cd86b385822d2f93230b28fc5ac1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1004-NAV-OneSize.webp",
+    "checksum": "45a19ce49209951934e4a5c6f969f4aa9030cd86b385822d2f93230b28fc5ac1",
+    "size": 812,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1005-GRE-OneSize.png:ba86f138da84c798671d6f8a12f366cb095eea259767000ea7cd2c1334187522": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1005-GRE-OneSize.png",
+    "checksum": "ba86f138da84c798671d6f8a12f366cb095eea259767000ea7cd2c1334187522",
+    "size": 9295,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1005-GRE-OneSize.webp:05102a35a1685c348bbf840dec3524c69530f604281d1e82aab9cd2329f7ecf7": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1005-GRE-OneSize.webp",
+    "checksum": "05102a35a1685c348bbf840dec3524c69530f604281d1e82aab9cd2329f7ecf7",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1006-OLI-S.png:ba8911efbd384edd8e801284dda18e321d613e9a0d3996b54ceceac21c1ad55b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1006-OLI-S.png",
+    "checksum": "ba8911efbd384edd8e801284dda18e321d613e9a0d3996b54ceceac21c1ad55b",
+    "size": 8510,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1006-OLI-S.webp:afeb67f2f63b8cbc03a1a2dfabc9f0537ab9eb66992063444e91b624e41b9bf6": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1006-OLI-S.webp",
+    "checksum": "afeb67f2f63b8cbc03a1a2dfabc9f0537ab9eb66992063444e91b624e41b9bf6",
+    "size": 686,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1007-BLU-XL.png:d0cbd7eb9f1c1669fa5bf2611c0c60c0e0ce78f5da8044d6e2661175e319a3f5": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1007-BLU-XL.png",
+    "checksum": "d0cbd7eb9f1c1669fa5bf2611c0c60c0e0ce78f5da8044d6e2661175e319a3f5",
+    "size": 7878,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1007-BLU-XL.webp:7bcc94d121e6c92da9d94e2f9248ed15f66a1c93c7507cd4e7752f1cab593d93": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1007-BLU-XL.webp",
+    "checksum": "7bcc94d121e6c92da9d94e2f9248ed15f66a1c93c7507cd4e7752f1cab593d93",
+    "size": 644,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1008-KHA-30.png:169bac5e7d12b685a4919ac51fa69a03da79a38706537f8ba46026125964111b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1008-KHA-30.png",
+    "checksum": "169bac5e7d12b685a4919ac51fa69a03da79a38706537f8ba46026125964111b",
+    "size": 8632,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1008-KHA-30.webp:d17f9a9ed2b3bff24bb80fe1dd7787085da2879d7b6813261e69f6e6358c4a09": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1008-KHA-30.webp",
+    "checksum": "d17f9a9ed2b3bff24bb80fe1dd7787085da2879d7b6813261e69f6e6358c4a09",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1009-NAV-OneSize.png:dac3dbac61cf2ad8651597535398137bb65f414c955031cf457b20ecf355bbb0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1009-NAV-OneSize.png",
+    "checksum": "dac3dbac61cf2ad8651597535398137bb65f414c955031cf457b20ecf355bbb0",
+    "size": 9186,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1009-NAV-OneSize.webp:81b7eafedca7bcaa30247ef0b78a57414ccf531e62e9dc89cee284747b68ac5f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1009-NAV-OneSize.webp",
+    "checksum": "81b7eafedca7bcaa30247ef0b78a57414ccf531e62e9dc89cee284747b68ac5f",
+    "size": 772,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1010-NAV-OneSize.png:7cc82580ffb932657dd930d4c06ff48387c70c10b040915d1e637a3e909a5b00": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1010-NAV-OneSize.png",
+    "checksum": "7cc82580ffb932657dd930d4c06ff48387c70c10b040915d1e637a3e909a5b00",
+    "size": 9010,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1010-NAV-OneSize.webp:882c354affc6d7cd8664997c8aefc991e39d718cade5c34298dd97b20fd26c19": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1010-NAV-OneSize.webp",
+    "checksum": "882c354affc6d7cd8664997c8aefc991e39d718cade5c34298dd97b20fd26c19",
+    "size": 812,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1011-GRE-OneSize.png:76c2c194f779b35f259efcb6f25c622c4ded633c1faa3f2a8cc63ba6652e4b84": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1011-GRE-OneSize.png",
+    "checksum": "76c2c194f779b35f259efcb6f25c622c4ded633c1faa3f2a8cc63ba6652e4b84",
+    "size": 9188,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1011-GRE-OneSize.webp:b9dd3c7657326693e0893d2ee84b2edbfdb5be7e4036c5abde25d24f5dfd8a65": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1011-GRE-OneSize.webp",
+    "checksum": "b9dd3c7657326693e0893d2ee84b2edbfdb5be7e4036c5abde25d24f5dfd8a65",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1012-RUS-M.png:77b5e3c8ec8554fe3196146be118a6a4cc7e542cd21f13776a8f1b006c87f467": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1012-RUS-M.png",
+    "checksum": "77b5e3c8ec8554fe3196146be118a6a4cc7e542cd21f13776a8f1b006c87f467",
+    "size": 8581,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1012-RUS-M.webp:784312a604de861854491eff40eb91a0a1f10adc1474f3744d50a98546fbc267": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1012-RUS-M.webp",
+    "checksum": "784312a604de861854491eff40eb91a0a1f10adc1474f3744d50a98546fbc267",
+    "size": 728,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1013-GRE-M.png:a3f8e7383e5ba0394b9039523ff4ccc202929fd6495731a8cc0934ffd5a96849": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1013-GRE-M.png",
+    "checksum": "a3f8e7383e5ba0394b9039523ff4ccc202929fd6495731a8cc0934ffd5a96849",
+    "size": 8662,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1013-GRE-M.webp:977bad6590285ea9e59d361afcd465c096bff722dd45f9899d960e9e213bedc4": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1013-GRE-M.webp",
+    "checksum": "977bad6590285ea9e59d361afcd465c096bff722dd45f9899d960e9e213bedc4",
+    "size": 626,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1014-CHA-34.png:f7b048a6cf2cea5999322f8d81a62cc5ca148279bfcbdc845ef2609bccc2af15": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1014-CHA-34.png",
+    "checksum": "f7b048a6cf2cea5999322f8d81a62cc5ca148279bfcbdc845ef2609bccc2af15",
+    "size": 8890,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1014-CHA-34.webp:7b15eefdbcf2149a86f0a76b69fa7a47f24d65fbef916d77a2d656039078f5ed": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1014-CHA-34.webp",
+    "checksum": "7b15eefdbcf2149a86f0a76b69fa7a47f24d65fbef916d77a2d656039078f5ed",
+    "size": 740,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1015-NAV-OneSize.png:d36c5f506dd1dcce1caa9e98155abebec551a107280b0fd5763bd3affa3bf3a9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1015-NAV-OneSize.png",
+    "checksum": "d36c5f506dd1dcce1caa9e98155abebec551a107280b0fd5763bd3affa3bf3a9",
+    "size": 9174,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1015-NAV-OneSize.webp:ec6dbe694ea3f535edd3e141959ac2ca2be1bdb9098f058f53eb794f2f52c87f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1015-NAV-OneSize.webp",
+    "checksum": "ec6dbe694ea3f535edd3e141959ac2ca2be1bdb9098f058f53eb794f2f52c87f",
+    "size": 780,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1016-NAV-OneSize.png:1e0fb6d40840a46f00b6b29ee70f2d4159b8b8402f4bfb3c26b8f6fe9f10a361": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1016-NAV-OneSize.png",
+    "checksum": "1e0fb6d40840a46f00b6b29ee70f2d4159b8b8402f4bfb3c26b8f6fe9f10a361",
+    "size": 9161,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1016-NAV-OneSize.webp:1c5406bdc3ac9b29646714d7a414873719d81fccb9266246d54c258818019093": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1016-NAV-OneSize.webp",
+    "checksum": "1c5406bdc3ac9b29646714d7a414873719d81fccb9266246d54c258818019093",
+    "size": 812,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1017-GRE-OneSize.png:15023cb6792c22a1d7172117e25319f4c94184862b013aa4296ce071088a0c80": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1017-GRE-OneSize.png",
+    "checksum": "15023cb6792c22a1d7172117e25319f4c94184862b013aa4296ce071088a0c80",
+    "size": 9261,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1017-GRE-OneSize.webp:d36804a7cbd31ad059ca0e054411489fa0681d454acf44b7dbc7719b52f95601": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1017-GRE-OneSize.webp",
+    "checksum": "d36804a7cbd31ad059ca0e054411489fa0681d454acf44b7dbc7719b52f95601",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1018-NAV-L.png:40991e399a6a6515e21ece358798d1e9bcfb37000094881e0aef0409d5a681ad": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1018-NAV-L.png",
+    "checksum": "40991e399a6a6515e21ece358798d1e9bcfb37000094881e0aef0409d5a681ad",
+    "size": 8615,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1018-NAV-L.webp:769dd1d18e73768178cece2d339d3b53fb8ae41021dee01fe6c647e55731353b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1018-NAV-L.webp",
+    "checksum": "769dd1d18e73768178cece2d339d3b53fb8ae41021dee01fe6c647e55731353b",
+    "size": 756,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1019-BLU-XL.png:6b7208c6f875f7aa47901a36437e98c89b5d427b630e3ca89cac92fca3fbc457": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1019-BLU-XL.png",
+    "checksum": "6b7208c6f875f7aa47901a36437e98c89b5d427b630e3ca89cac92fca3fbc457",
+    "size": 8642,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1019-BLU-XL.webp:629c72c632066802995c67a88fe7b4eadb8229cda713e6860b1f1e8f065f5ec6": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1019-BLU-XL.webp",
+    "checksum": "629c72c632066802995c67a88fe7b4eadb8229cda713e6860b1f1e8f065f5ec6",
+    "size": 748,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1020-CHA-30.png:54694fd8e7fd31a7cc8ec7f6a9317ed7f603e603b789d0c7e1d62f30f0d37309": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1020-CHA-30.png",
+    "checksum": "54694fd8e7fd31a7cc8ec7f6a9317ed7f603e603b789d0c7e1d62f30f0d37309",
+    "size": 8938,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1020-CHA-30.webp:369a2c6562b6c453726abc8643c51f83c0f8253ccf1dfdf94debda3042199f18": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1020-CHA-30.webp",
+    "checksum": "369a2c6562b6c453726abc8643c51f83c0f8253ccf1dfdf94debda3042199f18",
+    "size": 736,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1021-NAV-OneSize.png:bec9337856b8113b987e62214dbde939f6ee6d39ab1ec2a5e61922e4923a5244": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1021-NAV-OneSize.png",
+    "checksum": "bec9337856b8113b987e62214dbde939f6ee6d39ab1ec2a5e61922e4923a5244",
+    "size": 9140,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1021-NAV-OneSize.webp:f8d40bdfa3d9bd58a99ce7507353d23cf209a987f47e0dc810e919da35f13377": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1021-NAV-OneSize.webp",
+    "checksum": "f8d40bdfa3d9bd58a99ce7507353d23cf209a987f47e0dc810e919da35f13377",
+    "size": 780,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1022-NAV-OneSize.png:5c3e5a68afc08ca78c26589cd5652297767463c1750e3322a1bd6939dbb5fb3c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1022-NAV-OneSize.png",
+    "checksum": "5c3e5a68afc08ca78c26589cd5652297767463c1750e3322a1bd6939dbb5fb3c",
+    "size": 9159,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1022-NAV-OneSize.webp:0f2ed5e6d2844febe3cabca6578d25f892d7bf0078abb4a08b49327e9d6c3edd": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1022-NAV-OneSize.webp",
+    "checksum": "0f2ed5e6d2844febe3cabca6578d25f892d7bf0078abb4a08b49327e9d6c3edd",
+    "size": 808,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1023-GRE-OneSize.png:223fac88f6b54445f34b144b988573be8027a475acb58afbe7b4a85c7ddc78c8": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1023-GRE-OneSize.png",
+    "checksum": "223fac88f6b54445f34b144b988573be8027a475acb58afbe7b4a85c7ddc78c8",
+    "size": 9451,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1023-GRE-OneSize.webp:c48998c65b2be8c4eb117adf601df7b3526339b6032e8e4f8d687703bd162261": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1023-GRE-OneSize.webp",
+    "checksum": "c48998c65b2be8c4eb117adf601df7b3526339b6032e8e4f8d687703bd162261",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1024-OLI-XL.png:926880eb4ba362ff7fdecc80ca4df8b4b965bc168517c4f5fc093a9b5b164e52": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1024-OLI-XL.png",
+    "checksum": "926880eb4ba362ff7fdecc80ca4df8b4b965bc168517c4f5fc093a9b5b164e52",
+    "size": 8742,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1024-OLI-XL.webp:632dc9c2b15c1b6b54356bd773e17c95a95be57f1f493da516f7b43f7e2cc70d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1024-OLI-XL.webp",
+    "checksum": "632dc9c2b15c1b6b54356bd773e17c95a95be57f1f493da516f7b43f7e2cc70d",
+    "size": 690,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1025-GRE-M.png:f317d38ed1e44e4940055c2b62b6e9209ec8975596a54ee49460b9b41165a548": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1025-GRE-M.png",
+    "checksum": "f317d38ed1e44e4940055c2b62b6e9209ec8975596a54ee49460b9b41165a548",
+    "size": 8761,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1025-GRE-M.webp:61a32f52bdb672bec9c6c7c3cc4ec28d3e826c03c7f065f1061450df22b57b0c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1025-GRE-M.webp",
+    "checksum": "61a32f52bdb672bec9c6c7c3cc4ec28d3e826c03c7f065f1061450df22b57b0c",
+    "size": 624,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1026-KHA-34.png:e0f0b62fd76afca0863069a0e8a638572a42ba155b51970c2d1e5b5933b34e58": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1026-KHA-34.png",
+    "checksum": "e0f0b62fd76afca0863069a0e8a638572a42ba155b51970c2d1e5b5933b34e58",
+    "size": 8850,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1026-KHA-34.webp:3cac30a8ebce248cf04e4d969135a89d08d11ba9e21862b9824fc6775defa72f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1026-KHA-34.webp",
+    "checksum": "3cac30a8ebce248cf04e4d969135a89d08d11ba9e21862b9824fc6775defa72f",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1027-NAV-OneSize.png:c915041537902abe67834b8e07355b485ad6bf6b65f5e4b975cce340d843abc0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1027-NAV-OneSize.png",
+    "checksum": "c915041537902abe67834b8e07355b485ad6bf6b65f5e4b975cce340d843abc0",
+    "size": 9281,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1027-NAV-OneSize.webp:10b4ae308ae67e731d769965d87b71ee1db00f1d44119c06d680dd6264382c51": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1027-NAV-OneSize.webp",
+    "checksum": "10b4ae308ae67e731d769965d87b71ee1db00f1d44119c06d680dd6264382c51",
+    "size": 778,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1028-NAV-OneSize.png:4854d61daa0b090c3230ecf6a17454e7efea72beaaacbf75037ebfec730d8569": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1028-NAV-OneSize.png",
+    "checksum": "4854d61daa0b090c3230ecf6a17454e7efea72beaaacbf75037ebfec730d8569",
+    "size": 9348,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1028-NAV-OneSize.webp:14a3b3cf719494190a6c2dd562e44076d340566132a607a2d2bb1365f97afa44": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1028-NAV-OneSize.webp",
+    "checksum": "14a3b3cf719494190a6c2dd562e44076d340566132a607a2d2bb1365f97afa44",
+    "size": 810,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1029-GRE-OneSize.png:7afd4752d27845a61c5ed00e786cec55c8e6e0396c4bf3d75d7b08f1f67518ee": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1029-GRE-OneSize.png",
+    "checksum": "7afd4752d27845a61c5ed00e786cec55c8e6e0396c4bf3d75d7b08f1f67518ee",
+    "size": 9421,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1029-GRE-OneSize.webp:aa79e83d78d6009d01f3cdab38440e261f5e1d69b7b5e135b1565223f85aa1c1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1029-GRE-OneSize.webp",
+    "checksum": "aa79e83d78d6009d01f3cdab38440e261f5e1d69b7b5e135b1565223f85aa1c1",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1030-NAV-XS.png:98caced714a1e2d86319a29f6c822ccca35a1899813a7a956e2e72dca9f0caed": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1030-NAV-XS.png",
+    "checksum": "98caced714a1e2d86319a29f6c822ccca35a1899813a7a956e2e72dca9f0caed",
+    "size": 8761,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1030-NAV-XS.webp:68a810891485fdb1800321d8eb06fce0c4e18a9e1e948123c046c54695712c4a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1030-NAV-XS.webp",
+    "checksum": "68a810891485fdb1800321d8eb06fce0c4e18a9e1e948123c046c54695712c4a",
+    "size": 764,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1031-BLU-XL.png:91d943945d0c4586ff4ac9e2bcadb6d03646d3dff10d6c213dd2acd47d0077b2": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1031-BLU-XL.png",
+    "checksum": "91d943945d0c4586ff4ac9e2bcadb6d03646d3dff10d6c213dd2acd47d0077b2",
+    "size": 8642,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1031-BLU-XL.webp:7866e5530cb7f0a58780e757cf2b48a0ef73036a527e94fb5d6c8257b00a6a81": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1031-BLU-XL.webp",
+    "checksum": "7866e5530cb7f0a58780e757cf2b48a0ef73036a527e94fb5d6c8257b00a6a81",
+    "size": 742,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1032-KHA-30.png:53a841b51cb501a8bb83856ce603a087f730b2286b2645c87374affc49204b3e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1032-KHA-30.png",
+    "checksum": "53a841b51cb501a8bb83856ce603a087f730b2286b2645c87374affc49204b3e",
+    "size": 8638,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1032-KHA-30.webp:1fcc706abb205279b74eb3cb9b18c5bf7ddc1b586dd4de8b64b08a13fded87cd": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1032-KHA-30.webp",
+    "checksum": "1fcc706abb205279b74eb3cb9b18c5bf7ddc1b586dd4de8b64b08a13fded87cd",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1033-NAV-OneSize.png:372b64ca4f6eb811cabfb52e2db146c17b38a098898769712f5151e16e7f2cb1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1033-NAV-OneSize.png",
+    "checksum": "372b64ca4f6eb811cabfb52e2db146c17b38a098898769712f5151e16e7f2cb1",
+    "size": 9204,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1033-NAV-OneSize.webp:325412010b32badb9bc412e2261c9efa83518d366a99baca31c9b7536376f33c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1033-NAV-OneSize.webp",
+    "checksum": "325412010b32badb9bc412e2261c9efa83518d366a99baca31c9b7536376f33c",
+    "size": 780,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1034-NAV-OneSize.png:d940062f4d28e76080a0459c15db638c5666139fdff525990c2f4a1f3a4df6b2": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1034-NAV-OneSize.png",
+    "checksum": "d940062f4d28e76080a0459c15db638c5666139fdff525990c2f4a1f3a4df6b2",
+    "size": 9233,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1034-NAV-OneSize.webp:8d9f2be752624598134c52c1fc3f95dc0007f99a81e11f6849fadea8711d411e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1034-NAV-OneSize.webp",
+    "checksum": "8d9f2be752624598134c52c1fc3f95dc0007f99a81e11f6849fadea8711d411e",
+    "size": 816,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1035-GRE-OneSize.png:1484f6331c703674625fd7f6830818c8df3279e55084bf346a18430df66338d7": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1035-GRE-OneSize.png",
+    "checksum": "1484f6331c703674625fd7f6830818c8df3279e55084bf346a18430df66338d7",
+    "size": 8283,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1035-GRE-OneSize.webp:c0975b277c5027ae246fd8ac22b0b786a358c776fab3e101499c96fd045f570e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1035-GRE-OneSize.webp",
+    "checksum": "c0975b277c5027ae246fd8ac22b0b786a358c776fab3e101499c96fd045f570e",
+    "size": 588,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1036-OLI-S.png:0696183868d510a907bec63527f5914259994fff2dc383aeb855791f5bcc7f9b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1036-OLI-S.png",
+    "checksum": "0696183868d510a907bec63527f5914259994fff2dc383aeb855791f5bcc7f9b",
+    "size": 8209,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1036-OLI-S.webp:3728a47111b60e8a1c7d23a668990b426cc1c080c01176731ec5c4d601c63eda": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1036-OLI-S.webp",
+    "checksum": "3728a47111b60e8a1c7d23a668990b426cc1c080c01176731ec5c4d601c63eda",
+    "size": 644,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1037-GRE-M.png:2bf0372d88a6784023d48b61284db7c0a7ced0b92cadaf6ad347a2eb7618275d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1037-GRE-M.png",
+    "checksum": "2bf0372d88a6784023d48b61284db7c0a7ced0b92cadaf6ad347a2eb7618275d",
+    "size": 8739,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1037-GRE-M.webp:2cb865c3885e23d7ef76c08fded1b0d2cf53f08eadad979229ab6a8696ff9b7f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1037-GRE-M.webp",
+    "checksum": "2cb865c3885e23d7ef76c08fded1b0d2cf53f08eadad979229ab6a8696ff9b7f",
+    "size": 624,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1038-CHA-34.png:4c7bf1e58661bb60124317f2bcdfb4fd28e433388f1a57141f7c173e58ab4aa6": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1038-CHA-34.png",
+    "checksum": "4c7bf1e58661bb60124317f2bcdfb4fd28e433388f1a57141f7c173e58ab4aa6",
+    "size": 9061,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1038-CHA-34.webp:838e36ab51dbec7ebe35072d39e03ddfec4707f8666bcf12abbdf1d693ff03c9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1038-CHA-34.webp",
+    "checksum": "838e36ab51dbec7ebe35072d39e03ddfec4707f8666bcf12abbdf1d693ff03c9",
+    "size": 736,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1039-NAV-OneSize.png:c1451c929582418dc6f59d5a420dc2cf1782f2b29fcd92dde8b55ff4962b50cd": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1039-NAV-OneSize.png",
+    "checksum": "c1451c929582418dc6f59d5a420dc2cf1782f2b29fcd92dde8b55ff4962b50cd",
+    "size": 9321,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1039-NAV-OneSize.webp:044b9a8727feee18a1a0d4244c790508543ee4a565019935e9c21d9a5247b42f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1039-NAV-OneSize.webp",
+    "checksum": "044b9a8727feee18a1a0d4244c790508543ee4a565019935e9c21d9a5247b42f",
+    "size": 780,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1040-NAV-OneSize.png:1dbd63844bc8060b20519b9137385d277965d5a2d67de015407740a854f72752": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1040-NAV-OneSize.png",
+    "checksum": "1dbd63844bc8060b20519b9137385d277965d5a2d67de015407740a854f72752",
+    "size": 9108,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1040-NAV-OneSize.webp:16ff01b557ea9b282e4bdb4e0346d09f9aab4d88c92f696247555dca4cddba2a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1040-NAV-OneSize.webp",
+    "checksum": "16ff01b557ea9b282e4bdb4e0346d09f9aab4d88c92f696247555dca4cddba2a",
+    "size": 814,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1041-GRE-OneSize.png:b531840b33df5b76c4fdf8f703f6a385aeb0eb6281b49bfd473b9be64498ffb3": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1041-GRE-OneSize.png",
+    "checksum": "b531840b33df5b76c4fdf8f703f6a385aeb0eb6281b49bfd473b9be64498ffb3",
+    "size": 9276,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1041-GRE-OneSize.webp:c259be1036bf19ada86c61ed3d57e76ad8ba9b3d5f7556d3411bf68f8ad84173": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1041-GRE-OneSize.webp",
+    "checksum": "c259be1036bf19ada86c61ed3d57e76ad8ba9b3d5f7556d3411bf68f8ad84173",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1042-RUS-M.png:4a5da93653f69be7a4509f5383b202e56fcc197a7a030b3c27b844adef0f8531": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1042-RUS-M.png",
+    "checksum": "4a5da93653f69be7a4509f5383b202e56fcc197a7a030b3c27b844adef0f8531",
+    "size": 8684,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1042-RUS-M.webp:67d017e823f098bc0518cc8cff0c0d43c708d336bc4cf824370ef4965e91daba": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1042-RUS-M.webp",
+    "checksum": "67d017e823f098bc0518cc8cff0c0d43c708d336bc4cf824370ef4965e91daba",
+    "size": 726,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1043-BLU-XL.png:2c75004cddb9e845c6eff7349dacd4e5517eda27eba55338f11f2a824b401219": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1043-BLU-XL.png",
+    "checksum": "2c75004cddb9e845c6eff7349dacd4e5517eda27eba55338f11f2a824b401219",
+    "size": 8740,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1043-BLU-XL.webp:15d05c83d929d8d46da18d6827239b059520e0419901a2aa7705e6e37a211dba": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1043-BLU-XL.webp",
+    "checksum": "15d05c83d929d8d46da18d6827239b059520e0419901a2aa7705e6e37a211dba",
+    "size": 748,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1044-CHA-30.png:87c2940354fa45fbee567b05a05a037ad5c096492923e1cadb0fb79454556b77": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1044-CHA-30.png",
+    "checksum": "87c2940354fa45fbee567b05a05a037ad5c096492923e1cadb0fb79454556b77",
+    "size": 8913,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1044-CHA-30.webp:066a8edbde040f2c71e15c45a434de9b5cf779f0fd7e9cfeb0243a261a4d79c3": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1044-CHA-30.webp",
+    "checksum": "066a8edbde040f2c71e15c45a434de9b5cf779f0fd7e9cfeb0243a261a4d79c3",
+    "size": 744,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1045-NAV-OneSize.png:a0ca1d2c48a948693f7591c5d23b7ad0f88de8f69db354fde93175a83f0e6560": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1045-NAV-OneSize.png",
+    "checksum": "a0ca1d2c48a948693f7591c5d23b7ad0f88de8f69db354fde93175a83f0e6560",
+    "size": 9272,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1045-NAV-OneSize.webp:79b03b56fb88f3edcde94ed867ef54e008c0c649f08529e43bce5dfa0cd144a0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1045-NAV-OneSize.webp",
+    "checksum": "79b03b56fb88f3edcde94ed867ef54e008c0c649f08529e43bce5dfa0cd144a0",
+    "size": 778,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1046-NAV-OneSize.png:2415c1c0f2199ed87517e7c27d61abb40038cceba4ca0480dde84260fa01d18b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1046-NAV-OneSize.png",
+    "checksum": "2415c1c0f2199ed87517e7c27d61abb40038cceba4ca0480dde84260fa01d18b",
+    "size": 9246,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1046-NAV-OneSize.webp:b36132df25599b547616b79c983483117f7e0e74bedda58de8339357826ae601": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1046-NAV-OneSize.webp",
+    "checksum": "b36132df25599b547616b79c983483117f7e0e74bedda58de8339357826ae601",
+    "size": 814,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1047-GRE-OneSize.png:c5974f5b4d4b5fc3fec00ffebd73289b8b28cd5b8861d0eb6c94988ce014f0fe": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1047-GRE-OneSize.png",
+    "checksum": "c5974f5b4d4b5fc3fec00ffebd73289b8b28cd5b8861d0eb6c94988ce014f0fe",
+    "size": 9353,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1047-GRE-OneSize.webp:673d3e17a14d7fbd39f1214895bee0462c6bf036093916fe2ee90243ca72d522": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1047-GRE-OneSize.webp",
+    "checksum": "673d3e17a14d7fbd39f1214895bee0462c6bf036093916fe2ee90243ca72d522",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1048-NAV-L.png:6d1666bb7aa3ceaa08c73e354310f46dc1749d1a01d96866f80af025bd16d8c4": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1048-NAV-L.png",
+    "checksum": "6d1666bb7aa3ceaa08c73e354310f46dc1749d1a01d96866f80af025bd16d8c4",
+    "size": 8718,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1048-NAV-L.webp:4edc3073dd938b215d9337ab1dc0354fecba833809018447c56f631c5b19552f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1048-NAV-L.webp",
+    "checksum": "4edc3073dd938b215d9337ab1dc0354fecba833809018447c56f631c5b19552f",
+    "size": 758,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1049-GRE-M.png:c41139fbc38b240e9704b04f86452511d848b9b6209f4712c467e39e6a0aa18a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1049-GRE-M.png",
+    "checksum": "c41139fbc38b240e9704b04f86452511d848b9b6209f4712c467e39e6a0aa18a",
+    "size": 8806,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1049-GRE-M.webp:25b6e639289927f8ac2822a261e9aa9408c0bdca645657e7357c7bc764bc8d9d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1049-GRE-M.webp",
+    "checksum": "25b6e639289927f8ac2822a261e9aa9408c0bdca645657e7357c7bc764bc8d9d",
+    "size": 636,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1050-KHA-34.png:35f0ef2efc76862e025d74879bc93f26edfc426b53fd005276cded989286bdf0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1050-KHA-34.png",
+    "checksum": "35f0ef2efc76862e025d74879bc93f26edfc426b53fd005276cded989286bdf0",
+    "size": 8721,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1050-KHA-34.webp:e438d01377c2f9b9f07e6983e9d61a0af3d040462194346049b0a3ab33215c6b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1050-KHA-34.webp",
+    "checksum": "e438d01377c2f9b9f07e6983e9d61a0af3d040462194346049b0a3ab33215c6b",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1051-NAV-OneSize.png:5455090b39aa4248d4b86a473d9d6a8ccaec8b17d79d2e2e9804f8cd47abcc1e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1051-NAV-OneSize.png",
+    "checksum": "5455090b39aa4248d4b86a473d9d6a8ccaec8b17d79d2e2e9804f8cd47abcc1e",
+    "size": 9183,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1051-NAV-OneSize.webp:e64e8d375fced42df097ddc792235e9a5defaad200f8f135e19a23d0edacbfd7": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1051-NAV-OneSize.webp",
+    "checksum": "e64e8d375fced42df097ddc792235e9a5defaad200f8f135e19a23d0edacbfd7",
+    "size": 776,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1052-NAV-OneSize.png:75698a54a866b55937861d81300f7bd68a3cf145edad2a2d8308fab50da05e19": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1052-NAV-OneSize.png",
+    "checksum": "75698a54a866b55937861d81300f7bd68a3cf145edad2a2d8308fab50da05e19",
+    "size": 9322,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1052-NAV-OneSize.webp:801a3b0d8710d506b42a1ba380fe4b1a5f381fdf424336ed7e75cc7e81859219": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1052-NAV-OneSize.webp",
+    "checksum": "801a3b0d8710d506b42a1ba380fe4b1a5f381fdf424336ed7e75cc7e81859219",
+    "size": 806,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1053-GRE-OneSize.png:1fb7e465618dbee51bfff6188990b905338be4135349297288581ae1d8276996": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1053-GRE-OneSize.png",
+    "checksum": "1fb7e465618dbee51bfff6188990b905338be4135349297288581ae1d8276996",
+    "size": 9436,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1053-GRE-OneSize.webp:6141aae81c064e384ed5dacf7f6140e8a175d3830efe41c419287560aa39c652": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1053-GRE-OneSize.webp",
+    "checksum": "6141aae81c064e384ed5dacf7f6140e8a175d3830efe41c419287560aa39c652",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1054-OLI-XL.png:a9012af47f8d6b216168c92cb0bc4ad4f8f293a1400abd46e320cdbb91eb2483": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1054-OLI-XL.png",
+    "checksum": "a9012af47f8d6b216168c92cb0bc4ad4f8f293a1400abd46e320cdbb91eb2483",
+    "size": 8736,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1054-OLI-XL.webp:0a8c5325bd618945b298c57d97b2a11718325143865352445243168c42afdd1f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1054-OLI-XL.webp",
+    "checksum": "0a8c5325bd618945b298c57d97b2a11718325143865352445243168c42afdd1f",
+    "size": 694,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1055-BLU-XL.png:7635226381301debc90503de38df384c705c523f58442e4d699add96463f8044": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1055-BLU-XL.png",
+    "checksum": "7635226381301debc90503de38df384c705c523f58442e4d699add96463f8044",
+    "size": 8620,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1055-BLU-XL.webp:44f5831bb7f4936c89a42089b4177ba6bdada31340f76ed41501914e92f84b21": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1055-BLU-XL.webp",
+    "checksum": "44f5831bb7f4936c89a42089b4177ba6bdada31340f76ed41501914e92f84b21",
+    "size": 742,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1057-NAV-OneSize.png:b1e5ff8127ef78c156e483855b549cd862d607a99da3a8de133f78e7c06da7dc": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1057-NAV-OneSize.png",
+    "checksum": "b1e5ff8127ef78c156e483855b549cd862d607a99da3a8de133f78e7c06da7dc",
+    "size": 9270,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1057-NAV-OneSize.webp:b7f66fcfef016a7e4542f8c5fa36d70f824d79a75d75e7af42a2e513bd0e98d2": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1057-NAV-OneSize.webp",
+    "checksum": "b7f66fcfef016a7e4542f8c5fa36d70f824d79a75d75e7af42a2e513bd0e98d2",
+    "size": 772,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1058-NAV-OneSize.png:7b2e947b8415033cd146b42ca74dec9efe8db5c9ee2f165fa182a232683763af": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1058-NAV-OneSize.png",
+    "checksum": "7b2e947b8415033cd146b42ca74dec9efe8db5c9ee2f165fa182a232683763af",
+    "size": 9338,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1058-NAV-OneSize.webp:0c622db08e241f98e7c8c4da532be32be1d22007e1edda84fd72a0b80e3bca84": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1058-NAV-OneSize.webp",
+    "checksum": "0c622db08e241f98e7c8c4da532be32be1d22007e1edda84fd72a0b80e3bca84",
+    "size": 812,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1059-GRE-OneSize.png:52245fef64a7f79bd11ed328f0dc5a3f9af51b1c28c6137554e4886c0a1e1745": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1059-GRE-OneSize.png",
+    "checksum": "52245fef64a7f79bd11ed328f0dc5a3f9af51b1c28c6137554e4886c0a1e1745",
+    "size": 9413,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1059-GRE-OneSize.webp:8c6702723942a08596752bc375014c1f5414165a942a7bbb8348c1f0269c0d9d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1059-GRE-OneSize.webp",
+    "checksum": "8c6702723942a08596752bc375014c1f5414165a942a7bbb8348c1f0269c0d9d",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1060-NAV-XS.png:5800619a8897c2e3deb38c868647527d1876e9eaa23e14859912d913ca496c84": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1060-NAV-XS.png",
+    "checksum": "5800619a8897c2e3deb38c868647527d1876e9eaa23e14859912d913ca496c84",
+    "size": 8771,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1060-NAV-XS.webp:a5e370dba1e299eedb5ae79dba2452feb2db6d685388a438ec6c617dfaad9499": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1060-NAV-XS.webp",
+    "checksum": "a5e370dba1e299eedb5ae79dba2452feb2db6d685388a438ec6c617dfaad9499",
+    "size": 764,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1061-GRE-M.png:688473de12904e38699287d7a987141ab856732ce7d6a124f3c21221830cab5d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1061-GRE-M.png",
+    "checksum": "688473de12904e38699287d7a987141ab856732ce7d6a124f3c21221830cab5d",
+    "size": 8665,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1061-GRE-M.webp:4bc5f65ae37cff8338ce07490febec3d365b7646637defdfac197b4ed632483e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1061-GRE-M.webp",
+    "checksum": "4bc5f65ae37cff8338ce07490febec3d365b7646637defdfac197b4ed632483e",
+    "size": 626,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1062-CHA-34.png:7c37f82ab22e6d10c1f7a1202372855a2ec8c87447d79d8b83109d5ccc3654fc": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1062-CHA-34.png",
+    "checksum": "7c37f82ab22e6d10c1f7a1202372855a2ec8c87447d79d8b83109d5ccc3654fc",
+    "size": 9175,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1062-CHA-34.webp:c9535c7c8a294474cfe99ce2468ceb0d7fbec00cc89fa71509d20793bff52df9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1062-CHA-34.webp",
+    "checksum": "c9535c7c8a294474cfe99ce2468ceb0d7fbec00cc89fa71509d20793bff52df9",
+    "size": 736,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OTHER-PRODUCT.png:1def64ad3e2d59e0ccbcd3375af0c5b12fda52482690999ac2281a714fa5eb8e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OTHER-PRODUCT.png",
+    "checksum": "1def64ad3e2d59e0ccbcd3375af0c5b12fda52482690999ac2281a714fa5eb8e",
+    "size": 7053,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OTHER-PRODUCT.webp:479dcfb601b48d0a8fd2c664cf0c6b5b2d0a7870d853f67fb86c82dcb6e1816e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OTHER-PRODUCT.webp",
+    "checksum": "479dcfb601b48d0a8fd2c664cf0c6b5b2d0a7870d853f67fb86c82dcb6e1816e",
+    "size": 608,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1064-NAV-OneSize.png:f6e653b6aad8bd202607ea4c47ff84dd8bf8e1572b58a17c69f5d2ede8106b4c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1064-NAV-OneSize.png",
+    "checksum": "f6e653b6aad8bd202607ea4c47ff84dd8bf8e1572b58a17c69f5d2ede8106b4c",
+    "size": 9242,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1064-NAV-OneSize.webp:eec1054ca73833bd67aa052b9bc6b6f24b2756721069f4c3d6156bef54e0e79c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1064-NAV-OneSize.webp",
+    "checksum": "eec1054ca73833bd67aa052b9bc6b6f24b2756721069f4c3d6156bef54e0e79c",
+    "size": 810,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1065-GRE-OneSize.png:1948953c5463d273260aa8d9230e1bccef905a32adeeca3819e66c623a1feeaf": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1065-GRE-OneSize.png",
+    "checksum": "1948953c5463d273260aa8d9230e1bccef905a32adeeca3819e66c623a1feeaf",
+    "size": 9412,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1065-GRE-OneSize.webp:3e6fb2c6d053efc890930abd2a687e102fac29822216647a62ed0734ffc1137d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1065-GRE-OneSize.webp",
+    "checksum": "3e6fb2c6d053efc890930abd2a687e102fac29822216647a62ed0734ffc1137d",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1066-OLI-S.png:e771c78413a9ea9a3646d3f83fb3d1ff78296cf4bf1a461d90f36434b431549d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1066-OLI-S.png",
+    "checksum": "e771c78413a9ea9a3646d3f83fb3d1ff78296cf4bf1a461d90f36434b431549d",
+    "size": 8518,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1066-OLI-S.webp:a7a2deaddc9871b032430fb1f28a80880cbdc8805f9ee24526d4f5f138329e0e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1066-OLI-S.webp",
+    "checksum": "a7a2deaddc9871b032430fb1f28a80880cbdc8805f9ee24526d4f5f138329e0e",
+    "size": 688,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1067-BLU-XL.png:11986d6f634497f9fd17fecfdd66fbbe72625cf0ff93657c83f58e91a3d406f1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1067-BLU-XL.png",
+    "checksum": "11986d6f634497f9fd17fecfdd66fbbe72625cf0ff93657c83f58e91a3d406f1",
+    "size": 8740,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1067-BLU-XL.webp:2eeb851565976c64f7fa257145fd2b04738c727c396fd1b9a48e4248aac77927": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1067-BLU-XL.webp",
+    "checksum": "2eeb851565976c64f7fa257145fd2b04738c727c396fd1b9a48e4248aac77927",
+    "size": 744,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1068-CHA-30.png:ee51bee88854456b660e91329a19ca00ec0441c908d105541564684c15d1afed": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1068-CHA-30.png",
+    "checksum": "ee51bee88854456b660e91329a19ca00ec0441c908d105541564684c15d1afed",
+    "size": 9105,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1068-CHA-30.webp:15a14f9440d9bfe0bbbc3c227c749cffdee9dc9e7f20d06ac46dcdb9607a720a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1068-CHA-30.webp",
+    "checksum": "15a14f9440d9bfe0bbbc3c227c749cffdee9dc9e7f20d06ac46dcdb9607a720a",
+    "size": 736,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1069-NAV-OneSize.png:80169d0cc71953ccc72db39faf221a84a192f992cc35a2359b4c3e7e8a056496": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1069-NAV-OneSize.png",
+    "checksum": "80169d0cc71953ccc72db39faf221a84a192f992cc35a2359b4c3e7e8a056496",
+    "size": 9333,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1069-NAV-OneSize.webp:9308fa5aa859b76cdacd50e179779ddb5481b1c5acbd6aee605eb008a81949d9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1069-NAV-OneSize.webp",
+    "checksum": "9308fa5aa859b76cdacd50e179779ddb5481b1c5acbd6aee605eb008a81949d9",
+    "size": 770,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1070-NAV-OneSize.png:c299502c064f92374196951429c14038bc9f1ce69d1f32ef06ac7bc8fcaa4489": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1070-NAV-OneSize.png",
+    "checksum": "c299502c064f92374196951429c14038bc9f1ce69d1f32ef06ac7bc8fcaa4489",
+    "size": 9163,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1070-NAV-OneSize.webp:b231659a490124401fd35252c186f5e978b29a24ba78dbc6f0494367aa94bbcd": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1070-NAV-OneSize.webp",
+    "checksum": "b231659a490124401fd35252c186f5e978b29a24ba78dbc6f0494367aa94bbcd",
+    "size": 810,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1071-GRE-OneSize.png:eb0fed352be261acd8b24ca925c99e507615140a78313f5c7c99557adf59a55e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1071-GRE-OneSize.png",
+    "checksum": "eb0fed352be261acd8b24ca925c99e507615140a78313f5c7c99557adf59a55e",
+    "size": 9265,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1071-GRE-OneSize.webp:0ed231b37ce7c9a41c46bf2becf4a1944eacba0e0101f17287157f39a24b695e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1071-GRE-OneSize.webp",
+    "checksum": "0ed231b37ce7c9a41c46bf2becf4a1944eacba0e0101f17287157f39a24b695e",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1072-RUS-M.png:8e7122ad562f0c645a0dd5fdc8902d98a3aff12d32f8bf5956d81f2b5dcbe7a9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1072-RUS-M.png",
+    "checksum": "8e7122ad562f0c645a0dd5fdc8902d98a3aff12d32f8bf5956d81f2b5dcbe7a9",
+    "size": 8682,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1072-RUS-M.webp:9618c0aeaab148d9ed8e81a8b1ca45601b4e7db4bb8daa9cb87b0f7063260dbf": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1072-RUS-M.webp",
+    "checksum": "9618c0aeaab148d9ed8e81a8b1ca45601b4e7db4bb8daa9cb87b0f7063260dbf",
+    "size": 724,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1073-GRE-M.png:d1373e2a96c2321911f3394a9480e1e71dcc2eaed315c13e6926c5b688552f98": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1073-GRE-M.png",
+    "checksum": "d1373e2a96c2321911f3394a9480e1e71dcc2eaed315c13e6926c5b688552f98",
+    "size": 8741,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1073-GRE-M.webp:e8a6528e99f48ac2007531527591399bf289dd101685e342675bed8b834dcd20": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1073-GRE-M.webp",
+    "checksum": "e8a6528e99f48ac2007531527591399bf289dd101685e342675bed8b834dcd20",
+    "size": 626,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1074-KHA-34.png:adfbcb06f28979a4b1389f45864b5315b1a25687e44ada4e1bfb384bcf8650a3": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1074-KHA-34.png",
+    "checksum": "adfbcb06f28979a4b1389f45864b5315b1a25687e44ada4e1bfb384bcf8650a3",
+    "size": 8668,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1074-KHA-34.webp:b03082d135f0d2e5dc3ec97c3192e754ef8af0d67d20d029c612218923fecbba": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1074-KHA-34.webp",
+    "checksum": "b03082d135f0d2e5dc3ec97c3192e754ef8af0d67d20d029c612218923fecbba",
+    "size": 658,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1075-NAV-OneSize.png:7134d610dd653c8bd7b67e97b90585cc55e0a22b382216bfa6fdea225cafd7d3": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1075-NAV-OneSize.png",
+    "checksum": "7134d610dd653c8bd7b67e97b90585cc55e0a22b382216bfa6fdea225cafd7d3",
+    "size": 9272,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1075-NAV-OneSize.webp:6c85c32c64511d6cef4f31a3ee4de38e8194691fc665e5d91e43bcfbda47cd55": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1075-NAV-OneSize.webp",
+    "checksum": "6c85c32c64511d6cef4f31a3ee4de38e8194691fc665e5d91e43bcfbda47cd55",
+    "size": 772,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1076-NAV-OneSize.png:116e19258af57db74a72cb78953d6608efbba9997d9693c7811b7288bd22720a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1076-NAV-OneSize.png",
+    "checksum": "116e19258af57db74a72cb78953d6608efbba9997d9693c7811b7288bd22720a",
+    "size": 9311,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1076-NAV-OneSize.webp:39b94849fccaedf8d33ae2bfd015e4aa316500c110faa2a09cb23da843716467": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1076-NAV-OneSize.webp",
+    "checksum": "39b94849fccaedf8d33ae2bfd015e4aa316500c110faa2a09cb23da843716467",
+    "size": 806,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1077-GRE-OneSize.png:b1c96a0adfed9d7ab68675a146fe179e9e6f464c404c953222598e1eb00fb378": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1077-GRE-OneSize.png",
+    "checksum": "b1c96a0adfed9d7ab68675a146fe179e9e6f464c404c953222598e1eb00fb378",
+    "size": 9271,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1077-GRE-OneSize.webp:8ba63d1ee3131ab1a135bf0f23ff2f658cc23f0e6fee950a894df7c1f720bcc0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1077-GRE-OneSize.webp",
+    "checksum": "8ba63d1ee3131ab1a135bf0f23ff2f658cc23f0e6fee950a894df7c1f720bcc0",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1078-NAV-L.png:e5d8055bd54d8fec091ae66efafc08e6fbe497c8712a586c658dbf145b7508d9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1078-NAV-L.png",
+    "checksum": "e5d8055bd54d8fec091ae66efafc08e6fbe497c8712a586c658dbf145b7508d9",
+    "size": 8742,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1078-NAV-L.webp:d51ead698ea3aa825287513fc3bdca7c3b59aff316ccd122b548008680eb7d4a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1078-NAV-L.webp",
+    "checksum": "d51ead698ea3aa825287513fc3bdca7c3b59aff316ccd122b548008680eb7d4a",
+    "size": 756,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1079-BLU-XL.png:c0073add0c963966acd1271aee567345b1ba6f3abf4f564003559d14ec7f7af8": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1079-BLU-XL.png",
+    "checksum": "c0073add0c963966acd1271aee567345b1ba6f3abf4f564003559d14ec7f7af8",
+    "size": 8734,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1079-BLU-XL.webp:beb71b52444a940012f9d2111cb5b58d46eae47bed799a84ee3bd90c33912614": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1079-BLU-XL.webp",
+    "checksum": "beb71b52444a940012f9d2111cb5b58d46eae47bed799a84ee3bd90c33912614",
+    "size": 740,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1130-NAV-OneSize.png:4eaa5388433b064b19d7d090a50e9c2315c33d8940fd43ecdf4c538a02cb9208": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1130-NAV-OneSize.png",
+    "checksum": "4eaa5388433b064b19d7d090a50e9c2315c33d8940fd43ecdf4c538a02cb9208",
+    "size": 9149,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1130-NAV-OneSize.webp:5d85a05410b802c6007e4cdc39abae35e4ba6425c27c8e424d02eeb359602f72": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1130-NAV-OneSize.webp",
+    "checksum": "5d85a05410b802c6007e4cdc39abae35e4ba6425c27c8e424d02eeb359602f72",
+    "size": 814,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1131-GRE-OneSize.png:d376b0c40d739aaef31bb140742fd0f7a93ed68c1d8c7ac77d6795464856f7f0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1131-GRE-OneSize.png",
+    "checksum": "d376b0c40d739aaef31bb140742fd0f7a93ed68c1d8c7ac77d6795464856f7f0",
+    "size": 9227,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1131-GRE-OneSize.webp:a487338f33a0d0d1e0289581e94a8fde8d9496cc53a1c9db79575d69d39814da": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1131-GRE-OneSize.webp",
+    "checksum": "a487338f33a0d0d1e0289581e94a8fde8d9496cc53a1c9db79575d69d39814da",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1132-RUS-M.png:6fe903caca37da4566d07e59d6cbc2527a642099c538aaa6b7c498a955dcae02": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1132-RUS-M.png",
+    "checksum": "6fe903caca37da4566d07e59d6cbc2527a642099c538aaa6b7c498a955dcae02",
+    "size": 8592,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1132-RUS-M.webp:d09b3cc0f52cfd76762b67a048f72c3249830fce1914a8666ff107dd04d47cfb": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1132-RUS-M.webp",
+    "checksum": "d09b3cc0f52cfd76762b67a048f72c3249830fce1914a8666ff107dd04d47cfb",
+    "size": 726,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1133-GRE-M.png:a8452ce9e1f0fe662a558110793aba54c124435392218898bd0a866dd9babda8": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1133-GRE-M.png",
+    "checksum": "a8452ce9e1f0fe662a558110793aba54c124435392218898bd0a866dd9babda8",
+    "size": 8554,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1133-GRE-M.webp:533e9003b44b941021ebb2f4e32043cc851a7736294840ef5827f355cdc1017a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1133-GRE-M.webp",
+    "checksum": "533e9003b44b941021ebb2f4e32043cc851a7736294840ef5827f355cdc1017a",
+    "size": 630,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1134-CHA-34.png:9446f0336e78369164b4c7b71527a98cd81979761579161231cd1042311da746": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1134-CHA-34.png",
+    "checksum": "9446f0336e78369164b4c7b71527a98cd81979761579161231cd1042311da746",
+    "size": 8766,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1134-CHA-34.webp:abe98a104e362d31b02c1f9a678eca1dc999d97e1061cb1a0b02a3980b57cb90": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1134-CHA-34.webp",
+    "checksum": "abe98a104e362d31b02c1f9a678eca1dc999d97e1061cb1a0b02a3980b57cb90",
+    "size": 742,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1135-NAV-OneSize.png:206359e5a1e2f93a3a07b434e7f8222cccb47bfaa36c8a2269f39c1686b9bfa5": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1135-NAV-OneSize.png",
+    "checksum": "206359e5a1e2f93a3a07b434e7f8222cccb47bfaa36c8a2269f39c1686b9bfa5",
+    "size": 9184,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1135-NAV-OneSize.webp:8f9e2b2e45a293159cd0304ea41d08cde648b460d197421dfe90560c113e2cb8": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1135-NAV-OneSize.webp",
+    "checksum": "8f9e2b2e45a293159cd0304ea41d08cde648b460d197421dfe90560c113e2cb8",
+    "size": 776,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1137-GRE-OneSize.png:187355c404a8cc62a62f3184def39da18fc39da8e94b54c03a99543d8d63f6d5": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1137-GRE-OneSize.png",
+    "checksum": "187355c404a8cc62a62f3184def39da18fc39da8e94b54c03a99543d8d63f6d5",
+    "size": 9301,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1137-GRE-OneSize.webp:8c22c93d97fe0ae490a1ae19f26f51769614b1f9a68bd8f3772ca1e7b3df5051": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1137-GRE-OneSize.webp",
+    "checksum": "8c22c93d97fe0ae490a1ae19f26f51769614b1f9a68bd8f3772ca1e7b3df5051",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1138-NAV-L.png:8ce882970274d28c45c64fab9a2e357e62ef1c31e10691ed09881f3bb4c0fbd4": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1138-NAV-L.png",
+    "checksum": "8ce882970274d28c45c64fab9a2e357e62ef1c31e10691ed09881f3bb4c0fbd4",
+    "size": 8629,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1138-NAV-L.webp:61624c7c05a745957c663883abc373eadbac2030159acd10850678539f86c0a6": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1138-NAV-L.webp",
+    "checksum": "61624c7c05a745957c663883abc373eadbac2030159acd10850678539f86c0a6",
+    "size": 756,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1139-BLU-XL.png:daeb67e2483e2b8cc0e08fbc533e795b91eb7d372e423daeca1b983832f6556a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1139-BLU-XL.png",
+    "checksum": "daeb67e2483e2b8cc0e08fbc533e795b91eb7d372e423daeca1b983832f6556a",
+    "size": 8663,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1139-BLU-XL.webp:9dabdc295bd5700aa7c34a45fce5095e540cd49c03d2eb459704dcb149d9fff4": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1139-BLU-XL.webp",
+    "checksum": "9dabdc295bd5700aa7c34a45fce5095e540cd49c03d2eb459704dcb149d9fff4",
+    "size": 748,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1140-CHA-30.png:c76947b83f2d01ff3be69afed357c7c4709734c67efa03864af730b6e38d492d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1140-CHA-30.png",
+    "checksum": "c76947b83f2d01ff3be69afed357c7c4709734c67efa03864af730b6e38d492d",
+    "size": 8898,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1140-CHA-30.webp:45ff8dd807d79ccabc39f6699862d0c9db0ba06c4d96e675bdc92e177fbc424d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1140-CHA-30.webp",
+    "checksum": "45ff8dd807d79ccabc39f6699862d0c9db0ba06c4d96e675bdc92e177fbc424d",
+    "size": 742,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1141-NAV-OneSize.png:8be6f24190aa57a28e0881b57ae36523f35e2e7e7b1dbb669b05ee3e4b5865d4": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1141-NAV-OneSize.png",
+    "checksum": "8be6f24190aa57a28e0881b57ae36523f35e2e7e7b1dbb669b05ee3e4b5865d4",
+    "size": 8973,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1141-NAV-OneSize.webp:2cd24a4de61f59dd98856b043f940736c35e38a09f175857ec61303d10871bd2": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1141-NAV-OneSize.webp",
+    "checksum": "2cd24a4de61f59dd98856b043f940736c35e38a09f175857ec61303d10871bd2",
+    "size": 782,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1142-NAV-OneSize.png:e36c52b282e44e86a382b9dafba30fa033af843c0f3d4e7a370e96b119671d05": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1142-NAV-OneSize.png",
+    "checksum": "e36c52b282e44e86a382b9dafba30fa033af843c0f3d4e7a370e96b119671d05",
+    "size": 9132,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1142-NAV-OneSize.webp:289c2a47c6d394844e02972163ccf21d9017df0f6922a75a71144b6409b35990": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1142-NAV-OneSize.webp",
+    "checksum": "289c2a47c6d394844e02972163ccf21d9017df0f6922a75a71144b6409b35990",
+    "size": 820,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1143-GRE-OneSize.png:ff625bd4f34101129416ee2a155f826bd3505e3c2b684e76024ee7b80c86138d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1143-GRE-OneSize.png",
+    "checksum": "ff625bd4f34101129416ee2a155f826bd3505e3c2b684e76024ee7b80c86138d",
+    "size": 8151,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1143-GRE-OneSize.webp:788dc68d61d766b7cf3df4f0377874e7530b38572d1fc665ef88ea4f35b1a91f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1143-GRE-OneSize.webp",
+    "checksum": "788dc68d61d766b7cf3df4f0377874e7530b38572d1fc665ef88ea4f35b1a91f",
+    "size": 556,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1145-GRE-M.png:047858481c261563a458bd10096b83233a73516efc461b9f9b5fc08965da284e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1145-GRE-M.png",
+    "checksum": "047858481c261563a458bd10096b83233a73516efc461b9f9b5fc08965da284e",
+    "size": 8619,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1145-GRE-M.webp:4e172c8a2cd29a74d566db1081d5261b6504b4a306964176b9181b838bb32a0a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1145-GRE-M.webp",
+    "checksum": "4e172c8a2cd29a74d566db1081d5261b6504b4a306964176b9181b838bb32a0a",
+    "size": 628,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1146-KHA-34.png:b04de73afdee0c31a095684cec3c539773a17343495a1b4bfd77ef986bc9cd83": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1146-KHA-34.png",
+    "checksum": "b04de73afdee0c31a095684cec3c539773a17343495a1b4bfd77ef986bc9cd83",
+    "size": 8623,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1146-KHA-34.webp:e9060078b14c8e020ddd77a7de43622fcc3af50bc28e1204814a0f9e39417abf": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1146-KHA-34.webp",
+    "checksum": "e9060078b14c8e020ddd77a7de43622fcc3af50bc28e1204814a0f9e39417abf",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1147-NAV-OneSize.png:42bac0c5e9c9c75aa2d69e37543d441df63d212d8b69ce24add62d1e4bd1fc1a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1147-NAV-OneSize.png",
+    "checksum": "42bac0c5e9c9c75aa2d69e37543d441df63d212d8b69ce24add62d1e4bd1fc1a",
+    "size": 9122,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1147-NAV-OneSize.webp:7f0deb6862e9e0083df7baf307c91ba21efcb2ceebcee02314769601903137ac": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1147-NAV-OneSize.webp",
+    "checksum": "7f0deb6862e9e0083df7baf307c91ba21efcb2ceebcee02314769601903137ac",
+    "size": 778,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1148-NAV-OneSize.png:92c5354faf0dd5aeb07a68ef27ac38c3c6f492b9b85cede55fb710f50230d8d3": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1148-NAV-OneSize.png",
+    "checksum": "92c5354faf0dd5aeb07a68ef27ac38c3c6f492b9b85cede55fb710f50230d8d3",
+    "size": 9143,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1148-NAV-OneSize.webp:6a8f8adbc9523cc76c4eaa052dd22479064afd3d8a090fb366596747b107dc1d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1148-NAV-OneSize.webp",
+    "checksum": "6a8f8adbc9523cc76c4eaa052dd22479064afd3d8a090fb366596747b107dc1d",
+    "size": 816,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1149-GRE-OneSize.png:124a9caaa860c5f89c1f3546de2c2c56e60a9904a9a6739de31a20f32461aef0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1149-GRE-OneSize.png",
+    "checksum": "124a9caaa860c5f89c1f3546de2c2c56e60a9904a9a6739de31a20f32461aef0",
+    "size": 9288,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1149-GRE-OneSize.webp:49fcb1871dd7d9b894e34c7453f3863ffed56b4d1d6cfd9e4e63429929e34aff": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1149-GRE-OneSize.webp",
+    "checksum": "49fcb1871dd7d9b894e34c7453f3863ffed56b4d1d6cfd9e4e63429929e34aff",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1150-NAV-XS.png:dffc52594d3ebc61ff75e79df01dbc182be335da611bb74bdb6c188272b8d7bb": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1150-NAV-XS.png",
+    "checksum": "dffc52594d3ebc61ff75e79df01dbc182be335da611bb74bdb6c188272b8d7bb",
+    "size": 8752,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1150-NAV-XS.webp:248ca3984dbc0b1fbf26cc8c2a65d197c4b5703ab499e83f0cfd7a771ead1b7f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1150-NAV-XS.webp",
+    "checksum": "248ca3984dbc0b1fbf26cc8c2a65d197c4b5703ab499e83f0cfd7a771ead1b7f",
+    "size": 768,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1151-BLU-XL.png:3f234239d9949d82f6b6c402e47f951f4ce06002c9daa6a2521443caf6a5eb27": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1151-BLU-XL.png",
+    "checksum": "3f234239d9949d82f6b6c402e47f951f4ce06002c9daa6a2521443caf6a5eb27",
+    "size": 8498,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1151-BLU-XL.webp:b603ce3d5dec9753ae97f1062c37e557c81ee7d20097db90fc510de5d2a43eab": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1151-BLU-XL.webp",
+    "checksum": "b603ce3d5dec9753ae97f1062c37e557c81ee7d20097db90fc510de5d2a43eab",
+    "size": 744,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1152-KHA-30.png:79fdee97afc50dd44175588ddd66beda3c0bdf0250828eb7f9bdb077437fa53a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1152-KHA-30.png",
+    "checksum": "79fdee97afc50dd44175588ddd66beda3c0bdf0250828eb7f9bdb077437fa53a",
+    "size": 8754,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1152-KHA-30.webp:005f626e445d469ad985a5f2f28af9a9bfdcc4ee3ea3595d12b5ca1cd4ccf5ad": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1152-KHA-30.webp",
+    "checksum": "005f626e445d469ad985a5f2f28af9a9bfdcc4ee3ea3595d12b5ca1cd4ccf5ad",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1153-NAV-OneSize.png:04ad1d530f6d9c3b320c4aeef9cc0e57f6bdebaebd4e745a55fa066bc943b62d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1153-NAV-OneSize.png",
+    "checksum": "04ad1d530f6d9c3b320c4aeef9cc0e57f6bdebaebd4e745a55fa066bc943b62d",
+    "size": 9195,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1153-NAV-OneSize.webp:9a36e94f54fa025f15961f93bcb926b75461ffb08f80c25bdf21e77fdccb988d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1153-NAV-OneSize.webp",
+    "checksum": "9a36e94f54fa025f15961f93bcb926b75461ffb08f80c25bdf21e77fdccb988d",
+    "size": 776,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1154-NAV-OneSize.png:94e8c8f8d37448716fb4829aa931b200a5b5403cfa7e408e65aebd48c6d4bf22": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1154-NAV-OneSize.png",
+    "checksum": "94e8c8f8d37448716fb4829aa931b200a5b5403cfa7e408e65aebd48c6d4bf22",
+    "size": 9110,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1154-NAV-OneSize.webp:75bf8eb21f23253ceb8d07c7d8f3e200d1b666a6945b4284bf285d40bfc0cfeb": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1154-NAV-OneSize.webp",
+    "checksum": "75bf8eb21f23253ceb8d07c7d8f3e200d1b666a6945b4284bf285d40bfc0cfeb",
+    "size": 818,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1155-GRE-OneSize.png:2685186f1387bca29d57f6421135ea65110fe08c8c3736f98a99bbe6187a8557": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1155-GRE-OneSize.png",
+    "checksum": "2685186f1387bca29d57f6421135ea65110fe08c8c3736f98a99bbe6187a8557",
+    "size": 9221,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1155-GRE-OneSize.webp:284fce5d0cab8df934e0e9e71dc14241c2359382d740e9f6f6537e241f157f2e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1155-GRE-OneSize.webp",
+    "checksum": "284fce5d0cab8df934e0e9e71dc14241c2359382d740e9f6f6537e241f157f2e",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1156-OLI-S.png:acc6dea499a22677aece65ae4e491a6460a85dfaea1c6aa2cdb8183a41bbb584": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1156-OLI-S.png",
+    "checksum": "acc6dea499a22677aece65ae4e491a6460a85dfaea1c6aa2cdb8183a41bbb584",
+    "size": 8508,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1156-OLI-S.webp:0f0a073c68647a3b46cf7fdf910a0d25bbb022a44348f8aca9c0f06972fcaa85": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1156-OLI-S.webp",
+    "checksum": "0f0a073c68647a3b46cf7fdf910a0d25bbb022a44348f8aca9c0f06972fcaa85",
+    "size": 692,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1157-GRE-M.png:39a06454112b2063373038d5a07e039f949871e96e5001f20d8cacc123f287de": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1157-GRE-M.png",
+    "checksum": "39a06454112b2063373038d5a07e039f949871e96e5001f20d8cacc123f287de",
+    "size": 8613,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1157-GRE-M.webp:c643a77950e3309f32ea4f74b2d63f5b040402517a4862966fd5b5623c459f9c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1157-GRE-M.webp",
+    "checksum": "c643a77950e3309f32ea4f74b2d63f5b040402517a4862966fd5b5623c459f9c",
+    "size": 628,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1158-CHA-34.png:a323ac96784fb927c56b1bab466b2d811ae7f2c0eb2b5d9c6aced9abaa909ff6": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1158-CHA-34.png",
+    "checksum": "a323ac96784fb927c56b1bab466b2d811ae7f2c0eb2b5d9c6aced9abaa909ff6",
+    "size": 9056,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1158-CHA-34.webp:c8e59524b5213bb560ba83c27e962d70e31b4b8173a02f6843443cb4169718c0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1158-CHA-34.webp",
+    "checksum": "c8e59524b5213bb560ba83c27e962d70e31b4b8173a02f6843443cb4169718c0",
+    "size": 738,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1159-NAV-OneSize.png:ea306fc285d3124d1510f723fd15a8bcac003f0604bd1c539e0c0866866cbaed": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1159-NAV-OneSize.png",
+    "checksum": "ea306fc285d3124d1510f723fd15a8bcac003f0604bd1c539e0c0866866cbaed",
+    "size": 9196,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1159-NAV-OneSize.webp:02b96dcc9a1063ee846acf95a12ef797f0def849da72e78136b6902faf619ffc": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1159-NAV-OneSize.webp",
+    "checksum": "02b96dcc9a1063ee846acf95a12ef797f0def849da72e78136b6902faf619ffc",
+    "size": 774,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1160-NAV-OneSize.png:164b21fe129ff50f77baaddfd5277db2c8104c20a479665120dffb31efec323e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1160-NAV-OneSize.png",
+    "checksum": "164b21fe129ff50f77baaddfd5277db2c8104c20a479665120dffb31efec323e",
+    "size": 9165,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1160-NAV-OneSize.webp:5af0b46881235852f6110ac0db2dea71cb690bcf2c06546cdb9d3fab40552edf": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1160-NAV-OneSize.webp",
+    "checksum": "5af0b46881235852f6110ac0db2dea71cb690bcf2c06546cdb9d3fab40552edf",
+    "size": 814,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1161-GRE-OneSize.png:044eab97a8606a69e35428996f0efe850d485a189b18c0b4896b148226034050": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1161-GRE-OneSize.png",
+    "checksum": "044eab97a8606a69e35428996f0efe850d485a189b18c0b4896b148226034050",
+    "size": 9226,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1161-GRE-OneSize.webp:1320df43042261f904eeb114905c8bfd2c19d2e029f188e545c49cf2e85187fc": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1161-GRE-OneSize.webp",
+    "checksum": "1320df43042261f904eeb114905c8bfd2c19d2e029f188e545c49cf2e85187fc",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1162-RUS-M.png:1ca0f5255fa0cee1ef8b14a0de261ab8187348a514b110405194bbcc10eff0be": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1162-RUS-M.png",
+    "checksum": "1ca0f5255fa0cee1ef8b14a0de261ab8187348a514b110405194bbcc10eff0be",
+    "size": 8608,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1162-RUS-M.webp:1d6bc2351081af4d56d8004d98ea68583b87b8aef46414d8905502da9b565695": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1162-RUS-M.webp",
+    "checksum": "1d6bc2351081af4d56d8004d98ea68583b87b8aef46414d8905502da9b565695",
+    "size": 726,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1163-BLU-XL.png:319c305ba21890d0a773dc411a037cead218fcb5dba98bf0106e232d241c5dee": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1163-BLU-XL.png",
+    "checksum": "319c305ba21890d0a773dc411a037cead218fcb5dba98bf0106e232d241c5dee",
+    "size": 8672,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1163-BLU-XL.webp:394327515223db6c6f8af3bf10b50ac998ff531ab355fc523c8247d746eb0979": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1163-BLU-XL.webp",
+    "checksum": "394327515223db6c6f8af3bf10b50ac998ff531ab355fc523c8247d746eb0979",
+    "size": 746,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1164-CHA-30.png:544da106f16e5da939212b7c564dc1df5e79adf43caf6d9351d426f8a18349aa": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1164-CHA-30.png",
+    "checksum": "544da106f16e5da939212b7c564dc1df5e79adf43caf6d9351d426f8a18349aa",
+    "size": 9045,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1164-CHA-30.webp:f6197c45fbe7e34f13b73e12561418ca7555dc2276de53a7ee91e72a06b1f000": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1164-CHA-30.webp",
+    "checksum": "f6197c45fbe7e34f13b73e12561418ca7555dc2276de53a7ee91e72a06b1f000",
+    "size": 742,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1165-NAV-OneSize.png:bac84877005e3b40c01ee1e39451cf3b5312874818b8c451364f7bbe91d7f7df": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1165-NAV-OneSize.png",
+    "checksum": "bac84877005e3b40c01ee1e39451cf3b5312874818b8c451364f7bbe91d7f7df",
+    "size": 9206,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1165-NAV-OneSize.webp:60d221d2a5bb4efb2a8dc5159c59678c0900835aa8dce5e8744a987aae1a5190": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1165-NAV-OneSize.webp",
+    "checksum": "60d221d2a5bb4efb2a8dc5159c59678c0900835aa8dce5e8744a987aae1a5190",
+    "size": 774,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1166-NAV-OneSize.png:5b31121db94b07d8baf94415c1434af3cc9eb13a8144e1eaf20688cdaf824733": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1166-NAV-OneSize.png",
+    "checksum": "5b31121db94b07d8baf94415c1434af3cc9eb13a8144e1eaf20688cdaf824733",
+    "size": 9030,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1166-NAV-OneSize.webp:14fc0d5007dba07cfc5b0d7a8455161f011994bc8db669523b17cff560dc92e6": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1166-NAV-OneSize.webp",
+    "checksum": "14fc0d5007dba07cfc5b0d7a8455161f011994bc8db669523b17cff560dc92e6",
+    "size": 814,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1167-GRE-OneSize.png:d0ac930753b0ffc69be3ceb8805d5b93437adc27426901bdcd16e6433467202d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1167-GRE-OneSize.png",
+    "checksum": "d0ac930753b0ffc69be3ceb8805d5b93437adc27426901bdcd16e6433467202d",
+    "size": 9304,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1167-GRE-OneSize.webp:192e7fe90fc677b28437093ff22030571b9a69433cc923cbe225c0f842cf30b3": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1167-GRE-OneSize.webp",
+    "checksum": "192e7fe90fc677b28437093ff22030571b9a69433cc923cbe225c0f842cf30b3",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1168-NAV-L.png:81884724b34f0ab569b8f9df6ed267c5a43c1f44fe6e8fb0f5f9c74061ce70e8": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1168-NAV-L.png",
+    "checksum": "81884724b34f0ab569b8f9df6ed267c5a43c1f44fe6e8fb0f5f9c74061ce70e8",
+    "size": 8638,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1168-NAV-L.webp:92d3763559a1286204c4d1e7c2dc7fa0dda264f6e506d8522a90c9df17000c42": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1168-NAV-L.webp",
+    "checksum": "92d3763559a1286204c4d1e7c2dc7fa0dda264f6e506d8522a90c9df17000c42",
+    "size": 760,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1169-GRE-M.png:37f72749b28291dbd680bd87ca4f38562f0b8dc87dfa9a0503414302292ae009": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1169-GRE-M.png",
+    "checksum": "37f72749b28291dbd680bd87ca4f38562f0b8dc87dfa9a0503414302292ae009",
+    "size": 8680,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1169-GRE-M.webp:af7393912c8c1e31ee54e593a322f0e5d4065a913d2d6828568b7a2b217eff18": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1169-GRE-M.webp",
+    "checksum": "af7393912c8c1e31ee54e593a322f0e5d4065a913d2d6828568b7a2b217eff18",
+    "size": 626,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1170-KHA-34.png:9407189d49a19c5426624381b9a3add8a21d2818511bddd9c1d87c7fd4d58040": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1170-KHA-34.png",
+    "checksum": "9407189d49a19c5426624381b9a3add8a21d2818511bddd9c1d87c7fd4d58040",
+    "size": 8677,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1170-KHA-34.webp:b5955c35f3aa5d7a3146234bd67d7a5d2f1e30c9efdae59c38ce6ae378dcb47d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1170-KHA-34.webp",
+    "checksum": "b5955c35f3aa5d7a3146234bd67d7a5d2f1e30c9efdae59c38ce6ae378dcb47d",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1171-NAV-OneSize.png:169712110e4333a93c845991c8df0aee6bb9cf93bb2fd8df3510e4f32bde98aa": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1171-NAV-OneSize.png",
+    "checksum": "169712110e4333a93c845991c8df0aee6bb9cf93bb2fd8df3510e4f32bde98aa",
+    "size": 9024,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1171-NAV-OneSize.webp:2d3ad75d81aa6ba75f46b43a281b1f832afa168f7627fdf4981f28f8599d876c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1171-NAV-OneSize.webp",
+    "checksum": "2d3ad75d81aa6ba75f46b43a281b1f832afa168f7627fdf4981f28f8599d876c",
+    "size": 784,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1172-NAV-OneSize.png:e05371ef0160861ecf625c6bbf1d4dec0e0b5ee0f9cdd899197ed4cb033f879d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1172-NAV-OneSize.png",
+    "checksum": "e05371ef0160861ecf625c6bbf1d4dec0e0b5ee0f9cdd899197ed4cb033f879d",
+    "size": 9177,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1172-NAV-OneSize.webp:26e5159b3084c7e9b517149cb8e115786610a0f4b004f60201e891fee1334dda": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1172-NAV-OneSize.webp",
+    "checksum": "26e5159b3084c7e9b517149cb8e115786610a0f4b004f60201e891fee1334dda",
+    "size": 812,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1173-GRE-OneSize.png:da004659f8e2639a75eb0f44180458c566797061b5049635ce5b401b084819e1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1173-GRE-OneSize.png",
+    "checksum": "da004659f8e2639a75eb0f44180458c566797061b5049635ce5b401b084819e1",
+    "size": 9303,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1173-GRE-OneSize.webp:96d150e00e5bf8b1068f43effcfffe8a686030daeea9d87eff9b107e585a2887": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1173-GRE-OneSize.webp",
+    "checksum": "96d150e00e5bf8b1068f43effcfffe8a686030daeea9d87eff9b107e585a2887",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1174-OLI-XL.png:7752a5552427972c2184aab3eeff33036cea6f927fc3d9160e3ab9044ff40a7c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1174-OLI-XL.png",
+    "checksum": "7752a5552427972c2184aab3eeff33036cea6f927fc3d9160e3ab9044ff40a7c",
+    "size": 8572,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1174-OLI-XL.webp:91e2156fc235bd3c6741ca8c387370a18f6b4a4726d80f5905b63e9f86cb708b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1174-OLI-XL.webp",
+    "checksum": "91e2156fc235bd3c6741ca8c387370a18f6b4a4726d80f5905b63e9f86cb708b",
+    "size": 696,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1175-BLU-XL.png:748a0ab3fdac04f0e8ad9474dec99360782e45464cc97355682f699e826d4b8d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1175-BLU-XL.png",
+    "checksum": "748a0ab3fdac04f0e8ad9474dec99360782e45464cc97355682f699e826d4b8d",
+    "size": 8592,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1175-BLU-XL.webp:25bb1b41d2af2576175518cfeb48eab0ec48b5e11640764418c57c09628a5a96": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1175-BLU-XL.webp",
+    "checksum": "25bb1b41d2af2576175518cfeb48eab0ec48b5e11640764418c57c09628a5a96",
+    "size": 742,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1176-KHA-30.png:f4dcb93557792cc5e7e8e526f4c45739d98f3d78b19d161e18e42849a3d8faed": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1176-KHA-30.png",
+    "checksum": "f4dcb93557792cc5e7e8e526f4c45739d98f3d78b19d161e18e42849a3d8faed",
+    "size": 8725,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1176-KHA-30.webp:3c6976f6ac986ea6beb7ef2c26db303b190e361936ac952066f6b3491885abbe": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1176-KHA-30.webp",
+    "checksum": "3c6976f6ac986ea6beb7ef2c26db303b190e361936ac952066f6b3491885abbe",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1177-NAV-OneSize.png:00a80bf0c9a69d6f862093b9483ed95a320dd145309be9ffa907344a60d90d00": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1177-NAV-OneSize.png",
+    "checksum": "00a80bf0c9a69d6f862093b9483ed95a320dd145309be9ffa907344a60d90d00",
+    "size": 9031,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1177-NAV-OneSize.webp:0c7137439c4bb44ed0cf9768b85b4433b2ff78bedfebafd425d6bd68e0fc09b6": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1177-NAV-OneSize.webp",
+    "checksum": "0c7137439c4bb44ed0cf9768b85b4433b2ff78bedfebafd425d6bd68e0fc09b6",
+    "size": 778,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1178-NAV-OneSize.png:0888b9f20f94195324368363796ea7acb60609eeee3f16f30877112386f3700c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1178-NAV-OneSize.png",
+    "checksum": "0888b9f20f94195324368363796ea7acb60609eeee3f16f30877112386f3700c",
+    "size": 9186,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1178-NAV-OneSize.webp:02fc0490efa8f524e298eb1a3d9c17927a6ca1f1688cf8fc89393f71af12661f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1178-NAV-OneSize.webp",
+    "checksum": "02fc0490efa8f524e298eb1a3d9c17927a6ca1f1688cf8fc89393f71af12661f",
+    "size": 814,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1179-GRE-OneSize.png:5236a52562794ace0540c63ee746a1142a242070cd2d8a777ffe724ad6dc47ea": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1179-GRE-OneSize.png",
+    "checksum": "5236a52562794ace0540c63ee746a1142a242070cd2d8a777ffe724ad6dc47ea",
+    "size": 9311,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1179-GRE-OneSize.webp:8f458405cac50518dc768df27a81638607149db1d131be4042a2a5a6214491f1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1179-GRE-OneSize.webp",
+    "checksum": "8f458405cac50518dc768df27a81638607149db1d131be4042a2a5a6214491f1",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1180-NAV-XS.png:dd6366a212e81ea9cc93daf82392e6c6c1753f413da3aa2d2ee9ff6f9068fd97": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1180-NAV-XS.png",
+    "checksum": "dd6366a212e81ea9cc93daf82392e6c6c1753f413da3aa2d2ee9ff6f9068fd97",
+    "size": 8775,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1180-NAV-XS.webp:622ba30861c2a93287631f88a62e6dbc15d65ea9e36a01d1f0302b408766037b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1180-NAV-XS.webp",
+    "checksum": "622ba30861c2a93287631f88a62e6dbc15d65ea9e36a01d1f0302b408766037b",
+    "size": 766,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1181-GRE-M.png:476eb78e5f5fe9d574aac5eae5e41a17521a35ae358c2defafe04d29b23dbfa0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1181-GRE-M.png",
+    "checksum": "476eb78e5f5fe9d574aac5eae5e41a17521a35ae358c2defafe04d29b23dbfa0",
+    "size": 8617,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1181-GRE-M.webp:708a03a99acde29ae8ad83f61e3bd218c13f7dcff6475a948fb778fc0e337400": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1181-GRE-M.webp",
+    "checksum": "708a03a99acde29ae8ad83f61e3bd218c13f7dcff6475a948fb778fc0e337400",
+    "size": 634,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1182-CHA-34.png:1a90178a3271a4c5aea00d4f7d0ecbdd88ee40ed57172fd21468d3b4454cb393": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1182-CHA-34.png",
+    "checksum": "1a90178a3271a4c5aea00d4f7d0ecbdd88ee40ed57172fd21468d3b4454cb393",
+    "size": 9055,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1182-CHA-34.webp:328630bad78bab2f8995e944aa17793d9cd306cc74dae7d191c0627e8c056033": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1182-CHA-34.webp",
+    "checksum": "328630bad78bab2f8995e944aa17793d9cd306cc74dae7d191c0627e8c056033",
+    "size": 738,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1183-NAV-OneSize.png:41122db8df52422ed3673eeab81256726fc42977f5c76002d25d8a956eb4df34": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1183-NAV-OneSize.png",
+    "checksum": "41122db8df52422ed3673eeab81256726fc42977f5c76002d25d8a956eb4df34",
+    "size": 9217,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1183-NAV-OneSize.webp:a2e9ae95d7839f68898310fa57aa6041e4ed49293b79f9b70eb6dd5ecc84a240": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1183-NAV-OneSize.webp",
+    "checksum": "a2e9ae95d7839f68898310fa57aa6041e4ed49293b79f9b70eb6dd5ecc84a240",
+    "size": 776,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1184-NAV-OneSize.png:7ab57c727cea4f26a4def21e8b0663b72a406a10bcbd811d1efeb6721dc8257d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1184-NAV-OneSize.png",
+    "checksum": "7ab57c727cea4f26a4def21e8b0663b72a406a10bcbd811d1efeb6721dc8257d",
+    "size": 9138,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1184-NAV-OneSize.webp:7c4bfc4296369e03a6186e37c1d0411559cd404cbbb2f57f60e3d4a91738af0a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1184-NAV-OneSize.webp",
+    "checksum": "7c4bfc4296369e03a6186e37c1d0411559cd404cbbb2f57f60e3d4a91738af0a",
+    "size": 816,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1185-GRE-OneSize.png:88cdce8c5ee2704238799391e03079edf5ffed8fe573caf09f8f54deae190f74": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1185-GRE-OneSize.png",
+    "checksum": "88cdce8c5ee2704238799391e03079edf5ffed8fe573caf09f8f54deae190f74",
+    "size": 9349,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1185-GRE-OneSize.webp:b5bf99aaf1017a1147172c4d0a743995c666de138e57b96e99e040fdfcd269e1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1185-GRE-OneSize.webp",
+    "checksum": "b5bf99aaf1017a1147172c4d0a743995c666de138e57b96e99e040fdfcd269e1",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1186-OLI-S.png:cbc8b56d8f45e6455cf59a3aa3951bd4b7aa06e2dfff9a6a0f39843aa7c254b9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1186-OLI-S.png",
+    "checksum": "cbc8b56d8f45e6455cf59a3aa3951bd4b7aa06e2dfff9a6a0f39843aa7c254b9",
+    "size": 8524,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1186-OLI-S.webp:5d81da7fe8708bf468fe66bafc3f6c40e521ae234b4529e2d5403e475e372d9d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1186-OLI-S.webp",
+    "checksum": "5d81da7fe8708bf468fe66bafc3f6c40e521ae234b4529e2d5403e475e372d9d",
+    "size": 690,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1187-BLU-XL.png:68f87112986c323fdc0160303f088604d3f720eb7b95754a4cd2e13794b1437b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1187-BLU-XL.png",
+    "checksum": "68f87112986c323fdc0160303f088604d3f720eb7b95754a4cd2e13794b1437b",
+    "size": 8614,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1187-BLU-XL.webp:733a479b5ca504b641ad829e5e573d82bca17cdd3d6aa75ca94c34c07787eae6": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1187-BLU-XL.webp",
+    "checksum": "733a479b5ca504b641ad829e5e573d82bca17cdd3d6aa75ca94c34c07787eae6",
+    "size": 744,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1189-NAV-OneSize.png:b838a56d4b40bb64d1df50ac61ea42540318390d5c11f469cbc87fda92a6168f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1189-NAV-OneSize.png",
+    "checksum": "b838a56d4b40bb64d1df50ac61ea42540318390d5c11f469cbc87fda92a6168f",
+    "size": 9215,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1189-NAV-OneSize.webp:ec137e5cfed00bdf9d448183e584649cf7514e90e52d2c5a30fdf04d7d31bdae": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1189-NAV-OneSize.webp",
+    "checksum": "ec137e5cfed00bdf9d448183e584649cf7514e90e52d2c5a30fdf04d7d31bdae",
+    "size": 774,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1190-NAV-OneSize.png:196f12a268f98e1afb293379ff5270b2af5cecd20ebe728789edcb64e1bddfd7": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1190-NAV-OneSize.png",
+    "checksum": "196f12a268f98e1afb293379ff5270b2af5cecd20ebe728789edcb64e1bddfd7",
+    "size": 9148,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1190-NAV-OneSize.webp:110f01118790a04c4697cb8ba0f672c9bd7d5a27e790adba1801986952df78a5": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1190-NAV-OneSize.webp",
+    "checksum": "110f01118790a04c4697cb8ba0f672c9bd7d5a27e790adba1801986952df78a5",
+    "size": 812,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1191-GRE-OneSize.png:f0fd548c516f855da360d03adab9fecf07368886eb88b54c99887cecfd50ec5b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1191-GRE-OneSize.png",
+    "checksum": "f0fd548c516f855da360d03adab9fecf07368886eb88b54c99887cecfd50ec5b",
+    "size": 9230,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1191-GRE-OneSize.webp:c6223cc5734013b8091a19c0cf10e5397950cb85165964bbe5b88f2e955ef9de": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1191-GRE-OneSize.webp",
+    "checksum": "c6223cc5734013b8091a19c0cf10e5397950cb85165964bbe5b88f2e955ef9de",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1192-RUS-M.png:0aa861b87dd5ce905796b8456f4c86e5ea7a66503aae08031fcf058d5ccdf1a4": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1192-RUS-M.png",
+    "checksum": "0aa861b87dd5ce905796b8456f4c86e5ea7a66503aae08031fcf058d5ccdf1a4",
+    "size": 8599,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1192-RUS-M.webp:e9b2bf3082ea9be34261370753697fffbb93a170ca9493713b87491a01a8c830": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1192-RUS-M.webp",
+    "checksum": "e9b2bf3082ea9be34261370753697fffbb93a170ca9493713b87491a01a8c830",
+    "size": 726,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1193-GRE-M.png:037ccccf8d9241a693c787b0bc13fd5647593865967c5baafc1ccdc5ae345773": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1193-GRE-M.png",
+    "checksum": "037ccccf8d9241a693c787b0bc13fd5647593865967c5baafc1ccdc5ae345773",
+    "size": 8672,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1193-GRE-M.webp:7f9bc7f0714d9e143473b67746f339b75bd4afe83d21be0975bd623a5df7aab1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1193-GRE-M.webp",
+    "checksum": "7f9bc7f0714d9e143473b67746f339b75bd4afe83d21be0975bd623a5df7aab1",
+    "size": 628,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1195-NAV-OneSize.png:e994f22b9c41c9cd87c99dca1ba051053dfda56d8f055a98eb6cf0506d8114af": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1195-NAV-OneSize.png",
+    "checksum": "e994f22b9c41c9cd87c99dca1ba051053dfda56d8f055a98eb6cf0506d8114af",
+    "size": 9194,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1195-NAV-OneSize.webp:86371c3704805571c6a598e0f7e0bdbb6b38aa4741ce442b6bfbcf6b41371c53": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1195-NAV-OneSize.webp",
+    "checksum": "86371c3704805571c6a598e0f7e0bdbb6b38aa4741ce442b6bfbcf6b41371c53",
+    "size": 776,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1196-NAV-OneSize.png:c586bf7d0bfcaae9c8a224e2a3fc37289240992b368c2aa68de6c54cbc9fc41e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1196-NAV-OneSize.png",
+    "checksum": "c586bf7d0bfcaae9c8a224e2a3fc37289240992b368c2aa68de6c54cbc9fc41e",
+    "size": 9170,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1196-NAV-OneSize.webp:ba81003da8a2f882e3ea60509343c1f5ce24239bf9d4e83cd48cf240f0442dde": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1196-NAV-OneSize.webp",
+    "checksum": "ba81003da8a2f882e3ea60509343c1f5ce24239bf9d4e83cd48cf240f0442dde",
+    "size": 812,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1197-GRE-OneSize.png:0ee8c43f5c54e74883be571cc856cf6910a0230048dbaf3c3f4a0792c4a8f3da": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1197-GRE-OneSize.png",
+    "checksum": "0ee8c43f5c54e74883be571cc856cf6910a0230048dbaf3c3f4a0792c4a8f3da",
+    "size": 9312,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1197-GRE-OneSize.webp:a3c9f0d52e29febeea03be05d38a5d1b26bde40a87fd03cf1ca37093713dff4a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1197-GRE-OneSize.webp",
+    "checksum": "a3c9f0d52e29febeea03be05d38a5d1b26bde40a87fd03cf1ca37093713dff4a",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1198-NAV-L.png:a6abcca2ade59b25d51d68bf81d0b561a57e593d770482fcd67840646400459d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1198-NAV-L.png",
+    "checksum": "a6abcca2ade59b25d51d68bf81d0b561a57e593d770482fcd67840646400459d",
+    "size": 8635,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1198-NAV-L.webp:67a8b2cdd2f10e3229ce121db8e84b37da319ff40e04e9ae29412531c5e1b718": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1198-NAV-L.webp",
+    "checksum": "67a8b2cdd2f10e3229ce121db8e84b37da319ff40e04e9ae29412531c5e1b718",
+    "size": 758,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1199-BLU-XL.png:90073daa39d0fcb96ed0c78553c20f9e3c41ccaec733c730ed88616b241ba808": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1199-BLU-XL.png",
+    "checksum": "90073daa39d0fcb96ed0c78553c20f9e3c41ccaec733c730ed88616b241ba808",
+    "size": 8516,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1199-BLU-XL.webp:da555daed77d781cf5244583f23cfc4bbbffa496da119fbf68e6dbe15e87f0ee": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1199-BLU-XL.webp",
+    "checksum": "da555daed77d781cf5244583f23cfc4bbbffa496da119fbf68e6dbe15e87f0ee",
+    "size": 744,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1080-KHA-30.png:8a9ea8747da977134b66e2605c711b5153ee9d6156b972f9cdd587bf1e25337f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1080-KHA-30.png",
+    "checksum": "8a9ea8747da977134b66e2605c711b5153ee9d6156b972f9cdd587bf1e25337f",
+    "size": 8634,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1080-KHA-30.webp:a4da1d5b3fafedbe79250a009b8a7e90fdbacaead3eda77591b7c9b1aebab12e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1080-KHA-30.webp",
+    "checksum": "a4da1d5b3fafedbe79250a009b8a7e90fdbacaead3eda77591b7c9b1aebab12e",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1081-NAV-OneSize.png:6ba110adf2d81b0b86573bb781e9db3b9d538f0db7ca9d72b2e89dd2eb147bb1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1081-NAV-OneSize.png",
+    "checksum": "6ba110adf2d81b0b86573bb781e9db3b9d538f0db7ca9d72b2e89dd2eb147bb1",
+    "size": 9195,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1081-NAV-OneSize.webp:460832c24cd1cd6e5c05d1c6075b776aabd60f2e0881ba96fcacbcb1919036fc": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1081-NAV-OneSize.webp",
+    "checksum": "460832c24cd1cd6e5c05d1c6075b776aabd60f2e0881ba96fcacbcb1919036fc",
+    "size": 776,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1082-NAV-OneSize.png:32bfde3a1eedf738d823d25b3c8fb53073cf0705f40a44cad40156bbb0f347aa": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1082-NAV-OneSize.png",
+    "checksum": "32bfde3a1eedf738d823d25b3c8fb53073cf0705f40a44cad40156bbb0f347aa",
+    "size": 9347,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1082-NAV-OneSize.webp:259a38051f32c8d0c3dafa352b77a776c4693caaa5ee2ffe69dd04c0a02c41cf": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1082-NAV-OneSize.webp",
+    "checksum": "259a38051f32c8d0c3dafa352b77a776c4693caaa5ee2ffe69dd04c0a02c41cf",
+    "size": 812,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1083-GRE-OneSize.png:01e3e8c93a2eba30e9a19925e9ecbe5de00c06bbb97c48d4655d31e579ed6db7": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1083-GRE-OneSize.png",
+    "checksum": "01e3e8c93a2eba30e9a19925e9ecbe5de00c06bbb97c48d4655d31e579ed6db7",
+    "size": 9444,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1083-GRE-OneSize.webp:fdaf1fda9b14b6fdaa36bb11487cd0211e8d9afa348d8e4554c974a4b4ded776": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1083-GRE-OneSize.webp",
+    "checksum": "fdaf1fda9b14b6fdaa36bb11487cd0211e8d9afa348d8e4554c974a4b4ded776",
+    "size": 650,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1084-OLI-XL.png:b59d910d2d1e5fb88764ad03f0873647c26c989fb4234365d6a0d382d8d22db4": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1084-OLI-XL.png",
+    "checksum": "b59d910d2d1e5fb88764ad03f0873647c26c989fb4234365d6a0d382d8d22db4",
+    "size": 8765,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1084-OLI-XL.webp:7b5c6c8d0335b6ac56a36cca2e305f5fc202e1e66c2e7d49687cd77485aad62a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1084-OLI-XL.webp",
+    "checksum": "7b5c6c8d0335b6ac56a36cca2e305f5fc202e1e66c2e7d49687cd77485aad62a",
+    "size": 696,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1085-GRE-M.png:815b2d6faa1a1aeb36b94380e06ddfb0b089bd990ee15d382f2ed6b1fce2d707": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1085-GRE-M.png",
+    "checksum": "815b2d6faa1a1aeb36b94380e06ddfb0b089bd990ee15d382f2ed6b1fce2d707",
+    "size": 8802,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1085-GRE-M.webp:a4832c5cb4baa0c7d5504ffec33821fbff0cc2f65f1bef2b8f956bc8aa8ffe85": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1085-GRE-M.webp",
+    "checksum": "a4832c5cb4baa0c7d5504ffec33821fbff0cc2f65f1bef2b8f956bc8aa8ffe85",
+    "size": 622,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1086-CHA-34.png:d8350eb84bf5a69531a0143b81841433faaf7145062daa86f6cee068521aba9a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1086-CHA-34.png",
+    "checksum": "d8350eb84bf5a69531a0143b81841433faaf7145062daa86f6cee068521aba9a",
+    "size": 9199,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1086-CHA-34.webp:d74f056c5c2c0e1748e3af5e8f837f8b6421f8b503e0bfa3c1dc48175718a6c0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1086-CHA-34.webp",
+    "checksum": "d74f056c5c2c0e1748e3af5e8f837f8b6421f8b503e0bfa3c1dc48175718a6c0",
+    "size": 736,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1087-NAV-OneSize.png:a42502776096cf6492d70db908ed3991ca6cb4f30e93fe6414d15fd9af47cbed": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1087-NAV-OneSize.png",
+    "checksum": "a42502776096cf6492d70db908ed3991ca6cb4f30e93fe6414d15fd9af47cbed",
+    "size": 9299,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1087-NAV-OneSize.webp:e128c391ae493a98bd1ea8ebbb2a419fc82651820737850dd418cc9f64301d3a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1087-NAV-OneSize.webp",
+    "checksum": "e128c391ae493a98bd1ea8ebbb2a419fc82651820737850dd418cc9f64301d3a",
+    "size": 772,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1088-NAV-OneSize.png:c02126cff15162e0f3364d795e62d1c425d42259fe9a4350593cd018ab159238": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1088-NAV-OneSize.png",
+    "checksum": "c02126cff15162e0f3364d795e62d1c425d42259fe9a4350593cd018ab159238",
+    "size": 8048,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1088-NAV-OneSize.webp:1d19d8c15c1e42d8617d922e4e3055bbdfc0f7a0b5ab4ff6d617bb5fa5ed8bbe": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1088-NAV-OneSize.webp",
+    "checksum": "1d19d8c15c1e42d8617d922e4e3055bbdfc0f7a0b5ab4ff6d617bb5fa5ed8bbe",
+    "size": 672,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1089-GRE-OneSize.png:7306adf312a6d5e1eff85c8ab27b1d8fe394da67f19e157565f2ff9865e7def8": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1089-GRE-OneSize.png",
+    "checksum": "7306adf312a6d5e1eff85c8ab27b1d8fe394da67f19e157565f2ff9865e7def8",
+    "size": 9446,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1089-GRE-OneSize.webp:6b2facd594a2b9d6a7015392f7ee4403af5479fc6a8916a2532a95c260135f58": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1089-GRE-OneSize.webp",
+    "checksum": "6b2facd594a2b9d6a7015392f7ee4403af5479fc6a8916a2532a95c260135f58",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1090-NAV-XS.png:10bf09be1397ebe05a5e774990be9c5178557f423f4278fe2a44aabd4c821226": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1090-NAV-XS.png",
+    "checksum": "10bf09be1397ebe05a5e774990be9c5178557f423f4278fe2a44aabd4c821226",
+    "size": 8768,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1090-NAV-XS.webp:efef3d16d76df5870999ea51744575027f8dd7478238db1ca5392399696e3806": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1090-NAV-XS.webp",
+    "checksum": "efef3d16d76df5870999ea51744575027f8dd7478238db1ca5392399696e3806",
+    "size": 764,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1091-BLU-XL.png:287d94edf4718d69f9de58083f8114f2d982faf093b8a98a1018ed53d5bf28f0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1091-BLU-XL.png",
+    "checksum": "287d94edf4718d69f9de58083f8114f2d982faf093b8a98a1018ed53d5bf28f0",
+    "size": 8648,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1091-BLU-XL.webp:023c2f9d1fed832b37de0864d8e5520bda3fa6c6980725a8fe70286d17e42639": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1091-BLU-XL.webp",
+    "checksum": "023c2f9d1fed832b37de0864d8e5520bda3fa6c6980725a8fe70286d17e42639",
+    "size": 752,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1092-CHA-30.png:c7088b7646952de26e547e6125f8fba6916e4826779dfd8af4781cb51b1c354e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1092-CHA-30.png",
+    "checksum": "c7088b7646952de26e547e6125f8fba6916e4826779dfd8af4781cb51b1c354e",
+    "size": 9084,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1092-CHA-30.webp:a53b1d4bff13033bb110b085d4fe03921079b1f6bb0e7e64661162963e55c2d2": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1092-CHA-30.webp",
+    "checksum": "a53b1d4bff13033bb110b085d4fe03921079b1f6bb0e7e64661162963e55c2d2",
+    "size": 736,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1093-NAV-OneSize.png:a6f83e01e926e510434b08751c1edd772b6b7fac2a61050770be5373b959d0c5": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1093-NAV-OneSize.png",
+    "checksum": "a6f83e01e926e510434b08751c1edd772b6b7fac2a61050770be5373b959d0c5",
+    "size": 9327,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1093-NAV-OneSize.webp:a54325a9efb16fd15f22105c2c794a16c89516d1cb6ef0e67f68491bd39b133f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1093-NAV-OneSize.webp",
+    "checksum": "a54325a9efb16fd15f22105c2c794a16c89516d1cb6ef0e67f68491bd39b133f",
+    "size": 776,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1094-NAV-OneSize.png:f9cb455a37fd960d012cd303f8df83ae6affeb5ab4987032bfd7be9dc2ac3047": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1094-NAV-OneSize.png",
+    "checksum": "f9cb455a37fd960d012cd303f8df83ae6affeb5ab4987032bfd7be9dc2ac3047",
+    "size": 9238,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1094-NAV-OneSize.webp:e9dfd022e90b57604fd375bbecba0880b52684289aa45e4a6886a2844672dcd1": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1094-NAV-OneSize.webp",
+    "checksum": "e9dfd022e90b57604fd375bbecba0880b52684289aa45e4a6886a2844672dcd1",
+    "size": 810,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1095-GRE-OneSize.png:2386df0fe6221f5ed8052600d2bcd10c1ff93f2b98aa840a45ffd94fa8f46698": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1095-GRE-OneSize.png",
+    "checksum": "2386df0fe6221f5ed8052600d2bcd10c1ff93f2b98aa840a45ffd94fa8f46698",
+    "size": 9414,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1095-GRE-OneSize.webp:651f263acf9187f15e8526f52dc3a44af07da5a7b9b8f31c0d00608d0d609c7f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1095-GRE-OneSize.webp",
+    "checksum": "651f263acf9187f15e8526f52dc3a44af07da5a7b9b8f31c0d00608d0d609c7f",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1096-OLI-S.png:d289baa55eacc96013953f90402e641c02bb52d70059d5ee0aa24b1310e3a74d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1096-OLI-S.png",
+    "checksum": "d289baa55eacc96013953f90402e641c02bb52d70059d5ee0aa24b1310e3a74d",
+    "size": 8665,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1096-OLI-S.webp:4944ab4ea32ba34242a13c06af7d3d8fc548e2605de4cbb79c872d1264e96146": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1096-OLI-S.webp",
+    "checksum": "4944ab4ea32ba34242a13c06af7d3d8fc548e2605de4cbb79c872d1264e96146",
+    "size": 686,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1097-GRE-M.png:640dda4bc9271132ab12e84fdde49adb6400997636c3dff9b46468f5fa355b77": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1097-GRE-M.png",
+    "checksum": "640dda4bc9271132ab12e84fdde49adb6400997636c3dff9b46468f5fa355b77",
+    "size": 8737,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1097-GRE-M.webp:082824f9fd2c84bf673c1cc2dc092ba12a13e605b207840fa353f13f15ff42d3": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1097-GRE-M.webp",
+    "checksum": "082824f9fd2c84bf673c1cc2dc092ba12a13e605b207840fa353f13f15ff42d3",
+    "size": 624,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1098-KHA-34.png:d096cffc72a88b3870ed35563431cd16e512ba8283fe29f0d4fa57c67710356d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1098-KHA-34.png",
+    "checksum": "d096cffc72a88b3870ed35563431cd16e512ba8283fe29f0d4fa57c67710356d",
+    "size": 8867,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1098-KHA-34.webp:84d02ee079923862397bfcf28fc196112c56c0e66cc07be86344a9d52a4f3c57": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1098-KHA-34.webp",
+    "checksum": "84d02ee079923862397bfcf28fc196112c56c0e66cc07be86344a9d52a4f3c57",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1099-NAV-OneSize.png:b628844ffe09310dbc5c14bcc9c53ea831bd9de9bd24b73481044b89a6a199ac": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1099-NAV-OneSize.png",
+    "checksum": "b628844ffe09310dbc5c14bcc9c53ea831bd9de9bd24b73481044b89a6a199ac",
+    "size": 9201,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1099-NAV-OneSize.webp:95e635b7f0c423da9a76670e21004e3cd3c10c3ae7f78e06bdc79d202318e327": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1099-NAV-OneSize.webp",
+    "checksum": "95e635b7f0c423da9a76670e21004e3cd3c10c3ae7f78e06bdc79d202318e327",
+    "size": 772,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1100-NAV-OneSize.png:4157d250dbfd839f4f2582467dc58ee813f3a4cb2b3a447d73bbf95f3ebca6cd": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1100-NAV-OneSize.png",
+    "checksum": "4157d250dbfd839f4f2582467dc58ee813f3a4cb2b3a447d73bbf95f3ebca6cd",
+    "size": 9012,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1100-NAV-OneSize.webp:2540a45d1021b13899ae2222a8c24f985d67798df1845b6320ed182af5731d25": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1100-NAV-OneSize.webp",
+    "checksum": "2540a45d1021b13899ae2222a8c24f985d67798df1845b6320ed182af5731d25",
+    "size": 812,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1101-GRE-OneSize.png:5090db65ad9ac5be652c41c6fca34c79d65f4e79e40a6f376f59470fe2339740": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1101-GRE-OneSize.png",
+    "checksum": "5090db65ad9ac5be652c41c6fca34c79d65f4e79e40a6f376f59470fe2339740",
+    "size": 9182,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1101-GRE-OneSize.webp:fde7e26b19ca755a137133fa6ca71050ac1d6365b06436e46a7f1194e656d57b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1101-GRE-OneSize.webp",
+    "checksum": "fde7e26b19ca755a137133fa6ca71050ac1d6365b06436e46a7f1194e656d57b",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1102-RUS-M.png:a9f3690a9c14ebc097370b3c7b047462c650c7df74d1b439dfb693482c42166e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1102-RUS-M.png",
+    "checksum": "a9f3690a9c14ebc097370b3c7b047462c650c7df74d1b439dfb693482c42166e",
+    "size": 8577,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1102-RUS-M.webp:3508aca21fba5bec9472ea0b2ee75937e8c4b9bc5bd2ca117d50f593cdc290a2": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1102-RUS-M.webp",
+    "checksum": "3508aca21fba5bec9472ea0b2ee75937e8c4b9bc5bd2ca117d50f593cdc290a2",
+    "size": 728,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1103-BLU-XL.png:e2ab5fb3db420da18cf17aa94608e6db4a0525bb5da456353c7dcf61a4ab3474": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1103-BLU-XL.png",
+    "checksum": "e2ab5fb3db420da18cf17aa94608e6db4a0525bb5da456353c7dcf61a4ab3474",
+    "size": 8642,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1103-BLU-XL.webp:04def49da9a1700eb679a6c74e7ed6d04d4daa8d11643d1aa9cdec185c8bc20c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1103-BLU-XL.webp",
+    "checksum": "04def49da9a1700eb679a6c74e7ed6d04d4daa8d11643d1aa9cdec185c8bc20c",
+    "size": 746,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1104-KHA-30.png:cb3d72473049287952415b933f95a9ce71f8604f8ea3a1113b7e51e1caae2c30": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1104-KHA-30.png",
+    "checksum": "cb3d72473049287952415b933f95a9ce71f8604f8ea3a1113b7e51e1caae2c30",
+    "size": 8578,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1104-KHA-30.webp:11ecb4e5aff1d7a45c636f3f317497128b57298d9453b9bfb564f2f1deb8959f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1104-KHA-30.webp",
+    "checksum": "11ecb4e5aff1d7a45c636f3f317497128b57298d9453b9bfb564f2f1deb8959f",
+    "size": 658,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1105-NAV-OneSize.png:50cfb60eeaafd71044a08d5766b4f247344bc84fd43870255c8f06b5c69f9ca9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1105-NAV-OneSize.png",
+    "checksum": "50cfb60eeaafd71044a08d5766b4f247344bc84fd43870255c8f06b5c69f9ca9",
+    "size": 9172,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1105-NAV-OneSize.webp:da45c77e2f59f461e41e8b4a2b536f3e9461fbdd88ce5cc52540827319f65f67": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1105-NAV-OneSize.webp",
+    "checksum": "da45c77e2f59f461e41e8b4a2b536f3e9461fbdd88ce5cc52540827319f65f67",
+    "size": 778,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1106-NAV-OneSize.png:59c675083791fdbed6d92398ff9e39e22378995c1a55ae2607d1d5545b3036b9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1106-NAV-OneSize.png",
+    "checksum": "59c675083791fdbed6d92398ff9e39e22378995c1a55ae2607d1d5545b3036b9",
+    "size": 9162,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1106-NAV-OneSize.webp:ecf359b6725951669a46199ac002f89fceaf5ad0fb62d65873e810b198d3d594": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1106-NAV-OneSize.webp",
+    "checksum": "ecf359b6725951669a46199ac002f89fceaf5ad0fb62d65873e810b198d3d594",
+    "size": 814,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1107-GRE-OneSize.png:62c4844b4723fe4b8bd4cfcdff8cd5504cfc65a1b4a8095f8e8d6f45d2fb9215": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1107-GRE-OneSize.png",
+    "checksum": "62c4844b4723fe4b8bd4cfcdff8cd5504cfc65a1b4a8095f8e8d6f45d2fb9215",
+    "size": 9257,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1107-GRE-OneSize.webp:876c8467d76e247127e5ec1b1ca3fa41355e15993d2d4bc8c5dadf1c2caa790b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1107-GRE-OneSize.webp",
+    "checksum": "876c8467d76e247127e5ec1b1ca3fa41355e15993d2d4bc8c5dadf1c2caa790b",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1108-NAV-L.png:1716544cdc69a1d01b7a98871cf8651331b1b676b69b991a711a407f5f1b2a79": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1108-NAV-L.png",
+    "checksum": "1716544cdc69a1d01b7a98871cf8651331b1b676b69b991a711a407f5f1b2a79",
+    "size": 8612,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1108-NAV-L.webp:e7b7e27e41de20165f220c05fd98e78943008af68f75253d7ef9f23c437eae1f": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1108-NAV-L.webp",
+    "checksum": "e7b7e27e41de20165f220c05fd98e78943008af68f75253d7ef9f23c437eae1f",
+    "size": 760,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1109-GRE-M.png:9852daff3b1568efb98fd9d48ef9136fa27562a27537d4ed7ce24efec3273a28": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1109-GRE-M.png",
+    "checksum": "9852daff3b1568efb98fd9d48ef9136fa27562a27537d4ed7ce24efec3273a28",
+    "size": 8654,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1109-GRE-M.webp:8ffe89652841838665c8acb6a98fced82760966c67d937ac835398fefb3755b0": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1109-GRE-M.webp",
+    "checksum": "8ffe89652841838665c8acb6a98fced82760966c67d937ac835398fefb3755b0",
+    "size": 624,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1110-CHA-34.png:9e567f8fa932bf5e73953864c06dfe54add12901f0a60e52e3addc037c89b74b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1110-CHA-34.png",
+    "checksum": "9e567f8fa932bf5e73953864c06dfe54add12901f0a60e52e3addc037c89b74b",
+    "size": 8891,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1110-CHA-34.webp:01f96df85343dde0d71089176a28dd27dae17889feef203ff62415101668fe57": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1110-CHA-34.webp",
+    "checksum": "01f96df85343dde0d71089176a28dd27dae17889feef203ff62415101668fe57",
+    "size": 738,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1111-NAV-OneSize.png:7772ae112a97399142e37aedb9de6b558ed204c829593893dc0cd66ea92b5c56": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1111-NAV-OneSize.png",
+    "checksum": "7772ae112a97399142e37aedb9de6b558ed204c829593893dc0cd66ea92b5c56",
+    "size": 8863,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1111-NAV-OneSize.webp:3caeae68c543ee150ea9dfe72b2f7f5569fcea8e7ea622562bb0a8f32e083ca8": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1111-NAV-OneSize.webp",
+    "checksum": "3caeae68c543ee150ea9dfe72b2f7f5569fcea8e7ea622562bb0a8f32e083ca8",
+    "size": 784,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1112-NAV-OneSize.png:b2d5a6961100c0f17ba07cd7ac741aa0a804f97d1c1349b888d014ae588f7eaf": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1112-NAV-OneSize.png",
+    "checksum": "b2d5a6961100c0f17ba07cd7ac741aa0a804f97d1c1349b888d014ae588f7eaf",
+    "size": 9010,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1112-NAV-OneSize.webp:d5ef53ed7f365c5f846ad5dd4792f600c6150545cb12f068ffcf9d160c5f1718": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1112-NAV-OneSize.webp",
+    "checksum": "d5ef53ed7f365c5f846ad5dd4792f600c6150545cb12f068ffcf9d160c5f1718",
+    "size": 816,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1113-GRE-OneSize.png:eff6ffa7ec8a4fe5a85496685891ee5bdd74188945ef8e04c1643292dbc4811e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1113-GRE-OneSize.png",
+    "checksum": "eff6ffa7ec8a4fe5a85496685891ee5bdd74188945ef8e04c1643292dbc4811e",
+    "size": 9217,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1113-GRE-OneSize.webp:a325d523f7a0d5b782d1f7816ddd621efc75449d23b043bdf465ee8dda5926ad": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1113-GRE-OneSize.webp",
+    "checksum": "a325d523f7a0d5b782d1f7816ddd621efc75449d23b043bdf465ee8dda5926ad",
+    "size": 658,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1114-OLI-XL.png:0d8cc0eb7687f529902fa6196654bfee2ad1bc2f4b1a00bb35afb075b55e951e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1114-OLI-XL.png",
+    "checksum": "0d8cc0eb7687f529902fa6196654bfee2ad1bc2f4b1a00bb35afb075b55e951e",
+    "size": 8467,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1114-OLI-XL.webp:8ec3144a9ad2468b78d321f234d9969946bc0bfc3e11004f519fc7352c0b1ee9": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1114-OLI-XL.webp",
+    "checksum": "8ec3144a9ad2468b78d321f234d9969946bc0bfc3e11004f519fc7352c0b1ee9",
+    "size": 698,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1115-BLU-XL.png:b2804059e8fc95b9ae10be52a8bfad4d66d4aa7f203b3c52d368faf79c2670d8": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1115-BLU-XL.png",
+    "checksum": "b2804059e8fc95b9ae10be52a8bfad4d66d4aa7f203b3c52d368faf79c2670d8",
+    "size": 8484,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1115-BLU-XL.webp:dd5c740dc4e1bd4f6a17dd320516fb15731d0a72b3e915ad1a33c3a34329328a": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1115-BLU-XL.webp",
+    "checksum": "dd5c740dc4e1bd4f6a17dd320516fb15731d0a72b3e915ad1a33c3a34329328a",
+    "size": 744,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1116-CHA-30.png:aa6ba40f277c773793debb3287040e3dc3ae7652ac049f8fa78f3422635e4d71": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1116-CHA-30.png",
+    "checksum": "aa6ba40f277c773793debb3287040e3dc3ae7652ac049f8fa78f3422635e4d71",
+    "size": 8937,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1116-CHA-30.webp:4c132ec0caa2da459fb3f349a6fca445ce9e9e2ebfd725773bc6d9f9f0891801": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1116-CHA-30.webp",
+    "checksum": "4c132ec0caa2da459fb3f349a6fca445ce9e9e2ebfd725773bc6d9f9f0891801",
+    "size": 742,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1117-NAV-OneSize.png:d6d8e6d777cbd1555774ace1162b83a9049ff22914adbee2d769f823ad5ad766": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1117-NAV-OneSize.png",
+    "checksum": "d6d8e6d777cbd1555774ace1162b83a9049ff22914adbee2d769f823ad5ad766",
+    "size": 9012,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1117-NAV-OneSize.webp:714c313dafbab90169bd8fa093b9b2fbad08df4b2faddaedc45e754477d4c6c6": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1117-NAV-OneSize.webp",
+    "checksum": "714c313dafbab90169bd8fa093b9b2fbad08df4b2faddaedc45e754477d4c6c6",
+    "size": 780,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1118-NAV-OneSize.png:4743c8ee643b400d75f9dcd6d8f42ec9b2f15d0b3ba137e68cc7662ea417e216": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1118-NAV-OneSize.png",
+    "checksum": "4743c8ee643b400d75f9dcd6d8f42ec9b2f15d0b3ba137e68cc7662ea417e216",
+    "size": 9034,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1118-NAV-OneSize.webp:834d3c0e19c6bccb9ce9969cf6651685bbfaa406b8b16f40594cff0d7872784c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1118-NAV-OneSize.webp",
+    "checksum": "834d3c0e19c6bccb9ce9969cf6651685bbfaa406b8b16f40594cff0d7872784c",
+    "size": 816,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1119-GRE-OneSize.png:446abb3b1a3b42073ca63c88069398e34797d5dc86fcfb59f4a84e1664fe5938": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1119-GRE-OneSize.png",
+    "checksum": "446abb3b1a3b42073ca63c88069398e34797d5dc86fcfb59f4a84e1664fe5938",
+    "size": 9223,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1119-GRE-OneSize.webp:3d92459936fa236d6fb1e2c3b9dff74488c8fed7287aafcdfbb4e25e6ee4b3e3": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1119-GRE-OneSize.webp",
+    "checksum": "3d92459936fa236d6fb1e2c3b9dff74488c8fed7287aafcdfbb4e25e6ee4b3e3",
+    "size": 654,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1120-NAV-XS.png:612846b782f468bc6494a5d686605fef25953af2652d10637b1dd700551f18be": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1120-NAV-XS.png",
+    "checksum": "612846b782f468bc6494a5d686605fef25953af2652d10637b1dd700551f18be",
+    "size": 8751,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1120-NAV-XS.webp:2f5ffb6368a928fe361cc57980997578924938c897ff149b827dad831d858a48": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1120-NAV-XS.webp",
+    "checksum": "2f5ffb6368a928fe361cc57980997578924938c897ff149b827dad831d858a48",
+    "size": 770,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1121-GRE-M.png:f92290466ecc8d5c2798df1466bf4cce4c18c7c3595ee08be4e7bdadf5322b66": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1121-GRE-M.png",
+    "checksum": "f92290466ecc8d5c2798df1466bf4cce4c18c7c3595ee08be4e7bdadf5322b66",
+    "size": 8540,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1121-GRE-M.webp:e61d08be191c34a2af5247b173835cc8c4e6c676bd79135ec6831bd847c9a7ee": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1121-GRE-M.webp",
+    "checksum": "e61d08be191c34a2af5247b173835cc8c4e6c676bd79135ec6831bd847c9a7ee",
+    "size": 630,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1122-KHA-34.png:a1598112019f7b956e575b7cb8ccdc3e4ea2d9a781e7590a30d3ce797d902d16": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1122-KHA-34.png",
+    "checksum": "a1598112019f7b956e575b7cb8ccdc3e4ea2d9a781e7590a30d3ce797d902d16",
+    "size": 8594,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1122-KHA-34.webp:8fac30ca529ab8c46b46619050678b0dcc28b1296a4a8135d07b02b8d8f885e2": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1122-KHA-34.webp",
+    "checksum": "8fac30ca529ab8c46b46619050678b0dcc28b1296a4a8135d07b02b8d8f885e2",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1123-NAV-OneSize.png:f9072211168af2c2d21798af3a99f876c4ccebfa30a69e04a9eef1eb6c9633ec": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1123-NAV-OneSize.png",
+    "checksum": "f9072211168af2c2d21798af3a99f876c4ccebfa30a69e04a9eef1eb6c9633ec",
+    "size": 9160,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1123-NAV-OneSize.webp:2a8ebefe8bc5586e6851ab865852d373b396085544bb24c73b4c2f9680a3dcd7": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1123-NAV-OneSize.webp",
+    "checksum": "2a8ebefe8bc5586e6851ab865852d373b396085544bb24c73b4c2f9680a3dcd7",
+    "size": 778,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1124-NAV-OneSize.png:6c7370b25193b31c0159496c275fd8ed407774b13c3cf5aa02401ec3661c34cb": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1124-NAV-OneSize.png",
+    "checksum": "6c7370b25193b31c0159496c275fd8ed407774b13c3cf5aa02401ec3661c34cb",
+    "size": 9123,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1124-NAV-OneSize.webp:ffc39c3b55359ec63b250ac3569de24278fabac895d6050aaae0832615d42481": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1124-NAV-OneSize.webp",
+    "checksum": "ffc39c3b55359ec63b250ac3569de24278fabac895d6050aaae0832615d42481",
+    "size": 818,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-ACC-1125-GRE-OneSize.png:011351a50ce7e4ed9e3e8e39a875bf9c722c411629dbec48993abf71f8222278": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-ACC-1125-GRE-OneSize.png",
+    "checksum": "011351a50ce7e4ed9e3e8e39a875bf9c722c411629dbec48993abf71f8222278",
+    "size": 9324,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-ACC-1125-GRE-OneSize.webp:d22a4b734d72c0fadd8a6c98de95a8a4f9cabf495a8abfc1f8e61847e477ee8b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-ACC-1125-GRE-OneSize.webp",
+    "checksum": "d22a4b734d72c0fadd8a6c98de95a8a4f9cabf495a8abfc1f8e61847e477ee8b",
+    "size": 656,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-OUT-1126-OLI-S.png:cc25543f1684fad8592612729845e9d3aa979cf4378e1ec0271ddb5ea56fb53c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-OUT-1126-OLI-S.png",
+    "checksum": "cc25543f1684fad8592612729845e9d3aa979cf4378e1ec0271ddb5ea56fb53c",
+    "size": 8518,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-OUT-1126-OLI-S.webp:4973c55b8967601f3d79fb7f2f70f0804b4fd25e7a44489e8caac826909600dd": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-OUT-1126-OLI-S.webp",
+    "checksum": "4973c55b8967601f3d79fb7f2f70f0804b4fd25e7a44489e8caac826909600dd",
+    "size": 690,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-TOP-1127-BLU-XL.png:fa8a11ca07cecc8b327574863bc42909c2639d7936162e7e4f10fd7e8782cada": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-TOP-1127-BLU-XL.png",
+    "checksum": "fa8a11ca07cecc8b327574863bc42909c2639d7936162e7e4f10fd7e8782cada",
+    "size": 8593,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-TOP-1127-BLU-XL.webp:b617bb83775f36ee6e123f1074ad6a46d80e9dd3ad1985b84cf1e950f00d0f9c": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-TOP-1127-BLU-XL.webp",
+    "checksum": "b617bb83775f36ee6e123f1074ad6a46d80e9dd3ad1985b84cf1e950f00d0f9c",
+    "size": 742,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BOT-1128-KHA-30.png:50c93e108381dab217759987f74b74cdd752687a05933f358810ef3f630df998": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BOT-1128-KHA-30.png",
+    "checksum": "50c93e108381dab217759987f74b74cdd752687a05933f358810ef3f630df998",
+    "size": 8756,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BOT-1128-KHA-30.webp:167332ed62030d55fcab69defdd1f9ae6e4267bdf79a2a547015485df455418b": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BOT-1128-KHA-30.webp",
+    "checksum": "167332ed62030d55fcab69defdd1f9ae6e4267bdf79a2a547015485df455418b",
+    "size": 652,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:media/source/NST-BAG-1129-NAV-OneSize.png:07fb59cb784a909da9d48e56ecc5fd3dd65a02ea7b4a16e9ff14848a3a098848": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/source/NST-BAG-1129-NAV-OneSize.png",
+    "checksum": "07fb59cb784a909da9d48e56ecc5fd3dd65a02ea7b4a16e9ff14848a3a098848",
+    "size": 9146,
+    "content_type": "image/png"
+  },
+  "phase11_northstar:media/thumbnail/NST-BAG-1129-NAV-OneSize.webp:960fd030752bd513cecc22e2528828cdae5da12e1030a2710e996d6128fc0a3e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/media/thumbnail/NST-BAG-1129-NAV-OneSize.webp",
+    "checksum": "960fd030752bd513cecc22e2528828cdae5da12e1030a2710e996d6128fc0a3e",
+    "size": 776,
+    "content_type": "image/webp"
+  },
+  "phase11_northstar:phase1/supplier/catalog.xlsx:784fde5c109753dc47060a711363f3abf44dd5449d309a26dd55216afc66ad47": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/phase1/supplier/catalog.xlsx",
+    "checksum": "784fde5c109753dc47060a711363f3abf44dd5449d309a26dd55216afc66ad47",
+    "size": 9946,
+    "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  "phase11_northstar:phase1/supplier/catalog.xlsx:c59f5231109cec5ac5a4a5ebe9c39be92731c418bfc1e76eeb60880698cdf532": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/phase1/supplier/catalog.xlsx",
+    "checksum": "c59f5231109cec5ac5a4a5ebe9c39be92731c418bfc1e76eeb60880698cdf532",
+    "size": 9946,
+    "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  "phase11_northstar:phase1/supplier/catalog.xlsx:2267e50d57f594a71f738336bc3182e07f9aadb466da5bf5f110cbab0cb616bb": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/phase1/supplier/catalog.xlsx",
+    "checksum": "2267e50d57f594a71f738336bc3182e07f9aadb466da5bf5f110cbab0cb616bb",
+    "size": 9946,
+    "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  "phase11_northstar:phase1/supplier/catalog.xlsx:5c5df82a1477c43b51c8ca2017fe2808ad9ca3830932b91284daf29ce934f486": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/phase1/supplier/catalog.xlsx",
+    "checksum": "5c5df82a1477c43b51c8ca2017fe2808ad9ca3830932b91284daf29ce934f486",
+    "size": 9947,
+    "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  "phase11_northstar:phase1/supplier/catalog.xlsx:39bb422fae516008bd9ab731ae3365aac74a6ff67e0778793bc0f1ee04f7d88e": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/phase1/supplier/catalog.xlsx",
+    "checksum": "39bb422fae516008bd9ab731ae3365aac74a6ff67e0778793bc0f1ee04f7d88e",
+    "size": 9946,
+    "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  "phase11_northstar:phase1/supplier/catalog.xlsx:d111d9e799da0eafe2923a5f0becac7009110516c817737aec36a2a9bc4a4182": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/phase1/supplier/catalog.xlsx",
+    "checksum": "d111d9e799da0eafe2923a5f0becac7009110516c817737aec36a2a9bc4a4182",
+    "size": 9946,
+    "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "phase": "SHOPIFY REAL DEVELOPMENT-STORE CERTIFICATION",
+  "classification": "REAL EXTERNAL PLATFORM - DEVELOPMENT STORE",
+  "executed": true,
+  "blocked_reason": null,
+  "journey": {
+    "webhook_registration": {
+      "webhook_ids": [
+        "gid://shopify/WebhookSubscription/1564320137295",
+        "gid://shopify/WebhookSubscription/1564320170063",
+        "gid://shopify/WebhookSubscription/1564320202831"
+      ],
+      "delivery_url": "https://tom-banners-alot-reached.trycloudflare.com/webhooks/shopify_live/shopify_live_cert_merchant"
+    },
+    "catalogue_ingest_status": 200,
+    "draft_state_after_approval": "READY",
+    "publish_outcome": "published",
+    "external_product_gid": "gid://shopify/Product/9066628350031",
+    "shopify_readback": {
+      "title": "Shopify Dev Store Cert Shirt",
+      "status": "ACTIVE",
+      "variants": {
+        "nodes": [
+          {
+            "sku": "SHOPIFY-LIVE-CERT-1789040853",
+            "price": "499.00"
+          }
+        ]
+      }
+    },
+    "update_external_ref": "gid://shopify/Product/9066628350031",
+    "inventory_mutation_result": {
+      "inventoryLevel": {
+        "id": "gid://shopify/InventoryLevel/120334221391?inventory_item_id=48851624460367"
+      },
+      "userErrors": []
+    },
+    "inventory_readback": {
+      "sku": "SHOPIFY-LIVE-CERT-1789040853",
+      "available": 15,
+      "raw": {
+        "inventory_item_id": "gid://shopify/InventoryItem/48851624460367"
+      }
+    },
+    "order_create_user_errors": [],
+    "shopify_order_gid": "gid://shopify/Order/7094768762959",
+    "orders_before_webhook": 6,
+    "webhook_created_canonical_order": true,
+    "canonical_order_id": "ord_c69f6743ca7e41c498bb91bbc3754891",
+    "duplicate_webhook_replay_statuses": [
+      200,
+      200
+    ],
+    "orders_after_duplicate_replay": 7,
+    "fulfilment_result": {
+      "id": "gid://shopify/Fulfillment/5896610611279",
+      "status": "SUCCESS"
+    },
+    "order_gid_for_cancellation": "gid://shopify/Order/7094768795727",
+    "cancel_result": {
+      "job": {
+        "id": "gid://shopify/Job/fb840133-8595-4803-be2b-00fb29f19aba"
+      },
+      "userErrors": []
+    },
+    "refund_result": {
+      "id": "gid://shopify/Refund/959846809679",
+      "totalRefundedSet": {
+        "presentmentMoney": {
+          "amount": "100.0",
+          "currencyCode": "USD"
+        }
+      }
+    },
+    "reconciliation_result": []
+  },
+  "semantic_findings": [
+    {
+      "area": "test_order_creation",
+      "finding": "orderCreate was used to place the certification's test order directly via the Admin API, rather than a real storefront checkout through the Bogus Gateway - the more automatable path. Report here whether this triggered identical real webhook delivery to a checkout-originated order; if not, that is a genuine semantic difference worth recording, not one to paper over."
+    },
+    {
+      "area": "refund_test_payment_path",
+      "finding": "Shopify's real test-payment mechanism for a development store is the Bogus Gateway (Settings > Payments > Additional payment methods), which is DIFFERENT from Shopify Payments' own test card numbers (the Bogus Gateway does not accept those cards, and vice versa) - must be enabled once on the real store before this step can produce a refundable transaction. If orderCreate-created orders (used above for automation) don't carry a real gateway transaction at all, a refund may need to originate from a Bogus-Gateway checkout order instead - report whichever is true against the real store."
+    }
+  ],
+  "zero_tolerance": {
+    "real_product_created": {
+      "status": "PASS",
+      "evidence": "publish status=200 outcome=published external_product_gid=gid://shopify/Product/9066628350031"
+    },
+    "real_product_read_back_independently": {
+      "status": "PASS",
+      "evidence": "direct Shopify GraphQL read-back: title='Shopify Dev Store Cert Shirt' sku='SHOPIFY-LIVE-CERT-1789040853' status='ACTIVE'"
+    },
+    "real_product_update_reflected": {
+      "status": "PASS",
+      "evidence": "update_result.external_ref=gid://shopify/Product/9066628350031 (must equal the original product gid, proving productSet UPDATED rather than created a duplicate) variants_after_update=[{'sku': 'SHOPIFY-LIVE-CERT-1789040853', 'price': '549.00'}]"
+    },
+    "real_inventory_location_operation": {
+      "status": "PASS",
+      "evidence": "inventorySetQuantities -> read-back available=15 (must be 15) at location gid://shopify/Location/83781845071 (discovered programmatically, not configured)"
+    },
+    "real_webhook_created_canonical_order": {
+      "status": "PASS",
+      "evidence": "real Shopify order 7094768762959 -> real ORDERS_CREATE webhook (via the real tunnel at https://tom-banners-alot-reached.trycloudflare.com) -> canonical Sanocea order: found=True. REQUIRES a real webhook subscription for this merchant's channel already registered (see register_webhooks / the prep doc's step 5) AND the tunnel actually up and reachable from Shopify's cloud - a FAIL here most likely means one of those two setup steps, not the connector itself."
+    },
+    "duplicate_webhook_no_duplicate_order": {
+      "status": "PASS",
+      "evidence": "replay statuses=[200, 200] order_count_after=7 (must stay at before_count+1=7)"
+    },
+    "real_fulfilment_via_fulfillment_order_api": {
+      "status": "PASS",
+      "evidence": "fulfillmentCreate result status=SUCCESS"
+    },
+    "real_cancellation_where_valid": {
+      "status": "PASS",
+      "evidence": "orderCancel job=gid://shopify/Job/fb840133-8595-4803-be2b-00fb29f19aba"
+    },
+    "real_refund_via_bogus_gateway_or_manual": {
+      "status": "PASS",
+      "evidence": "refundCreate refund id=gid://shopify/Refund/959846809679"
+    },
+    "reconciliation": {
+      "status": "PASS",
+      "evidence": "reconcile() ran against the real order: []"
+    }
+  },
+  "runtime_seconds": 22.8803,
+  "verdict": "PASS"
+}

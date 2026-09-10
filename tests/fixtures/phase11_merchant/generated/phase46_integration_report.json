@@ -1,0 +1,368 @@
+{
+  "phase": "PHASE 4.6 - COMMERCE CORE COMPLETION",
+  "classification": {
+    "REAL_LOCAL_INFRASTRUCTURE": [
+      "Postgres (all state for this workload)"
+    ],
+    "SIMULATED_EXTERNAL_PLATFORM": [
+      "Shopify webhook shape (HMAC-signed synthetic payloads)",
+      "Chatwoot webhook shape (HMAC-signed synthetic payloads)",
+      "SimulatedSupplierConnector",
+      "SimulatedPaymentConnector",
+      "SimulatedLogisticsConnector"
+    ],
+    "LIVE_EXTERNAL_PLATFORM": []
+  },
+  "onboarding": {
+    "merchant_id": "phase46_merchant_c",
+    "operator_api_key": "sk_L-mmYTxU86cI9RRtD-NURLUfxzUyWzDlfCBUGYvnBsE",
+    "other_merchant_id": "phase46_merchant_d_isolation_probe",
+    "other_operator_api_key": "sk_k-cYSsf7Rv7HXvaq_Nm0bOXq9SiN1TnB8vCbV4U2pYA",
+    "config_sections_set": [
+      "cancellations",
+      "currency",
+      "enabled_modules",
+      "finance",
+      "logistics",
+      "policy",
+      "procurement",
+      "product_rules",
+      "publication",
+      "returns",
+      "sla_thresholds",
+      "support",
+      "timezone"
+    ],
+    "suppliers_created": 1,
+    "supplier_offers_created": 2,
+    "validated_before_activation": true
+  },
+  "normal_workload": {
+    "orders_ingested": 5,
+    "inventory_reservations": 9,
+    "refunds_requested": 1,
+    "refunds_completed": 1,
+    "payment_observations": 5,
+    "settlement_reconciliations": 6,
+    "settlement_matches": 6,
+    "replenishment_recommendations": 1,
+    "purchase_orders_created": 1,
+    "purchase_orders_confirmed": 1,
+    "goods_receipts": 1,
+    "support_conversations_handled": 7,
+    "catalogue": {
+      "draft_id": "pdr_a668d5edd4bb47aab9586b3797166b91",
+      "draft_state_after_ingest": "NEEDS_APPROVAL",
+      "draft_state_after_approval": "READY",
+      "publish_outcome": "published",
+      "listing_verification_outcome": "VERIFIED"
+    },
+    "support_actions": [
+      {
+        "action_id": "csa_f3248798132e4e939ccd589a4cfba3cf",
+        "intent": "order_status",
+        "handling_mode": "AUTOMATIC",
+        "status": "executed"
+      },
+      {
+        "action_id": "csa_4776a08c7da247ccbf15c18bd48a8305",
+        "intent": "shipment_status",
+        "handling_mode": "AUTOMATIC",
+        "status": "executed"
+      },
+      {
+        "action_id": "csa_544883c4d53442a2ad1a888d50f331ce",
+        "intent": "cancellation_request",
+        "handling_mode": "APPROVAL-GATED",
+        "status": "requested"
+      },
+      {
+        "action_id": "csa_0cac8f9ec39143cc93d0a97e002480d6",
+        "intent": "return_request",
+        "handling_mode": "APPROVAL-GATED",
+        "status": "requested"
+      },
+      {
+        "action_id": "csa_2c528a91158d45e4bfba620268ca56e2",
+        "intent": "refund_request",
+        "handling_mode": "APPROVAL-GATED",
+        "status": "requested"
+      },
+      {
+        "action_id": "csa_8a4fcd03e23c4d7a99a893895a630464",
+        "intent": "availability_question",
+        "handling_mode": "AUTOMATIC",
+        "status": "executed"
+      },
+      {
+        "action_id": "csa_9f98fdec504d4bfb88cd97701cdd209b",
+        "intent": "unknown",
+        "handling_mode": "EXCEPTION-ONLY",
+        "status": "escalated"
+      }
+    ],
+    "order_ids": [
+      "ord_d209de458d7a46fdb76adbab874dd295",
+      "ord_0b672022abd147d3955b150ac270a0a3",
+      "ord_77b9844704a5416d8f761d73a8ca567c",
+      "ord_bdb9606a921246269d303d69691e7ffd",
+      "ord_15f92cff88e445438fd9673f779a32d7"
+    ],
+    "order_numbers": {
+      "ord_d209de458d7a46fdb76adbab874dd295": "MC-0",
+      "ord_0b672022abd147d3955b150ac270a0a3": "MC-1",
+      "ord_77b9844704a5416d8f761d73a8ca567c": "MC-2",
+      "ord_bdb9606a921246269d303d69691e7ffd": "MC-3",
+      "ord_15f92cff88e445438fd9673f779a32d7": "MC-4"
+    },
+    "shipment_ref": "simship-a368809d2bd5",
+    "refund_id": "ref_413968cffea7449c90dca04538f92d6d",
+    "refund_order_id": "ord_0b672022abd147d3955b150ac270a0a3",
+    "refund_settlement_matched_with_real_reference": true,
+    "final_inventory_position_sku2": {
+      "id": "inv_955cab94e6894b34aa060fb039f25809",
+      "merchant_id": "phase46_merchant_c",
+      "external_refs": [],
+      "source_of_truth": "unknown",
+      "sync": {
+        "source_version": null,
+        "source_updated_at": null,
+        "observed_at": "2026-09-10T09:21:07.679256Z",
+        "updated_at": "2026-09-10T09:21:11.898483Z",
+        "event_sequence": null,
+        "raw_payload_ref": null
+      },
+      "idempotency": null,
+      "sku": "MC-SKU-2",
+      "location_ref": "default",
+      "quantity": 63,
+      "reserved": 3,
+      "status": "observed",
+      "available": 60,
+      "committed": 0,
+      "confirmed_inbound": 0,
+      "observed_at": "2026-09-10T09:21:07.679266Z"
+    },
+    "settlement_match_rate_formula": "6 matched / 6 reconciliation_results = 1.0",
+    "refund_completion_rate_formula": "1 completed / 1 requested = 1.0",
+    "loop_closed_replenishment_to_inventory": true
+  },
+  "adversarial_workload": {
+    "duplicate_webhook": {
+      "first_status": 200,
+      "second_status": 200,
+      "order_count": 1,
+      "correct": true
+    },
+    "stale_webhook": {
+      "payment_status": "paid",
+      "correct": true
+    },
+    "invalid_signature": {
+      "status_code": 401,
+      "correct": true
+    },
+    "cross_tenant_access": {
+      "status_code": 403,
+      "correct": true
+    },
+    "cross_tenant_mutation": {
+      "status_code": 403,
+      "correct": true
+    },
+    "unauthorized_approval": {
+      "status_code": 401,
+      "correct": true
+    },
+    "po_idempotency_lost_response_retry": {
+      "after_lost_response_status": "SUBMITTED",
+      "after_retry_external_ref": "simpo-05d64a294e7d",
+      "correct": true
+    },
+    "financial_discrepancy_visible": {
+      "exception_count": 2,
+      "correct": true
+    },
+    "mutation_uncertainty_not_success": {
+      "status": "AUTO_APPROVED",
+      "correct": true
+    },
+    "unresolved_reference_never_matched": {
+      "results": [
+        "UNRESOLVED_REFERENCE",
+        "CANONICAL_ONLY"
+      ],
+      "correct": true
+    },
+    "duplicate_catalogue_publication": {
+      "external_products_created": 1,
+      "first_external_id": "gid://shopify/Product/858b25a8a38d",
+      "second_external_id": "gid://shopify/Product/858b25a8a38d",
+      "publication_rows_for_draft_channel": 1,
+      "correct": true
+    },
+    "unauthorized_catalogue_mutation": {
+      "status_code": 401,
+      "correct": true
+    },
+    "support_answer_reflects_current_truth": {
+      "first_action_id": "csa_7c161dc892574c5696e393558c950188",
+      "second_action_id": "csa_5f3a4874bd134906b24c80899c75233c",
+      "answers_are_distinct_actions": true,
+      "correct": true
+    },
+    "support_unauthorized_mutation": {
+      "support_action_status": "requested",
+      "created_refund_status": "permitted",
+      "correct": true
+    },
+    "duplicate_support_event": {
+      "replay_status_code": 200,
+      "actions_before": 10,
+      "actions_after": 10,
+      "refund_rows_before": 3,
+      "refund_rows_after": 3,
+      "correct": true
+    },
+    "fabricated_refund_identity_never_matched": {
+      "results": [
+        "UNRESOLVED_REFERENCE",
+        "CANONICAL_ONLY"
+      ],
+      "correct": true
+    },
+    "recovery_runner_overlap": {
+      "held_lock_acquired": true,
+      "overlapping_pass_result": 0,
+      "correct": true
+    },
+    "scenario_count": 17,
+    "scenario_pass_count": 17,
+    "scenario_pass_rate_formula": "17 correct / 17 adversarial scenarios = 1.0"
+  },
+  "recovery_worker": {
+    "uncertain_exceptions_before_recovery": 2,
+    "final_po_status": "SUBMITTED",
+    "uncertain_exceptions_after_recovery": 0,
+    "worker_counters": {
+      "exceptions_scanned": 2,
+      "reconciled_from_external_truth": 0,
+      "retried_after_confirming_no_prior_effect": 2,
+      "left_open_within_retry_bounds": 0,
+      "escalated_terminal": 0,
+      "stale_workflows_flagged": 0
+    },
+    "correct": true
+  },
+  "zero_tolerance": {
+    "duplicate_order_business_effect": {
+      "status": "PASS",
+      "evidence": "duplicate webhook (same webhook id) sent twice: resulting order count = 1 (must be 1)"
+    },
+    "duplicate_payment_refund_po_mutation": {
+      "status": "PASS",
+      "evidence": "PO submission with lost response then explicit HTTP retry: {'after_lost_response_status': 'SUBMITTED', 'after_retry_external_ref': 'simpo-05d64a294e7d', 'correct': True}"
+    },
+    "cross_tenant_access_or_mutation": {
+      "status": "PASS",
+      "evidence": "read attempt status=403, mutation attempt status=403 (both must be 403)"
+    },
+    "unauthorized_approval": {
+      "status": "PASS",
+      "evidence": "approval attempt with no bearer token: status=401 (must be 401)"
+    },
+    "invalid_webhook_causing_mutation": {
+      "status": "PASS",
+      "evidence": "webhook with invalid HMAC signature: status=401 (must be 401, no order created)"
+    },
+    "refund_canonical_truth_contradiction": {
+      "status": "PASS",
+      "evidence": "scanned 3 refunds; every one exposes BOTH operational_status and financial_reconciliation_status (never collapsed into one ambiguous field) = True"
+    },
+    "stale_event_regressing_state": {
+      "status": "PASS",
+      "evidence": "order after stale (lower-sequence) webhook: payment_status=paid (must stay 'paid', not regress to 'refunded')"
+    },
+    "inbound_becoming_sellable_prematurely": {
+      "status": "PASS",
+      "evidence": "replenishment->PO->ack->ship->receipt loop: goods_receipts=1, final MC-SKU-2 on_hand=63 (only rose via explicit goods receipt)"
+    },
+    "unauthorized_procurement_spend": {
+      "status": "PASS",
+      "evidence": "same evidence as unauthorized_approval - a PO approval attempt with no credential must be refused, never silently authorized"
+    },
+    "financial_discrepancy_silently_swallowed": {
+      "status": "PASS",
+      "evidence": "open exceptions visible via GET /merchants/{id}/exceptions after a deliberate payment amount mismatch = 2 (must be > 0)"
+    },
+    "uncertain_mutation_blindly_retried": {
+      "status": "PASS",
+      "evidence": "direct uncertain submission never marked SUBMITTED = True; recovery worker resolved a separate uncertain PO by reading truth first = True"
+    },
+    "unresolved_external_reference_silently_matched": {
+      "status": "PASS",
+      "evidence": "settlement entry with a never-observed provider reference: results=['UNRESOLVED_REFERENCE', 'CANONICAL_ONLY'] (none may be MATCH)"
+    },
+    "operator_critical_exception_invisible_to_control_plane": {
+      "status": "PASS",
+      "evidence": "operator/summary open_exceptions=8 matches direct GET /exceptions count=8; needs_attention flag correctly reflects underlying state"
+    },
+    "duplicate_catalogue_publication": {
+      "status": "PASS",
+      "evidence": "two publish requests for the same draft+channel: {'external_products_created': 1, 'first_external_id': 'gid://shopify/Product/858b25a8a38d', 'second_external_id': 'gid://shopify/Product/858b25a8a38d', 'publication_rows_for_draft_channel': 1, 'correct': True}"
+    },
+    "invalid_unauthorized_catalogue_mutation": {
+      "status": "PASS",
+      "evidence": "publish attempt with no bearer token: status=401 (must be 401)"
+    },
+    "support_answer_contradicting_canonical_truth": {
+      "status": "PASS",
+      "evidence": "shipment status asked before/after a direct status mutation produced distinct support actions = True"
+    },
+    "support_performing_unauthorized_mutation": {
+      "status": "PASS",
+      "evidence": "support-initiated refund request: {'support_action_status': 'requested', 'created_refund_status': 'permitted', 'correct': True}"
+    },
+    "duplicate_support_event_causing_duplicate_business_action": {
+      "status": "PASS",
+      "evidence": "identical Chatwoot webhook delivery replayed: {'replay_status_code': 200, 'actions_before': 10, 'actions_after': 10, 'refund_rows_before': 3, 'refund_rows_after': 3, 'correct': True}"
+    },
+    "refund_settlement_matched_using_fabricated_identity": {
+      "status": "PASS",
+      "evidence": "settlement entry using Sanocea's internal refund id AS a provider reference: results=['UNRESOLVED_REFERENCE', 'CANONICAL_ONLY'] (none may be MATCH)"
+    },
+    "recovery_runner_overlap_causing_duplicate_mutation": {
+      "status": "PASS",
+      "evidence": "a second pass attempted while the advisory lock is held elsewhere: {'held_lock_acquired': True, 'overlapping_pass_result': 0, 'correct': True}"
+    }
+  },
+  "tracked_debt": [
+    {
+      "item": "No real Temporal worker registration for the order/inventory orchestration step",
+      "gap": "Deliberate Phase 4.6 decision (docs/architecture/phase4.6-commerce-core-completion.md): current operational workflows are short synchronous sequences or already-solved bounded-retry background jobs, neither needs durable orchestration. TemporalRuntime/RealOrderWorkflow remain a validated capability proof, not wired into the live path.",
+      "status": "deliberately deferred, decision documented"
+    },
+    {
+      "item": "Recovery runner has no scheduler ACTIVATED in this environment",
+      "gap": "scripts/run_recovery_worker.py is a real, tested, portable (systemd/cron/container) entrypoint with example unit files under infra/systemd/ - not installed/activated by this phase per its explicit scope ('Do not deploy it yet').",
+      "status": "built, not deployed - per scope"
+    },
+    {
+      "item": "Refund settlement has no cross-entry cumulative accounting",
+      "gap": "Unlike orders (Phase 3.1's reconcile_cumulative_settlement), two different valid external references both resolving to the same refund are each reconciled independently, not summed/deduplicated as a single cumulative verdict - a real, narrower residual gap than the reference-resolution debt this phase closed.",
+      "status": "deferred, tracked"
+    },
+    {
+      "item": "Full Prometheus/OpenTelemetry/alerting stack",
+      "gap": "Only structured correlation-id propagation and basic control-plane counters (operator/summary) exist, per this phase's explicit scope boundary (item 10 in the Phase 4.6 spec).",
+      "status": "deliberately deferred, per scope"
+    },
+    {
+      "item": "migrations/0001_phase05.sql remains a single, ever-growing file",
+      "gap": "No incremental/versioned migration mechanism yet - unchanged carryover from Phase 3/4/4.5, now larger again.",
+      "status": "deferred, tracked"
+    }
+  ],
+  "runtime_seconds": 44.9479,
+  "verdict": "PASS"
+}

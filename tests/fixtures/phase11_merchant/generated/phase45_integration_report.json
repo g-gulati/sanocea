@@ -1,0 +1,227 @@
+{
+  "phase": "PHASE 4.5 - COMMERCE OS INTEGRATION & OPERATIONALIZATION",
+  "classification": {
+    "REAL_LOCAL_INFRASTRUCTURE": [
+      "Postgres (all state for this workload)"
+    ],
+    "SIMULATED_EXTERNAL_PLATFORM": [
+      "Shopify webhook shape (HMAC-signed synthetic payloads)",
+      "SimulatedSupplierConnector",
+      "SimulatedPaymentConnector",
+      "SimulatedLogisticsConnector"
+    ],
+    "LIVE_EXTERNAL_PLATFORM": []
+  },
+  "onboarding": {
+    "merchant_id": "phase45_merchant_c",
+    "operator_api_key": "sk_smtiAudDDBWiXv1P75G5zR_0rkMgKBqLx-PRp5SzMpQ",
+    "other_merchant_id": "phase45_merchant_d_isolation_probe",
+    "other_operator_api_key": "sk_-FY1W3bqgyTyroesQSy83n296hB7io4-9V5ycsFIQtA",
+    "config_sections_set": [
+      "cancellations",
+      "currency",
+      "enabled_modules",
+      "finance",
+      "logistics",
+      "policy",
+      "procurement",
+      "product_rules",
+      "publication",
+      "returns",
+      "sla_thresholds",
+      "support",
+      "timezone"
+    ],
+    "suppliers_created": 1,
+    "supplier_offers_created": 2,
+    "validated_before_activation": true
+  },
+  "normal_workload": {
+    "orders_ingested": 5,
+    "inventory_reservations": 9,
+    "refunds_requested": 1,
+    "refunds_completed": 1,
+    "payment_observations": 5,
+    "settlement_reconciliations": 6,
+    "settlement_matches": 5,
+    "replenishment_recommendations": 1,
+    "purchase_orders_created": 1,
+    "purchase_orders_confirmed": 1,
+    "goods_receipts": 1,
+    "final_inventory_position_sku2": {
+      "id": "inv_86298004a29d4bb9b42820e0bcda3f52",
+      "merchant_id": "phase45_merchant_c",
+      "external_refs": [],
+      "source_of_truth": "unknown",
+      "sync": {
+        "source_version": null,
+        "source_updated_at": null,
+        "observed_at": "2026-09-10T09:20:38.431615Z",
+        "updated_at": "2026-09-10T09:20:42.467525Z",
+        "event_sequence": null,
+        "raw_payload_ref": null
+      },
+      "idempotency": null,
+      "sku": "MC-SKU-2",
+      "location_ref": "default",
+      "quantity": 63,
+      "reserved": 3,
+      "status": "observed",
+      "available": 60,
+      "committed": 0,
+      "confirmed_inbound": 0,
+      "observed_at": "2026-09-10T09:20:38.431626Z"
+    },
+    "settlement_match_rate_formula": "5 matched / 6 reconciliation_results = 0.8333",
+    "refund_completion_rate_formula": "1 completed / 1 requested = 1.0",
+    "loop_closed_replenishment_to_inventory": true
+  },
+  "adversarial_workload": {
+    "duplicate_webhook": {
+      "first_status": 200,
+      "second_status": 200,
+      "order_count": 1,
+      "correct": true
+    },
+    "stale_webhook": {
+      "payment_status": "paid",
+      "correct": true
+    },
+    "invalid_signature": {
+      "status_code": 401,
+      "correct": true
+    },
+    "cross_tenant_access": {
+      "status_code": 403,
+      "correct": true
+    },
+    "cross_tenant_mutation": {
+      "status_code": 403,
+      "correct": true
+    },
+    "unauthorized_approval": {
+      "status_code": 401,
+      "correct": true
+    },
+    "po_idempotency_lost_response_retry": {
+      "after_lost_response_status": "SUBMITTED",
+      "after_retry_external_ref": "simpo-2905950cc3da",
+      "correct": true
+    },
+    "financial_discrepancy_visible": {
+      "exception_count": 2,
+      "correct": true
+    },
+    "mutation_uncertainty_not_success": {
+      "status": "AUTO_APPROVED",
+      "correct": true
+    },
+    "unresolved_reference_never_matched": {
+      "results": [
+        "UNRESOLVED_REFERENCE",
+        "CANONICAL_ONLY"
+      ],
+      "correct": true
+    },
+    "scenario_count": 10,
+    "scenario_pass_count": 10,
+    "scenario_pass_rate_formula": "10 correct / 10 adversarial scenarios = 1.0"
+  },
+  "recovery_worker": {
+    "uncertain_exceptions_before_recovery": 2,
+    "final_po_status": "SUBMITTED",
+    "uncertain_exceptions_after_recovery": 0,
+    "worker_counters": {
+      "exceptions_scanned": 2,
+      "reconciled_from_external_truth": 0,
+      "retried_after_confirming_no_prior_effect": 2,
+      "left_open_within_retry_bounds": 0,
+      "escalated_terminal": 0,
+      "stale_workflows_flagged": 0
+    },
+    "correct": true
+  },
+  "zero_tolerance": {
+    "duplicate_order_business_effect": {
+      "status": "PASS",
+      "evidence": "duplicate webhook (same webhook id) sent twice: resulting order count = 1 (must be 1)"
+    },
+    "duplicate_payment_refund_po_mutation": {
+      "status": "PASS",
+      "evidence": "PO submission with lost response then explicit HTTP retry: {'after_lost_response_status': 'SUBMITTED', 'after_retry_external_ref': 'simpo-2905950cc3da', 'correct': True}"
+    },
+    "cross_tenant_access_or_mutation": {
+      "status": "PASS",
+      "evidence": "read attempt status=403, mutation attempt status=403 (both must be 403)"
+    },
+    "unauthorized_approval": {
+      "status": "PASS",
+      "evidence": "approval attempt with no bearer token: status=401 (must be 401)"
+    },
+    "invalid_webhook_causing_mutation": {
+      "status": "PASS",
+      "evidence": "webhook with invalid HMAC signature: status=401 (must be 401, no order created)"
+    },
+    "refund_canonical_truth_contradiction": {
+      "status": "PASS",
+      "evidence": "scanned 1 refunds; every one exposes BOTH operational_status and financial_reconciliation_status (never collapsed into one ambiguous field) = True"
+    },
+    "stale_event_regressing_state": {
+      "status": "PASS",
+      "evidence": "order after stale (lower-sequence) webhook: payment_status=paid (must stay 'paid', not regress to 'refunded')"
+    },
+    "inbound_becoming_sellable_prematurely": {
+      "status": "PASS",
+      "evidence": "replenishment->PO->ack->ship->receipt loop: goods_receipts=1, final MC-SKU-2 on_hand=63 (only rose via explicit goods receipt)"
+    },
+    "unauthorized_procurement_spend": {
+      "status": "PASS",
+      "evidence": "same evidence as unauthorized_approval - a PO approval attempt with no credential must be refused, never silently authorized"
+    },
+    "financial_discrepancy_silently_swallowed": {
+      "status": "PASS",
+      "evidence": "open exceptions visible via GET /merchants/{id}/exceptions after a deliberate payment amount mismatch = 2 (must be > 0)"
+    },
+    "uncertain_mutation_blindly_retried": {
+      "status": "PASS",
+      "evidence": "direct uncertain submission never marked SUBMITTED = True; recovery worker resolved a separate uncertain PO by reading truth first = True"
+    },
+    "unresolved_external_reference_silently_matched": {
+      "status": "PASS",
+      "evidence": "settlement entry with a never-observed provider reference: results=['UNRESOLVED_REFERENCE', 'CANONICAL_ONLY'] (none may be MATCH)"
+    },
+    "operator_critical_exception_invisible_to_control_plane": {
+      "status": "PASS",
+      "evidence": "operator/summary open_exceptions=4 matches direct GET /exceptions count=4; needs_attention flag correctly reflects underlying state"
+    }
+  },
+  "tracked_debt": [
+    {
+      "item": "Catalogue/product publication has no HTTP command surface in this phase",
+      "gap": "Journey A's product->canonical->approval->publication path remains reachable only via direct service calls (Phase 1), not through apps/api - only the order/post-order/finance/procurement engines were wired in Phase 4.5, per its own scope (post-order/finance/procurement were the explicitly named engines).",
+      "status": "deferred, tracked"
+    },
+    {
+      "item": "Support engine has no HTTP command surface",
+      "gap": "packages/support/workflow.py remains unwired to apps/api; support-visible truth was proven by reading the same canonical Order/Refund rows directly (queries.get_refund_full_state), not by exercising the support engine itself through HTTP.",
+      "status": "deferred, tracked"
+    },
+    {
+      "item": "No real Temporal worker registration for the new order/inventory orchestration step",
+      "gap": "OrderOrchestrator/FakeTemporalEngine remain the in-process orchestration shape; a real Temporal worker hosting this as a durable workflow (with real timers/retries across process restarts) was not built.",
+      "status": "deferred, tracked"
+    },
+    {
+      "item": "Background recovery worker has no scheduler/always-on process wrapper",
+      "gap": "ReconciliationWorker.run_once() is a real, tested, safe recovery primitive, but nothing in this repo yet runs it periodically (a systemd timer / cron / simple loop is the deployment-time gap, not a code gap).",
+      "status": "deferred, tracked"
+    },
+    {
+      "item": "Full Prometheus/OpenTelemetry/alerting stack",
+      "gap": "Only structured correlation-id propagation and basic control-plane counters (operator/summary) were built, per this phase's explicit 'leave full observability infra for deployment hardening' instruction.",
+      "status": "deliberately deferred, per scope"
+    }
+  ],
+  "runtime_seconds": 24.9584,
+  "verdict": "PASS"
+}

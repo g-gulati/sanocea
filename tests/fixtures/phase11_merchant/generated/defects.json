@@ -1,0 +1,13 @@
+{
+  "missing_sku": 3,
+  "invalid_price": 3,
+  "missing_currency": 3,
+  "missing_required_attribute": 3,
+  "duplicate_sku": 2,
+  "malformed_barcode": 3,
+  "colour_mismatch": 3,
+  "missing_image": 3,
+  "wrong_image_association": 3,
+  "suspicious_duplicate_description": 3,
+  "internal_only_field": 3
+}

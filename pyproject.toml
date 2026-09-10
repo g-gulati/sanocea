@@ -1,0 +1,19 @@
+[project]
+name = "sanocea-commerce-os-phase0"
+version = "0.0.1"
+description = "Phase 0 foundation for Sanocea Commerce OS"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi",
+  "pydantic>=2",
+  "uvicorn",
+  "psycopg2-binary",
+  "temporalio",
+  "boto3",
+  "docling",
+  "pillow",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit", "tests/integration", "tests/e2e"]
+pythonpath = [".."]

@@ -1,0 +1,30 @@
+# Phase 4.6 example unit - NOT installed/activated by this repo. Deployment (Phase 5+/ops) decides
+# between this always-on service and the .timer + --once pattern below; both call the exact same
+# portable, pure-stdlib entrypoint (scripts/run_recovery_worker.py) - no Windows Task Scheduler, no
+# PowerShell, identical on any Linux host or inside a container.
+#
+# Install (example only):
+#   cp sanocea-recovery-worker.service.example /etc/systemd/system/sanocea-recovery-worker.service
+#   systemctl daemon-reload
+#   systemctl enable --now sanocea-recovery-worker
+
+[Unit]
+Description=Sanocea Commerce OS - reconciliation/recovery worker (always-on loop mode)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sanocea
+WorkingDirectory=/opt/sanocea
+Environment=SANOCEA_PG_DSN=postgresql://sanocea@127.0.0.1:5432/sanocea
+Environment=SANOCEA_LOG_LEVEL=INFO
+ExecStart=/opt/sanocea/.venv/bin/python -m sanocea.scripts.run_recovery_worker --interval-seconds 300
+# Graceful shutdown: the runner catches SIGTERM and finishes its current pass before exiting.
+KillSignal=SIGTERM
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
