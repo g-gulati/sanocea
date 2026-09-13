@@ -67,6 +67,12 @@ const proof = [
   ['Control', 'Execution still follows merchant rules, access, approval boundaries and channel-specific operating permissions.'],
 ]
 
+const heroSignals = [
+  ['Input', 'A channel changes stock, promise, payout or return status.'],
+  ['AI layer', 'Sanocea classifies the work and prepares the next action.'],
+  ['Output', 'The team sees a governed queue, not another manual chase.'],
+]
+
 const capabilities = [
   ['AI signal classification', 'Understand whether an event is stock drift, SLA risk, payout variance, return pressure or customer-impacting work.'],
   ['AI-assisted routing', 'Move each task to the right workflow, approval path or human queue with evidence already attached.'],
@@ -97,6 +103,18 @@ const useCases = [
   ['Multichannel inventory control', 'Keep storefront and marketplace availability aligned when stock changes faster than spreadsheets or manual updates.'],
   ['Ecommerce exception workflow', 'Route unusual orders, return disputes, payout gaps and fulfillment problems to the right person with evidence attached.'],
   ['AI ecommerce operations layer', 'Use AI to classify signals and prepare work, while the merchant keeps final authority over sensitive actions.'],
+]
+
+const diagnosticSteps = [
+  ['Map', 'Identify where your team still checks channels manually every day.'],
+  ['Prioritize', 'Separate routine automation from judgement-heavy approval work.'],
+  ['Design', 'Turn one repeated intervention into a governed AI-prepared workflow.'],
+]
+
+const trustPoints = [
+  ['Access-based setup', 'Integrations depend on the accounts, credentials, APIs, exports or permissions a merchant can provide.'],
+  ['No false platform claims', 'Platform marks are examples only and do not imply partnership, certification or guaranteed availability.'],
+  ['Operator-led AI', 'AI prepares the work; sensitive inventory, refund, payout and customer-impacting actions stay controlled.'],
 ]
 
 function orbitTrack(index, count) {
@@ -315,6 +333,14 @@ function Hero() {
           <div className="hero-actions">
             <a className="button primary" href="#fragment">Watch the breakage</a>
             <a className="button ghost" href="#diagnostic">Start diagnostic</a>
+          </div>
+          <div className="hero-signal-flow" aria-label="How Sanocea converts channel events into controlled work">
+            {heroSignals.map((item) => (
+              <article key={item[0]}>
+                <span>{item[0]}</span>
+                <p>{item[1]}</p>
+              </article>
+            ))}
           </div>
           <div className="planet-strip" aria-label="Example commerce platforms">
             <span className="planet-strip-core">Global channels, regional channels, custom channels</span>
@@ -670,13 +696,21 @@ function Diagnostic() {
     <section id="diagnostic" className="scene diagnostic-scene">
       <div className="shell diagnostic-box">
         <span className="chapter dark">10 / diagnostic</span>
-        <h2>Find the daily intervention that should become a governed workflow.</h2>
+        <h2>Find one daily intervention worth automating first.</h2>
         <p>
-          Start with the bottleneck that still needs a person every day: inventory drift, marketplace
+          Start with the repeated work that still needs a person every day: inventory drift, marketplace
           exceptions, returns, support handoffs or reconciliation.
         </p>
+        <div className="diagnostic-steps">
+          {diagnosticSteps.map((step) => (
+            <article key={step[0]}>
+              <span>{step[0]}</span>
+              <p>{step[1]}</p>
+            </article>
+          ))}
+        </div>
         <div className="hero-actions">
-          <a className="button primary light" href="mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic">Email Sanocea</a>
+          <a className="button primary light" href="mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic">Request diagnostic</a>
           <a className="button ghost dark-btn" href="https://wa.me/919909360065" target="_blank" rel="noreferrer">Chat on WhatsApp</a>
         </div>
       </div>
@@ -723,6 +757,14 @@ function FounderProfile() {
             Sanocea is built for operators who want AI to reduce manual follow-up across marketplaces,
             storefronts and regional channels while keeping business authority under control.
           </p>
+          <div className="trust-grid">
+            {trustPoints.map((item) => (
+              <article key={item[0]}>
+                <strong>{item[0]}</strong>
+                <p>{item[1]}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
