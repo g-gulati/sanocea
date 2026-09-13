@@ -582,8 +582,7 @@ p { text-wrap: pretty; }
   width: 176px;
   height: 176px;
   display: grid;
-  place-content: center;
-  gap: 10px;
+  place-items: center;
   transform: translate(-50%, -50%);
   border: 6px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
@@ -618,11 +617,16 @@ p { text-wrap: pretty; }
 }
 
 .core-node img {
-  width: 132px;
+  width: 136px;
   max-width: 76%;
+  transform: translateY(1px);
 }
 
 .core-node b {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: calc(50% + 30px);
   color: rgba(8, 35, 61, 0.62);
   font-family: var(--font-mono);
   font-size: 9px;
