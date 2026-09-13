@@ -49,7 +49,7 @@ const platformMarkLibrary = {
   Zepto: {name: 'Zepto', color: '3B166B', short: 'Z'},
   Instamart: {name: 'Instamart', color: 'FC5B18', short: 'I'},
   'Flipkart Minutes': {name: 'Flipkart Minutes', color: '2874F0', short: 'FM'},
-  'Amazon Now': {name: 'Amazon Now', slug: 'amazon', color: 'FF9900', short: 'a'},
+  'Amazon Now': {name: 'Amazon Now', color: 'FF9900', short: 'a', logo: LOGOS + 'amazon.svg'},
 }
 
 const coveragePlatforms = [
