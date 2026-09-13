@@ -62,9 +62,9 @@ const driftEvents = [
 ]
 
 const proof = [
-  ['AI operating layer', 'Signals are classified, routed and prepared before they become manual coordination work.'],
-  ['Human work reduced', 'Teams spend time on decisions and approvals, not copy-paste channel checking.'],
-  ['Bring any platform', 'Sanocea can work around approved APIs, exports, webhooks, credentials and operating access.'],
+  ['Classify', 'AI identifies whether work is inventory drift, SLA risk, return pressure, payout variance or support impact.'],
+  ['Prepare', 'Evidence, account context and recommended next actions arrive before a person opens another tab.'],
+  ['Control', 'Execution still follows merchant rules, access, approval boundaries and channel-specific operating permissions.'],
 ]
 
 const capabilities = [
@@ -79,9 +79,24 @@ const capabilities = [
 const faqs = [
   ['Is AI the core feature of Sanocea?', 'Yes. Sanocea uses AI to classify operational signals, prepare next actions, summarize evidence and reduce manual coordination. The execution still follows merchant rules, permissions and approval boundaries.'],
   ['Which ecommerce platforms can Sanocea work with?', 'Sanocea can be configured around almost any marketplace, storefront, fulfillment partner or local channel where the merchant provides approved API access, credentials, exports, webhooks or operating permissions.'],
+  ['What ecommerce operations can Sanocea automate?', 'Sanocea is designed for inventory drift, order exceptions, marketplace SLA checks, return and refund workflows, payout reconciliation, customer support handoffs and repeated channel follow-up.'],
+  ['Is Sanocea useful for global commerce teams?', 'Yes. Sanocea is built for sellers operating across global marketplaces, regional channels, storefronts, fulfillment partners and internal tools.'],
   ['Does Sanocea replace an order management system?', 'Sanocea can support order operations and exception workflows, but the right architecture depends on the existing commerce stack, marketplace access and operational process.'],
-  ['Can Sanocea support global sellers?', 'Yes. The operating model is designed for global and regional commerce teams that sell across marketplaces, storefronts and fulfillment channels.'],
   ['Do platform logos imply official partnerships?', 'No. Logos are example surfaces only. They do not imply partnership, certification or guaranteed integration availability.'],
+]
+
+const outcomes = [
+  ['Inventory operations', 'Detect stock drift, oversell risk and replenishment pressure before teams discover it manually.'],
+  ['Order exception management', 'Prepare the next action for delayed dispatch, fulfillment gaps and channel-specific SLA pressure.'],
+  ['Returns and refunds', 'Summarize policy context, customer history and approval requirements before money moves.'],
+  ['Payout reconciliation', 'Collect fee, refund, deduction and settlement evidence into a controlled review queue.'],
+]
+
+const useCases = [
+  ['Marketplace operations automation', 'Turn repeated marketplace checks into AI-prepared workflows across Amazon, eBay, Walmart, Etsy, Shopee, Mercado Libre and regional channels.'],
+  ['Multichannel inventory control', 'Keep storefront and marketplace availability aligned when stock changes faster than spreadsheets or manual updates.'],
+  ['Ecommerce exception workflow', 'Route unusual orders, return disputes, payout gaps and fulfillment problems to the right person with evidence attached.'],
+  ['AI ecommerce operations layer', 'Use AI to classify signals and prepare work, while the merchant keeps final authority over sensitive actions.'],
 ]
 
 function orbitTrack(index, count) {
@@ -287,15 +302,15 @@ function Hero() {
       <div className="shell hero-grid">
         <div className="hero-copy">
           <p className="eyebrow">AI commerce operations</p>
-          <h1 aria-label="AI work layer for every commerce channel.">
-            AI work layer.
+          <h1 aria-label="AI operations layer for every commerce channel.">
+            AI operations.
             <br />
             Every channel.
           </h1>
           <p>
-            Sanocea uses AI to classify, route and prepare the daily work behind inventory,
-            orders, returns, payouts and exceptions across global marketplaces, storefronts,
-            fulfillment partners and regional channels.
+            Sanocea turns marketplace noise, inventory drift, order exceptions, returns and payout
+            gaps into AI-prepared workflows across global marketplaces, storefronts, fulfillment
+            partners and regional channels.
           </p>
           <div className="hero-actions">
             <a className="button primary" href="#fragment">Watch the breakage</a>
@@ -332,6 +347,27 @@ function ProofScene() {
             <p>{item[1]}</p>
           </article>
         ))}
+      </div>
+    </section>
+  )
+}
+
+function OutcomesScene() {
+  return (
+    <section className="outcomes-scene">
+      <div className="shell outcomes-layout">
+        <div>
+          <span className="chapter">Outcome layer</span>
+          <h2>Less channel chasing. More controlled commerce execution.</h2>
+        </div>
+        <div className="outcomes-grid">
+          {outcomes.map((item) => (
+            <article key={item[0]}>
+              <strong>{item[0]}</strong>
+              <p>{item[1]}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -505,7 +541,7 @@ function PlatformCoverageScene() {
         <div className="coverage-anywhere">
           <div>
             <span>Any workable surface</span>
-            <strong>If the merchant can provide access, Sanocea can design the AI work layer around it.</strong>
+            <strong>If the merchant can provide access, Sanocea can design the AI operations layer around it.</strong>
           </div>
           <p>
             The point is not one logo. It is one operating model across the real stack a seller already has.
@@ -521,6 +557,33 @@ function PlatformCoverageScene() {
               <div>
                 {group[1].map((name) => <LogoMark key={name} name={name} />)}
               </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function UseCaseScene() {
+  return (
+    <section className="scene usecase-scene">
+      <div className="shell">
+        <div className="section-head">
+          <span className="chapter">Searchable operations</span>
+          <h2>Built for the ecommerce work buyers are actually searching to solve.</h2>
+          <p>
+            Sanocea is not a generic AI assistant. It is an AI ecommerce operations layer for the
+            recurring work behind marketplace growth, multichannel inventory control, order exception
+            handling, return workflows and payout reconciliation.
+          </p>
+        </div>
+        <div className="usecase-grid">
+          {useCases.map((item) => (
+            <article key={item[0]}>
+              <span />
+              <strong>{item[0]}</strong>
+              <p>{item[1]}</p>
             </article>
           ))}
         </div>
@@ -703,12 +766,14 @@ function App() {
       <main>
         <Hero />
         <ProofScene />
+        <OutcomesScene />
         <FragmentScene />
         <BottleneckScene />
         <CapabilitiesScene />
         <InterceptScene />
         <PacketScene />
         <PlatformCoverageScene />
+        <UseCaseScene />
         <AuthorityScene />
         <CockpitScene />
         <FAQScene />
