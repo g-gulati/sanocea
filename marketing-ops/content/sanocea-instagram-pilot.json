@@ -1,0 +1,28 @@
+{
+  "tenant_id": "sanocea",
+  "platform": "instagram",
+  "status": "draft",
+  "post_type": "post",
+  "topic": "The operator should not be the integration layer",
+  "caption": "Your commerce stack does not usually fail in one dramatic moment. It drifts.\n\nOne channel has the latest stock. Another has the customer promise. A marketplace has the return status. Finance has the payout question. Suddenly, the operator becomes the integration layer.\n\nSanocea uses AI to prepare that work before it becomes another meeting: classify the issue, attach evidence, route the next step and keep human approval where it belongs.\n\nAI operations. Every channel.\n\nRequest a diagnostic at sanocea.com",
+  "creative_brief": {
+    "format": "carousel",
+    "slides": [
+      "Commerce does not break all at once. It drifts.",
+      "One channel knows the stock. Another owns the promise.",
+      "People become the integration layer.",
+      "Sanocea prepares the work: classify, attach proof, route.",
+      "AI operations. Every channel. Request a diagnostic."
+    ],
+    "visual_direction": "Light technical grid, navy typography, cyan motion paths, global commerce platform feel, no fake platform partnership claims."
+  },
+  "hashtags": [
+    "ecommerceoperations",
+    "commerceautomation",
+    "aioperations",
+    "marketplaceoperations",
+    "multichannelcommerce"
+  ],
+  "media": [],
+  "notes": "Media is required before scheduling or publishing to Instagram. Keep this as a draft until carousel images or a reel asset are ready."
+}
