@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6HL932JLXN"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-6HL932JLXN');
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f6fbff" />
@@ -52,6 +61,15 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Sanocea",
+        "url": "https://sanocea.com/",
+        "description": "AI ecommerce operations control for multichannel sellers."
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
         "@type": "Service",
         "name": "Sanocea AI Ecommerce Operations Layer",
         "provider": {
@@ -67,6 +85,17 @@
           "availability": "https://schema.org/InStock",
           "url": "https://sanocea.com/#diagnostic"
         }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Sanocea",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "url": "https://sanocea.com/",
+        "description": "AI ecommerce operations layer for multichannel inventory, order exceptions, returns, payouts and marketplace workflows."
       }
     </script>
     <script type="application/ld+json">
@@ -100,10 +129,26 @@
           },
           {
             "@type": "Question",
-            "name": "Can Sanocea support global sellers?",
+            "name": "Is Sanocea useful for global commerce teams?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. The operating model is designed for global and regional commerce teams that sell across marketplaces, storefronts and fulfillment channels."
+              "text": "Yes. Sanocea is built for sellers operating across global marketplaces, regional channels, storefronts, fulfillment partners and internal tools."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Sanocea replace an order management system?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sanocea can support order operations and exception workflows, but the right architecture depends on the existing commerce stack, marketplace access and operational process."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do platform logos imply official partnerships?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Logos are example surfaces only. They do not imply partnership, certification or guaranteed integration availability."
             }
           }
         ]
