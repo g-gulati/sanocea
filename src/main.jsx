@@ -10,6 +10,12 @@ const LOGOS = import.meta.env.BASE_URL + 'logos/'
 
 const REVEAL_EASE = [0.16, 1, 0.3, 1]
 
+function trackEvent(eventName, params = {}) {
+  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+    window.gtag('event', eventName, params)
+  }
+}
+
 const platforms = [
   {name: 'Shopify', slug: 'shopify', color: '7AB55C', logo: LOGOS + 'shopify.svg'},
   {name: 'Amazon', slug: 'amazon', color: 'FF9900', logo: LOGOS + 'amazon.svg'},
@@ -230,7 +236,16 @@ function Header() {
           <a href="#intercept" onClick={() => setOpen(false)}>Workflow</a>
           <a href="#coverage" onClick={() => setOpen(false)}>Platforms</a>
           <a href="#cockpit" onClick={() => setOpen(false)}>Cockpit</a>
-          <a className="nav-cta" href="#diagnostic" onClick={() => setOpen(false)}>Diagnose flow</a>
+          <a
+            className="nav-cta"
+            href="#diagnostic"
+            onClick={() => {
+              trackEvent('diagnostic_cta_click', {link_location: 'header'})
+              setOpen(false)
+            }}
+          >
+            Diagnose flow
+          </a>
         </nav>
         <button className="menu" type="button" aria-label="Toggle menu" onClick={() => setOpen(!open)}>
           <span />
@@ -845,8 +860,22 @@ function Diagnostic() {
           ))}
         </div>
         <div className="hero-actions">
-          <a className="button primary light" href="mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic">Request diagnostic</a>
-          <a className="button ghost dark-btn" href="https://wa.me/919909360065" target="_blank" rel="noreferrer">Chat on WhatsApp</a>
+          <a
+            className="button primary light"
+            href="mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic"
+            onClick={() => trackEvent('diagnostic_email_click', {link_location: 'diagnostic_section'})}
+          >
+            Request diagnostic
+          </a>
+          <a
+            className="button ghost dark-btn"
+            href="https://wa.me/919909360065"
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => trackEvent('whatsapp_click', {link_location: 'diagnostic_section'})}
+          >
+            Chat on WhatsApp
+          </a>
         </div>
       </div>
     </section>
@@ -920,7 +949,12 @@ function Footer() {
           <span>Surat, Gujarat, India</span>
         </div>
         <div>
-          <a href="mailto:hello@sanocea.com">hello@sanocea.com</a>
+          <a
+            href="mailto:hello@sanocea.com"
+            onClick={() => trackEvent('footer_email_click', {link_location: 'footer'})}
+          >
+            hello@sanocea.com
+          </a>
           <span>© 2026 Sanocea</span>
         </div>
       </div>
