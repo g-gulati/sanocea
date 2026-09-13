@@ -8,6 +8,8 @@ const MANPREET = import.meta.env.BASE_URL + 'manpreet-gulati.jpg'
 const ICON = 'https://cdn.simpleicons.org'
 const LOGOS = import.meta.env.BASE_URL + 'logos/'
 
+const REVEAL_EASE = [0.16, 1, 0.3, 1]
+
 const platforms = [
   {name: 'Shopify', slug: 'shopify', color: '7AB55C', logo: LOGOS + 'shopify.svg'},
   {name: 'Amazon', slug: 'amazon', color: 'FF9900', logo: LOGOS + 'amazon.svg'},
@@ -68,10 +70,10 @@ const fracture = [
 ]
 
 const packet = [
-  ['Signal captured', 'Channel event enters with source, promise, stock and customer context.'],
-  ['Work classified', 'The system separates routine execution from judgement-heavy exceptions.'],
-  ['Route selected', 'Sanocea chooses the next workflow, channel action or human handoff.'],
-  ['Evidence attached', 'Notes, status, account context and next action stay with the packet.'],
+  ['Problem spotted', 'A channel event comes in with its source, promise, stock and customer details.'],
+  ['Sanocea figures out what it is', 'Routine work moves on its own; anything needing a judgment call gets flagged.'],
+  ['Sent to the right place', 'Sanocea decides the next step, channel action, or which person should handle it.'],
+  ['Proof stays attached', 'Notes, status and next steps travel with the case, so nothing gets lost.'],
 ]
 
 const cockpit = [
@@ -91,16 +93,16 @@ const driftEvents = [
 const heroSignals = [
   ['Input', 'A channel changes stock, promise, payout or return status.'],
   ['AI layer', 'Sanocea classifies the work and prepares the next action.'],
-  ['Output', 'The team sees a governed queue, not another manual chase.'],
+  ['Output', 'Your team gets a clear to-do list, not another manual chase.'],
 ]
 
 const capabilities = [
-  ['AI signal classification', 'Understand whether an event is stock drift, SLA risk, payout variance, return pressure or customer-impacting work.'],
-  ['AI-assisted routing', 'Move each task to the right workflow, approval path or human queue with evidence already attached.'],
+  ['Know what the problem is', 'Understand whether an event is stock drift, an SLA risk, a payout issue, a return, or something a customer will feel.'],
+  ['Send it to the right place', 'Move each task to the right workflow, approval path or person, with the proof already attached.'],
   ['Inventory accuracy', 'Track stock changes, channel drift and replenishment signals before they become oversells.'],
-  ['Order and fulfilment operations', 'Route order work, SLA pressure and fulfilment exceptions through a governed queue.'],
-  ['Returns, refunds and payouts', 'Prepare policy context, variance checks, evidence packs and approval boundaries.'],
-  ['Operational intelligence', 'Summarize patterns across channels so teams know what should be automated next.'],
+  ['Order and fulfilment operations', 'Route order work, SLA pressure and fulfilment exceptions to the right queue.'],
+  ['Returns, refunds and payouts', 'Prepare policy context, variance checks and evidence before a decision is made.'],
+  ['Spot what to automate next', 'Summarize patterns across channels so teams know what should be automated next.'],
 ]
 
 const faqs = [
@@ -179,6 +181,38 @@ function Logo() {
     <a className="brand" href="#top" aria-label="Sanocea home">
       <img src={LOGO} alt="Sanocea" />
     </a>
+  )
+}
+
+function Reveal({as = 'div', className, children, delay = 0, amount = 0.35, y = 26, duration = 0.62, ...rest}) {
+  const MotionTag = motion[as] || motion.div
+  return (
+    <MotionTag
+      className={className}
+      initial={{opacity: 0, y}}
+      whileInView={{opacity: 1, y: 0}}
+      viewport={{once: true, amount}}
+      transition={{duration, delay, ease: REVEAL_EASE}}
+      {...rest}
+    >
+      {children}
+    </MotionTag>
+  )
+}
+
+function RevealItem({as = 'article', className, children, index = 0, stagger = 0.07, amount = 0.4, y = 22, ...rest}) {
+  const MotionTag = motion[as] || motion.article
+  return (
+    <MotionTag
+      className={className}
+      initial={{opacity: 0, y}}
+      whileInView={{opacity: 1, y: 0}}
+      viewport={{once: true, amount}}
+      transition={{duration: 0.5, delay: index * stagger, ease: REVEAL_EASE}}
+      {...rest}
+    >
+      {children}
+    </MotionTag>
   )
 }
 
@@ -295,7 +329,7 @@ function CommerceField({mode = 'calm'}) {
       })}
       <div className="core-node">
         <img src={LOGO} alt="Sanocea" />
-        <b>continuity layer</b>
+        <b>keeps it all together</b>
       </div>
       <div className="field-readout">
         <span>Catalogue</span>
@@ -372,11 +406,11 @@ function Hero() {
             <a className="button ghost" href="#diagnostic">Start diagnostic</a>
           </div>
           <div className="hero-signal-flow" aria-label="How Sanocea converts channel events into controlled work">
-            {heroSignals.map((item) => (
-              <article key={item[0]}>
+            {heroSignals.map((item, index) => (
+              <RevealItem key={item[0]} index={index} delay={0.15}>
                 <span>{item[0]}</span>
                 <p>{item[1]}</p>
-              </article>
+              </RevealItem>
             ))}
           </div>
           <div className="planet-strip" aria-label="Example commerce platforms">
@@ -404,16 +438,16 @@ function OutcomesScene() {
   return (
     <section className="outcomes-scene">
       <div className="shell outcomes-layout">
-        <div>
-          <span className="chapter">Outcome layer</span>
+        <Reveal>
+          <span className="chapter">What you get</span>
           <h2>Less channel chasing. More controlled commerce execution.</h2>
-        </div>
+        </Reveal>
         <div className="outcomes-grid">
-          {outcomes.map((item) => (
-            <article key={item[0]}>
+          {outcomes.map((item, index) => (
+            <RevealItem key={item[0]} index={index}>
               <strong>{item[0]}</strong>
               <p>{item[1]}</p>
-            </article>
+            </RevealItem>
           ))}
         </div>
       </div>
@@ -425,30 +459,23 @@ function FragmentScene() {
   return (
     <section id="fragment" className="scene fragment-scene">
       <div className="shell fragment-layout">
-        <div className="fragment-intro">
+        <Reveal as="div" className="fragment-intro">
           <span className="chapter">01 / fragmentation</span>
           <h2>Commerce does not break all at once. It drifts.</h2>
           <p>
             One channel knows the order. Another has the stock. A third owns the customer promise.
             People end up joining the dots by hand.
           </p>
-        </div>
+        </Reveal>
         <div className="fragment-grid">
           <ManualDriftBoard />
           <div className="fracture-list">
             {fracture.map((item, index) => (
-              <motion.article
-                key={item[0]}
-                className="fracture-item"
-                initial={{opacity: 0, y: 24}}
-                whileInView={{opacity: 1, y: 0}}
-                viewport={{once: true, amount: 0.45}}
-                transition={{delay: index * 0.06}}
-              >
+              <RevealItem key={item[0]} className="fracture-item" index={index}>
                 <span>{item[2]}</span>
                 <strong>{item[0]}</strong>
                 <p>{item[1]}</p>
-              </motion.article>
+              </RevealItem>
             ))}
           </div>
         </div>
@@ -461,22 +488,22 @@ function BottleneckScene() {
   return (
     <section className="scene bottleneck-scene">
       <div className="shell bottleneck-layout">
-        <div>
+        <Reveal>
           <span className="chapter dark">02 / human bottleneck</span>
           <h2>Then the operator becomes the integration layer.</h2>
           <p>
             Check a marketplace SLA. Compare storefront stock. Verify a fulfillment update.
             Reply to support. Reconcile payout. Repeat until order volume grows faster than the human loop can keep up.
           </p>
-        </div>
+        </Reveal>
         <div className="pressure-chamber">
           <div className="inbox-stack">
             {['Amazon SLA', 'Blinkit stock', 'Flipkart return', 'Payout gap'].map((item, index) => (
-              <div className={`inbox-card q${index}`} key={item}>
+              <RevealItem as="div" className={`inbox-card q${index}`} key={item} index={index} y={16}>
                 <span>0{index + 1}</span>
                 <strong>{item}</strong>
                 <small>{index === 1 ? 'needs stock truth' : 'waiting on human'}</small>
-              </div>
+              </RevealItem>
             ))}
           </div>
           <div className="operator-core">
@@ -501,64 +528,44 @@ function InterceptScene() {
   return (
     <section id="intercept" className="scene intercept-scene">
       <div className="shell split">
-        <div className="sticky-story">
+        <Reveal as="div" className="sticky-story">
           <span className="chapter">04 / interception</span>
           <h2>Sanocea uses AI to intercept work before it becomes a meeting.</h2>
           <p>
-            The AI operating layer captures what happened, keeps the evidence attached and routes the
-            next action without pretending every channel is magically certified or universally integrated.
+            Sanocea captures what happened, keeps the evidence attached and routes the next action —
+            without pretending every channel is magically certified or universally integrated.
           </p>
-        </div>
+        </Reveal>
         <div className="intercept-board" aria-label="Sanocea turns manual channel checks into prepared workflows">
           <div className="intercept-stage stage-before">
             <span>Manual loop</span>
-            <article>
-              <b>Amazon SLA?</b>
-              <small>open tab</small>
-            </article>
-            <article>
-              <b>Stock mismatch</b>
-              <small>check sheet</small>
-            </article>
-            <article>
-              <b>Return dispute</b>
-              <small>ask team</small>
-            </article>
-            <article>
-              <b>Payout gap</b>
-              <small>collect proof</small>
-            </article>
+            {[['Amazon SLA?', 'open tab'], ['Stock mismatch', 'check sheet'], ['Return dispute', 'ask team'], ['Payout gap', 'collect proof']].map(([title, note], index) => (
+              <RevealItem key={title} index={index} y={14}>
+                <b>{title}</b>
+                <small>{note}</small>
+              </RevealItem>
+            ))}
           </div>
           <div className="intercept-processing">
             <div className="packet-chip">signal</div>
             <div className="processor-card">
               <img src={LOGO} alt="Sanocea" />
-              <strong>AI operating layer</strong>
+              <strong>What Sanocea does</strong>
               <div className="processor-steps">
-                <span>Classify</span>
-                <span>Attach evidence</span>
-                <span>Route</span>
+                <span>Figure out what it is</span>
+                <span>Attach the proof</span>
+                <span>Send it onward</span>
               </div>
             </div>
           </div>
           <div className="intercept-stage stage-after">
             <span>Prepared queue</span>
-            <article>
-              <b>SLA risk routed</b>
-              <small>owner assigned</small>
-            </article>
-            <article>
-              <b>Stock workflow ready</b>
-              <small>evidence attached</small>
-            </article>
-            <article>
-              <b>Return needs approval</b>
-              <small>policy included</small>
-            </article>
-            <article>
-              <b>Payout review queued</b>
-              <small>claim pack ready</small>
-            </article>
+            {[['SLA risk routed', 'owner assigned'], ['Stock workflow ready', 'evidence attached'], ['Return needs approval', 'policy included'], ['Payout review queued', 'claim pack ready']].map(([title, note], index) => (
+              <RevealItem key={title} index={index} delay={0.25} y={14}>
+                <b>{title}</b>
+                <small>{note}</small>
+              </RevealItem>
+            ))}
           </div>
           <div className="intercept-track">
             <i />
@@ -577,21 +584,21 @@ function CapabilitiesScene() {
   return (
     <section id="capabilities" className="scene capabilities-scene">
       <div className="shell">
-        <div className="section-head">
+        <Reveal as="div" className="section-head">
           <span className="chapter">03 / what Sanocea controls</span>
           <h2>AI workflows for the work behind multichannel growth.</h2>
           <p>
             Sanocea turns channel noise into prepared work: classify the signal, route the task,
             attach the evidence and keep human approval where the business needs it.
           </p>
-        </div>
+        </Reveal>
         <div className="capability-grid">
-          {capabilities.map((item) => (
-            <article key={item[0]}>
+          {capabilities.map((item, index) => (
+            <RevealItem key={item[0]} index={index}>
               <span />
               <strong>{item[0]}</strong>
               <p>{item[1]}</p>
-            </article>
+            </RevealItem>
           ))}
         </div>
       </div>
@@ -603,26 +610,26 @@ function PacketScene() {
   return (
     <section id="packet" className="scene packet-scene">
       <div className="shell">
-        <div className="section-head">
-          <span className="chapter">05 / continuity packet</span>
-          <h2>Follow one packet from signal to resolution.</h2>
-        </div>
+        <Reveal as="div" className="section-head">
+          <span className="chapter">05 / one case, start to finish</span>
+          <h2>Follow one problem from alert to fix.</h2>
+        </Reveal>
         <div className="packet-rail">
-          <div className="packet-card">
-            <span>ORD-4827</span>
-            <strong>Continuity packet</strong>
-            <p>One operational object carries channel, customer, inventory, evidence and next action.</p>
-          </div>
+          <Reveal as="div" className="packet-card" delay={0.1}>
+            <span>Order #4827</span>
+            <strong>One case file</strong>
+            <p>Everything about this order — the channel, the customer, the stock, the proof, and what happens next — stays together in one place.</p>
+          </Reveal>
           <div className="rail-line">
             <i />
           </div>
           <div className="packet-steps">
             {packet.map((step, index) => (
-              <article key={step[0]}>
+              <RevealItem key={step[0]} index={index} delay={0.2}>
                 <span>0{index + 1}</span>
                 <strong>{step[0]}</strong>
                 <p>{step[1]}</p>
-              </article>
+              </RevealItem>
             ))}
           </div>
         </div>
@@ -635,7 +642,7 @@ function PlatformCoverageScene() {
   return (
     <section id="coverage" className="scene coverage-scene">
       <div className="shell">
-        <div className="section-head center">
+        <Reveal as="div" className="section-head center">
           <span className="chapter">06 / platform coverage</span>
           <h2>Bring the platforms you use. Sanocea builds the operating layer around them.</h2>
           <p>
@@ -643,8 +650,8 @@ function PlatformCoverageScene() {
             or internal, Sanocea can work around approved API access, credentials, exports, webhooks or
             operating permissions. No partnership or certification is implied.
           </p>
-        </div>
-        <div className="coverage-anywhere">
+        </Reveal>
+        <Reveal as="div" className="coverage-anywhere" delay={0.1}>
           <div>
             <span>Any workable surface</span>
             <strong>If the merchant can provide access, Sanocea can design the AI operations layer around it.</strong>
@@ -655,15 +662,15 @@ function PlatformCoverageScene() {
           <div className="coverage-access" aria-label="Supported access patterns">
             {accessModes.map((mode) => <span key={mode}>{mode}</span>)}
           </div>
-        </div>
+        </Reveal>
         <div className="coverage-grid">
-          {coveragePlatforms.map((group) => (
-            <article key={group[0]} className="coverage-card">
+          {coveragePlatforms.map((group, index) => (
+            <RevealItem key={group[0]} className="coverage-card" index={index}>
               <span>{group[0]}</span>
               <div>
                 {group[1].map((name) => <LogoMark key={name} name={name} />)}
               </div>
-            </article>
+            </RevealItem>
           ))}
         </div>
       </div>
@@ -675,7 +682,7 @@ function UseCaseScene() {
   return (
     <section className="scene usecase-scene">
       <div className="shell">
-        <div className="section-head">
+        <Reveal as="div" className="section-head">
           <span className="chapter">Searchable operations</span>
           <h2>Built for the ecommerce work buyers are actually searching to solve.</h2>
           <p>
@@ -683,14 +690,14 @@ function UseCaseScene() {
             recurring work behind marketplace growth, multichannel inventory control, order exception
             handling, return workflows and payout reconciliation.
           </p>
-        </div>
+        </Reveal>
         <div className="usecase-grid">
-          {useCases.map((item) => (
-            <article key={item[0]}>
+          {useCases.map((item, index) => (
+            <RevealItem key={item[0]} index={index}>
               <span />
               <strong>{item[0]}</strong>
               <p>{item[1]}</p>
-            </article>
+            </RevealItem>
           ))}
         </div>
       </div>
@@ -702,7 +709,7 @@ function WorkflowProofScene() {
   return (
     <section className="scene workflow-proof-scene">
       <div className="shell workflow-proof-layout">
-        <div className="section-head center">
+        <Reveal as="div" className="section-head center">
           <span className="chapter">AI work preparation</span>
           <h2>What Sanocea actually does before your team opens another tab.</h2>
           <p>
@@ -710,10 +717,10 @@ function WorkflowProofScene() {
             the signal is classified, evidence is attached, risk is named and the next controlled workflow
             is ready for the person or rule that owns it.
           </p>
-        </div>
+        </Reveal>
         <div className="workflow-film" aria-label="Example AI-prepared ecommerce workflows">
           {workflowExamples.map((item, index) => (
-            <article className="workflow-example" key={item.issue}>
+            <RevealItem className="workflow-example" key={item.issue} index={index} amount={0.25}>
               <div className="workflow-index">0{index + 1}</div>
               <div className="workflow-signal">
                 <span>Incoming signal</span>
@@ -733,7 +740,7 @@ function WorkflowProofScene() {
                 <span>Controlled output</span>
                 <strong>{item.result}</strong>
               </div>
-            </article>
+            </RevealItem>
           ))}
         </div>
       </div>
@@ -745,16 +752,16 @@ function AuthorityScene() {
   return (
     <section className="scene authority-scene">
       <div className="shell authority-layout">
-        <div>
-          <span className="chapter dark">07 / authority boundary</span>
-          <h2>AI prepares the work. Authority stays controlled.</h2>
+        <Reveal>
+          <span className="chapter dark">07 / who's allowed to act</span>
+          <h2>AI does the prep work. You still make the final call.</h2>
           <p>
-            Sanocea can classify, summarize, recommend and prepare actions. Inventory, refunds, payouts
-            and customer-impacting work still follow merchant rules, evidence and approval boundaries.
+            Sanocea can sort, summarize and recommend. But inventory changes, refunds, payouts and anything
+            that touches a customer still follow your rules and need your approval.
           </p>
-        </div>
+        </Reveal>
         <div className="authority-console">
-          <div className="authority-panel ai-panel">
+          <Reveal as="div" className="authority-panel ai-panel" delay={0.1}>
             <label>AI prepares</label>
             <article>
               <span>Signal</span>
@@ -764,13 +771,13 @@ function AuthorityScene() {
               <span>Recommendation</span>
               <strong>Draft response, request evidence, hold refund</strong>
             </article>
-          </div>
+          </Reveal>
           <div className="policy-gate">
-            <span>operating authority</span>
-            <b>human / rule approval</b>
+            <span>who decides</span>
+            <b>you (or your rules) do</b>
           </div>
-          <div className="authority-panel execution-panel">
-            <label>controlled execution</label>
+          <Reveal as="div" className="authority-panel execution-panel" delay={0.2}>
+            <label>what actually happens</label>
             <article>
               <span>Allowed</span>
               <strong>Attach evidence pack</strong>
@@ -779,7 +786,7 @@ function AuthorityScene() {
               <span>Blocked</span>
               <strong>No refund without authority</strong>
             </article>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>
@@ -790,23 +797,23 @@ function CockpitScene() {
   return (
     <section id="cockpit" className="scene cockpit-scene">
       <div className="shell cockpit-layout">
-        <div>
-          <span className="chapter">08 / exception cockpit</span>
-          <h2>The final screen is not a dashboard. It is an AI-prepared decision queue.</h2>
-          <p>Routine work keeps moving. Exceptions arrive with context, evidence and an AI-prepared next action.</p>
-        </div>
+        <Reveal>
+          <span className="chapter">08 / today's problem list</span>
+          <h2>This isn't just a dashboard. It's a ready-to-act list of what needs you today.</h2>
+          <p>Routine work runs itself. The stuff that needs a person shows up with context, proof, and a suggested next step already attached.</p>
+        </Reveal>
         <div className="cockpit-panel">
           <div className="panel-head">
-            <span>live exception queue</span>
+            <span>open issues right now</span>
             <b>4 open</b>
           </div>
           {cockpit.map((row, index) => (
-            <article key={row[0]}>
+            <RevealItem key={row[0]} index={index} y={16}>
               <span>0{index + 1}</span>
               <strong>{row[0]}</strong>
               <p>{row[1]}</p>
               <small>{row[2]}</small>
-            </article>
+            </RevealItem>
           ))}
         </div>
       </div>
@@ -818,18 +825,20 @@ function Diagnostic() {
   return (
     <section id="diagnostic" className="scene diagnostic-scene">
       <div className="shell diagnostic-box">
-        <span className="chapter dark">10 / diagnostic</span>
-        <h2>Find one daily intervention worth automating first.</h2>
-        <p>
-          Start with the repeated work that still needs a person every day: inventory drift, marketplace
-          exceptions, returns, support handoffs or reconciliation.
-        </p>
+        <Reveal as="div">
+          <span className="chapter dark">10 / diagnostic</span>
+          <h2>Find one daily intervention worth automating first.</h2>
+          <p>
+            Start with the repeated work that still needs a person every day: inventory drift, marketplace
+            exceptions, returns, support handoffs or reconciliation.
+          </p>
+        </Reveal>
         <div className="diagnostic-steps">
-          {diagnosticSteps.map((step) => (
-            <article key={step[0]}>
+          {diagnosticSteps.map((step, index) => (
+            <RevealItem key={step[0]} index={index} delay={0.15}>
               <span>{step[0]}</span>
               <p>{step[1]}</p>
-            </article>
+            </RevealItem>
           ))}
         </div>
         <div className="hero-actions">
@@ -845,16 +854,16 @@ function FAQScene() {
   return (
     <section className="scene faq-scene">
       <div className="shell faq-layout">
-        <div className="section-head center">
+        <Reveal as="div" className="section-head center">
           <span className="chapter">09 / questions buyers ask</span>
           <h2>Frequently asked questions about commerce operations control.</h2>
-        </div>
+        </Reveal>
         <div className="faq-list">
-          {faqs.map((item) => (
-            <details key={item[0]}>
+          {faqs.map((item, index) => (
+            <RevealItem as="details" key={item[0]} index={index} y={14} amount={0.6}>
               <summary>{item[0]}</summary>
               <p>{item[1]}</p>
-            </details>
+            </RevealItem>
           ))}
         </div>
       </div>
@@ -869,7 +878,7 @@ function FounderProfile() {
         <div className="founder-image">
           <img src={MANPREET} alt="Manpreet Gulati" loading="lazy" />
         </div>
-        <div className="founder-copy">
+        <Reveal as="div" className="founder-copy" delay={0.1}>
           <span className="chapter">Founder profile</span>
           <h2>Manpreet Gulati</h2>
           <p>
@@ -881,14 +890,14 @@ function FounderProfile() {
             storefronts and regional channels while keeping business authority under control.
           </p>
           <div className="trust-grid">
-            {trustPoints.map((item) => (
-              <article key={item[0]}>
+            {trustPoints.map((item, index) => (
+              <RevealItem key={item[0]} index={index} delay={0.2} y={14}>
                 <strong>{item[0]}</strong>
                 <p>{item[1]}</p>
-              </article>
+              </RevealItem>
             ))}
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   )
