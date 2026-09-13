@@ -108,17 +108,19 @@ const capabilities = [
 const faqs = [
   ['Is AI the core feature of Sanocea?', 'Yes. Sanocea uses AI to classify operational signals, prepare next actions, summarize evidence and reduce manual coordination. The execution still follows merchant rules, permissions and approval boundaries.'],
   ['Which ecommerce platforms can Sanocea work with?', 'Sanocea can be configured around almost any marketplace, storefront, fulfillment partner or local channel where the merchant provides approved API access, credentials, exports, webhooks or operating permissions.'],
-  ['What ecommerce operations can Sanocea automate?', 'Sanocea is designed for inventory drift, order exceptions, marketplace SLA checks, return and refund workflows, payout reconciliation, customer support handoffs and repeated channel follow-up.'],
+  ['What ecommerce operations can Sanocea automate?', 'Sanocea is designed for catalogue, listing and pricing queues, inventory drift, order exceptions, marketplace SLA checks, return and refund workflows, payout reconciliation, recurring reporting and performance MIS, customer support handoffs and repeated channel follow-up.'],
   ['Is Sanocea useful for global commerce teams?', 'Yes. Sanocea is built for sellers operating across global marketplaces, regional channels, storefronts, fulfillment partners and internal tools.'],
   ['Does Sanocea replace an order management system?', 'Sanocea can support order operations and exception workflows, but the right architecture depends on the existing commerce stack, marketplace access and operational process.'],
   ['Do platform logos imply official partnerships?', 'No. Logos are example surfaces only. They do not imply partnership, certification or guaranteed integration availability.'],
 ]
 
 const outcomes = [
+  ['Catalogue, listing and pricing', 'Keep listings, pricing and stock-update queues current across every channel instead of chasing edits one platform at a time.'],
   ['Inventory operations', 'Detect stock drift, oversell risk and replenishment pressure before teams discover it manually.'],
   ['Order exception management', 'Prepare the next action for delayed dispatch, fulfillment gaps and channel-specific SLA pressure.'],
   ['Returns and refunds', 'Summarize policy context, customer history and approval requirements before money moves.'],
   ['Payout reconciliation', 'Collect fee, refund, deduction and settlement evidence into a controlled review queue.'],
+  ['Reporting and performance MIS', 'Turn recurring documentation and channel trackers into ready performance MIS instead of a manual weekly pull.'],
 ]
 
 const useCases = [
@@ -757,7 +759,8 @@ function AuthorityScene() {
           <h2>AI does the prep work. You still make the final call.</h2>
           <p>
             Sanocea can sort, summarize and recommend. But inventory changes, refunds, payouts and anything
-            that touches a customer still follow your rules and need your approval.
+            that touches a customer still get escalated to the right authority &mdash; your warehouse team,
+            key account manager or management &mdash; and need approval before anything moves.
           </p>
         </Reveal>
         <div className="authority-console">
