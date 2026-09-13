@@ -1,0 +1,44 @@
+{
+  "tenant_id": "sanocea",
+  "brand_name": "Sanocea",
+  "pilot_channel": "instagram",
+  "positioning": "AI automation and digital operations for commerce teams selling across marketplaces, storefronts and regional channels.",
+  "audience": [
+    "multichannel ecommerce founders",
+    "marketplace operations teams",
+    "D2C operators",
+    "commerce leaders managing inventory, orders, returns and payouts"
+  ],
+  "tone": [
+    "clear",
+    "operator-led",
+    "global",
+    "practical",
+    "confident without exaggeration"
+  ],
+  "core_message": "Sanocea uses AI to prepare the daily commerce work that usually becomes manual follow-up, meetings and tab switching.",
+  "approved_claims": [
+    "AI prepares operational work",
+    "Human approval remains controlled",
+    "Integrations depend on approved access, credentials, exports, webhooks or APIs",
+    "Platform logos are examples and do not imply certification or partnership"
+  ],
+  "prohibited_claims": [
+    "official partner of any platform unless verified",
+    "guaranteed integration with every platform",
+    "fully replaces all human decisions",
+    "guaranteed revenue growth",
+    "scrapes or bypasses platform rules"
+  ],
+  "primary_cta": "Request a diagnostic",
+  "lead_urls": {
+    "diagnostic_email": "mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic",
+    "whatsapp": "https://wa.me/919909360065",
+    "website": "https://www.sanocea.com/"
+  },
+  "approval_rules": {
+    "requires_human_approval_before_publish": true,
+    "approver": "Manpreet Gulati",
+    "approval_states": ["draft", "approved", "changes_requested", "rejected", "scheduled", "published"]
+  }
+}
