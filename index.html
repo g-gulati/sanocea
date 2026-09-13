@@ -9,6 +9,24 @@
       gtag('js', new Date());
 
       gtag('config', 'G-6HL932JLXN');
+
+      document.addEventListener('click', function (event) {
+        var link = event.target.closest && event.target.closest('a');
+        if (!link || typeof gtag !== 'function') return;
+
+        var href = link.getAttribute('href') || '';
+        var label = (link.textContent || '').trim();
+
+        if (href === 'mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic') {
+          gtag('event', 'diagnostic_email_click', {link_location: 'diagnostic_section'});
+        } else if (href === 'https://wa.me/919909360065') {
+          gtag('event', 'whatsapp_click', {link_location: 'diagnostic_section'});
+        } else if (href === 'mailto:hello@sanocea.com') {
+          gtag('event', 'footer_email_click', {link_location: 'footer'});
+        } else if (href === '#diagnostic' && label === 'Diagnose flow') {
+          gtag('event', 'diagnostic_cta_click', {link_location: 'header'});
+        }
+      });
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
