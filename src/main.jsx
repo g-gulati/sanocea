@@ -487,34 +487,64 @@ function InterceptScene() {
             next action without pretending every channel is magically certified or universally integrated.
           </p>
         </div>
-        <div className="intercept-board" aria-label="Before and after Sanocea AI interception">
-          <div className="intercept-column before">
-            <span>Before</span>
-            {['Check Amazon SLA', 'Compare storefront stock', 'Ask fulfilment', 'Reconcile payout'].map((item, index) => (
-              <article key={item} className={`intercept-card before-${index}`}>
-                <b>{item}</b>
-                <small>{index === 1 ? 'manual lookup' : 'waiting on person'}</small>
-              </article>
-            ))}
+        <div className="intercept-board" aria-label="Sanocea turns manual channel checks into prepared workflows">
+          <div className="intercept-stage stage-before">
+            <span>Manual loop</span>
+            <article>
+              <b>Amazon SLA?</b>
+              <small>open tab</small>
+            </article>
+            <article>
+              <b>Stock mismatch</b>
+              <small>check sheet</small>
+            </article>
+            <article>
+              <b>Return dispute</b>
+              <small>ask team</small>
+            </article>
+            <article>
+              <b>Payout gap</b>
+              <small>collect proof</small>
+            </article>
           </div>
-          <div className="intercept-core">
-            <div className="intercept-ring" />
-            <img src={LOGO} alt="Sanocea" />
-            <strong>AI intercept</strong>
-            <span>classify / attach evidence / route</span>
+          <div className="intercept-processing">
+            <div className="packet-chip">signal</div>
+            <div className="processor-card">
+              <img src={LOGO} alt="Sanocea" />
+              <strong>AI operating layer</strong>
+              <div className="processor-steps">
+                <span>Classify</span>
+                <span>Attach evidence</span>
+                <span>Route</span>
+              </div>
+            </div>
           </div>
-          <div className="intercept-column after">
-            <span>After</span>
-            {['Inventory workflow prepared', 'Return evidence attached', 'SLA risk routed', 'Payout review queued'].map((item, index) => (
-              <article key={item} className={`intercept-card after-${index}`}>
-                <b>{item}</b>
-                <small>{index === 2 ? 'human approval' : 'ready to act'}</small>
-              </article>
-            ))}
+          <div className="intercept-stage stage-after">
+            <span>Prepared queue</span>
+            <article>
+              <b>SLA risk routed</b>
+              <small>owner assigned</small>
+            </article>
+            <article>
+              <b>Stock workflow ready</b>
+              <small>evidence attached</small>
+            </article>
+            <article>
+              <b>Return needs approval</b>
+              <small>policy included</small>
+            </article>
+            <article>
+              <b>Payout review queued</b>
+              <small>claim pack ready</small>
+            </article>
           </div>
-          <div className="intercept-line line-a" />
-          <div className="intercept-line line-b" />
-          <div className="intercept-line line-c" />
+          <div className="intercept-track">
+            <i />
+          </div>
+          <div className="intercept-caption">
+            <span>Before: people join the dots</span>
+            <span>After: Sanocea prepares the work</span>
+          </div>
         </div>
       </div>
     </section>
