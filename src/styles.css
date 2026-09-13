@@ -524,10 +524,33 @@ p { text-wrap: pretty; }
   white-space: nowrap;
 }
 
-.logo-pill img {
+.logo-mark {
   width: 22px;
   height: 22px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  overflow: hidden;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--mark-color), color-mix(in srgb, var(--mark-color) 70%, var(--ink)));
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.logo-mark--image {
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.logo-mark-svg {
+  width: 68%;
+  height: 68%;
   object-fit: contain;
+  display: block;
 }
 
 .commerce-field {
@@ -1503,6 +1526,208 @@ p { text-wrap: pretty; }
     linear-gradient(180deg, #fbfdff 0%, var(--paper) 100%);
 }
 
+.workflow-proof-scene {
+  scroll-margin-top: 92px;
+  padding-top: 96px;
+  background:
+    linear-gradient(rgba(8, 35, 61, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 35, 61, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 48% 26%, rgba(17, 198, 220, 0.15), transparent 30rem),
+    linear-gradient(180deg, var(--paper) 0%, #f9fdff 100%);
+  background-size: 34px 34px, 34px 34px, auto, auto;
+}
+
+.workflow-proof-layout .section-head {
+  margin-bottom: 44px;
+}
+
+.workflow-film {
+  position: relative;
+  display: grid;
+  gap: 16px;
+}
+
+.workflow-film::before {
+  content: '';
+  position: absolute;
+  inset: 12% 50% 12% auto;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(17, 198, 220, 0.7), transparent);
+  box-shadow: 0 0 28px rgba(17, 198, 220, 0.45);
+}
+
+.workflow-example {
+  position: relative;
+  display: grid;
+  grid-template-columns: 54px minmax(220px, 0.95fr) 140px minmax(250px, 1fr) minmax(210px, 0.72fr);
+  gap: 18px;
+  align-items: center;
+  min-height: 182px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.94), rgba(235, 248, 252, 0.74)),
+    rgba(255, 255, 255, 0.84);
+  box-shadow: 0 24px 80px rgba(8, 35, 61, 0.1);
+}
+
+.workflow-example::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(17, 198, 220, 0.13), transparent);
+  transform: translateX(-70%);
+  animation: workflow-scan 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.workflow-example:nth-child(2)::before {
+  animation-delay: -2.1s;
+}
+
+.workflow-example:nth-child(3)::before {
+  animation-delay: -4.2s;
+}
+
+.workflow-index {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: var(--cyan);
+  background: rgba(17, 198, 220, 0.09);
+  box-shadow: inset 0 0 0 1px rgba(17, 198, 220, 0.34);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.workflow-signal,
+.workflow-prepares,
+.workflow-result {
+  position: relative;
+  z-index: 1;
+}
+
+.workflow-signal span,
+.workflow-prepares span,
+.workflow-result span {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.workflow-signal h3 {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.02;
+}
+
+.workflow-signal p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.workflow-route {
+  position: relative;
+  z-index: 1;
+  height: 74px;
+}
+
+.workflow-route::before,
+.workflow-route::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(8, 35, 61, 0.12), var(--cyan), rgba(8, 35, 61, 0.12));
+}
+
+.workflow-route::after {
+  top: auto;
+  bottom: 25%;
+  opacity: 0.4;
+}
+
+.workflow-route i {
+  position: absolute;
+  top: calc(50% - 6px);
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 22px rgba(17, 198, 220, 0.9);
+  animation: workflow-packet 3.9s ease-in-out infinite;
+}
+
+.workflow-route i:nth-child(2) {
+  top: calc(75% - 6px);
+  animation-delay: -1.25s;
+}
+
+.workflow-route i:nth-child(3) {
+  animation-delay: -2.5s;
+}
+
+.workflow-prepares {
+  display: grid;
+  gap: 8px;
+}
+
+.workflow-prepares b {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 13px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.84);
+  font-size: 13px;
+  line-height: 1.1;
+}
+
+.workflow-result {
+  min-height: 118px;
+  display: grid;
+  align-content: center;
+  border-left: 1px solid rgba(17, 198, 220, 0.28);
+  padding-left: 20px;
+}
+
+.workflow-result strong {
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+@keyframes workflow-scan {
+  0%, 26% { transform: translateX(-80%); opacity: 0; }
+  38% { opacity: 1; }
+  74%, 100% { transform: translateX(80%); opacity: 0; }
+}
+
+@keyframes workflow-packet {
+  0% { left: 0; opacity: 0; transform: scale(0.7); }
+  16% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { left: calc(100% - 12px); opacity: 0; transform: scale(1.05); }
+}
+
 .usecase-grid article > span {
   width: 30px;
   height: 30px;
@@ -2100,10 +2325,30 @@ footer {
   .outcomes-layout,
   .outcomes-grid,
   .usecase-grid,
+  .workflow-example,
   .hero-signal-flow,
   .diagnostic-steps,
   .trust-grid {
     grid-template-columns: 1fr;
+  }
+
+  .workflow-film::before {
+    display: none;
+  }
+
+  .workflow-example {
+    min-height: auto;
+  }
+
+  .workflow-route {
+    height: 44px;
+  }
+
+  .workflow-result {
+    min-height: auto;
+    border-left: 0;
+    border-top: 1px solid rgba(17, 198, 220, 0.28);
+    padding: 18px 0 0;
   }
 
   .coverage-grid {
@@ -2262,7 +2507,7 @@ footer {
     font-size: 11px;
   }
 
-  .logo-pill img {
+  .logo-mark {
     width: 19px;
     height: 19px;
   }
@@ -2342,9 +2587,30 @@ footer {
 
   .outcomes-grid article,
   .usecase-grid article,
+  .workflow-example,
   .diagnostic-steps article,
   .trust-grid article {
     min-height: auto;
+  }
+
+  .workflow-proof-scene {
+    padding-top: 82px;
+  }
+
+  .workflow-film {
+    gap: 12px;
+  }
+
+  .workflow-example {
+    padding: 16px;
+  }
+
+  .workflow-signal h3 {
+    font-size: 26px;
+  }
+
+  .workflow-prepares b {
+    white-space: normal;
   }
 
   .authority-console {

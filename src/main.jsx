@@ -6,22 +6,49 @@ import './styles.css'
 const LOGO = import.meta.env.BASE_URL + 'sanocea-wordmark.png'
 const MANPREET = import.meta.env.BASE_URL + 'manpreet-gulati.jpg'
 const ICON = 'https://cdn.simpleicons.org'
+const LOGOS = import.meta.env.BASE_URL + 'logos/'
 
 const platforms = [
-  {name: 'Shopify', slug: 'shopify', color: '7AB55C'},
-  {name: 'Amazon', logo: 'https://www.amazon.com/favicon.ico'},
-  {name: 'eBay', logo: 'https://www.google.com/s2/favicons?domain=ebay.com&sz=64'},
-  {name: 'Walmart', logo: 'https://www.google.com/s2/favicons?domain=walmart.com&sz=64'},
-  {name: 'Etsy', logo: 'https://www.google.com/s2/favicons?domain=etsy.com&sz=64'},
-  {name: 'WooCommerce', slug: 'woocommerce', color: '96588A'},
+  {name: 'Shopify', slug: 'shopify', color: '7AB55C', logo: LOGOS + 'shopify.svg'},
+  {name: 'Amazon', slug: 'amazon', color: 'FF9900', logo: LOGOS + 'amazon.svg'},
+  {name: 'eBay', slug: 'ebay', color: 'E53238', logo: LOGOS + 'ebay.svg'},
+  {name: 'Walmart', slug: 'walmart', color: '0071CE', logo: LOGOS + 'walmart.svg'},
+  {name: 'Etsy', slug: 'etsy', color: 'F16521', logo: LOGOS + 'etsy.svg'},
+  {name: 'WooCommerce', slug: 'woocommerce', color: '96588A', logo: LOGOS + 'woocommerce.svg'},
 ]
 
 const channelExamples = [
   ...platforms,
-  {name: 'BigCommerce', logo: 'https://www.google.com/s2/favicons?domain=bigcommerce.com&sz=64'},
-  {name: 'Shopee', logo: 'https://www.google.com/s2/favicons?domain=shopee.com&sz=64'},
-  {name: 'Mercado Libre', logo: 'https://www.google.com/s2/favicons?domain=mercadolibre.com&sz=64'},
+  {name: 'BigCommerce', slug: 'bigcommerce', color: '121118', logo: LOGOS + 'bigcommerce.svg'},
+  {name: 'Shopee', slug: 'shopee', color: 'EE4D2D', logo: LOGOS + 'shopee.svg'},
+  {name: 'Mercado Libre', slug: 'mercadolibre', color: 'FFE600', logo: LOGOS + 'mercadolibre.svg'},
 ]
+
+const platformMarkLibrary = {
+  Amazon: {name: 'Amazon', slug: 'amazon', color: 'FF9900', short: 'a'},
+  eBay: {name: 'eBay', slug: 'ebay', color: 'E53238', short: 'e'},
+  Walmart: {name: 'Walmart', slug: 'walmart', color: '0071CE', short: 'W'},
+  Etsy: {name: 'Etsy', slug: 'etsy', color: 'F16521', short: 'E'},
+  Shopify: {name: 'Shopify', slug: 'shopify', color: '7AB55C', short: 'S'},
+  WooCommerce: {name: 'WooCommerce', slug: 'woocommerce', color: '96588A', short: 'W'},
+  BigCommerce: {name: 'BigCommerce', slug: 'bigcommerce', color: '121118', short: 'B'},
+  Shopee: {name: 'Shopee', slug: 'shopee', color: 'EE4D2D', short: 'S'},
+  'Mercado Libre': {name: 'Mercado Libre', slug: 'mercadolibre', color: 'FFE600', short: 'ML'},
+  Rakuten: {name: 'Rakuten', slug: 'rakuten', color: 'BF0000', short: 'R'},
+  'Adobe Commerce': {name: 'Adobe Commerce', slug: 'adobe', color: 'FF0000', short: 'A'},
+  Wix: {name: 'Wix', slug: 'wix', color: '0C6EFC', short: 'W'},
+  Flipkart: {name: 'Flipkart', color: '2874F0', short: 'f'},
+  Meesho: {name: 'Meesho', color: '5C1D91', short: 'm'},
+  Myntra: {name: 'Myntra', color: 'FF3F6C', short: 'M'},
+  AJIO: {name: 'AJIO', color: '1E293B', short: 'A'},
+  'Tata CLiQ': {name: 'Tata CLiQ', color: '7C3AED', short: 'T'},
+  Nykaa: {name: 'Nykaa', color: 'E80071', short: 'N'},
+  Blinkit: {name: 'Blinkit', color: 'F8D33A', short: 'b'},
+  Zepto: {name: 'Zepto', color: '3B166B', short: 'Z'},
+  Instamart: {name: 'Instamart', color: 'FC5B18', short: 'I'},
+  'Flipkart Minutes': {name: 'Flipkart Minutes', color: '2874F0', short: 'FM'},
+  'Amazon Now': {name: 'Amazon Now', slug: 'amazon', color: 'FF9900', short: 'a'},
+}
 
 const coveragePlatforms = [
   ['Global marketplaces', ['Amazon', 'eBay', 'Walmart', 'Etsy', 'Rakuten', 'Shopee', 'Mercado Libre']],
@@ -61,12 +88,6 @@ const driftEvents = [
   ['Flipkart', 'Return held', 'policy mismatch'],
 ]
 
-const proof = [
-  ['Classify', 'AI identifies whether work is inventory drift, SLA risk, return pressure, payout variance or support impact.'],
-  ['Prepare', 'Evidence, account context and recommended next actions arrive before a person opens another tab.'],
-  ['Control', 'Execution still follows merchant rules, access, approval boundaries and channel-specific operating permissions.'],
-]
-
 const heroSignals = [
   ['Input', 'A channel changes stock, promise, payout or return status.'],
   ['AI layer', 'Sanocea classifies the work and prepares the next action.'],
@@ -103,6 +124,27 @@ const useCases = [
   ['Multichannel inventory control', 'Keep storefront and marketplace availability aligned when stock changes faster than spreadsheets or manual updates.'],
   ['Ecommerce exception workflow', 'Route unusual orders, return disputes, payout gaps and fulfillment problems to the right person with evidence attached.'],
   ['AI ecommerce operations layer', 'Use AI to classify signals and prepare work, while the merchant keeps final authority over sensitive actions.'],
+]
+
+const workflowExamples = [
+  {
+    issue: 'Oversell risk',
+    signal: 'A fast-moving channel changes available stock before the storefront and marketplace counts agree.',
+    prepares: ['Classifies inventory drift', 'Attaches SKU and channel context', 'Prepares controlled stock update'],
+    result: 'Inventory workflow ready',
+  },
+  {
+    issue: 'Return dispute',
+    signal: 'Customer context, marketplace policy and warehouse status do not point to the same answer.',
+    prepares: ['Summarizes policy context', 'Builds the evidence pack', 'Routes for approval'],
+    result: 'Refund decision prepared',
+  },
+  {
+    issue: 'Payout variance',
+    signal: 'A settlement includes fees, deductions or refunds the team has to prove before closing accounts.',
+    prepares: ['Collects order history', 'Matches deduction evidence', 'Queues finance review'],
+    result: 'Claim pack assembled',
+  },
 ]
 
 const diagnosticSteps = [
@@ -164,43 +206,38 @@ function Header() {
 }
 
 function PlatformLogo({platform, label = true}) {
-  const [failed, setFailed] = useState(false)
-  const source = platform.logo || `${ICON}/${platform.slug}/${platform.color}`
+  const [imgFailed, setImgFailed] = useState(false)
+  const source = platform.logo || (platform.slug ? `${ICON}/${platform.slug}/${platform.color}` : '')
+  const initials = platform.short || platform.name.split(' ').map((word) => word[0]).join('').slice(0, 2)
+  const showImage = Boolean(source) && !imgFailed
   return (
     <span className="logo-pill">
-      {!failed && (
-        <img
-          src={source}
-          alt=""
-          loading="lazy"
-          onError={() => setFailed(true)}
-        />
-      )}
+      <span
+        className={showImage ? 'logo-mark logo-mark--image' : 'logo-mark'}
+        style={{'--mark-color': platform.color ? `#${platform.color}` : '#11c6dc'}}
+      >
+        {showImage ? (
+          <img
+            src={source}
+            alt={`${platform.name} logo`}
+            loading="lazy"
+            className="logo-mark-svg"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          <span aria-hidden="true">{initials}</span>
+        )}
+      </span>
       {label && <span>{platform.name}</span>}
     </span>
   )
 }
 
 function LogoMark({name}) {
-  const domainMap = {
-    AJIO: 'ajio.com',
-    'Tata CLiQ': 'tatacliq.com',
-    Nykaa: 'nykaa.com',
-    'Flipkart Minutes': 'flipkart.com',
-    'Amazon Now': 'amazon.in',
-    BigCommerce: 'bigcommerce.com',
-    'Adobe Commerce': 'business.adobe.com',
-    Wix: 'wix.com',
-    eBay: 'ebay.com',
-    Walmart: 'walmart.com',
-    Etsy: 'etsy.com',
-    Rakuten: 'rakuten.com',
-    Shopee: 'shopee.com',
-    'Mercado Libre': 'mercadolibre.com',
-  }
-  const platform = channelExamples.find((item) => item.name === name) || {
+  const platform = channelExamples.find((item) => item.name === name) || platformMarkLibrary[name] || {
     name,
-    logo: `https://www.google.com/s2/favicons?domain=${domainMap[name] || `${name.toLowerCase().replaceAll(' ', '')}.com`}&sz=64`,
+    color: '11C6DC',
+    short: name.slice(0, 2),
   }
 
   return <PlatformLogo platform={platform} />
@@ -281,7 +318,7 @@ function ManualDriftBoard() {
         {driftEvents.map((event, index) => {
           const platform = channelExamples.find((item) => item.name === event[0]) || {
             name: event[0],
-            logo: `https://www.google.com/s2/favicons?domain=${event[0].toLowerCase()}.com&sz=64`,
+            ...(platformMarkLibrary[event[0]] || {color: '11C6DC', short: event[0].slice(0, 2)}),
           }
           return (
             <article className={`manual-card d${index}`} key={event[0]}>
@@ -358,21 +395,6 @@ function Hero() {
           </small>
         </div>
         <CommerceField />
-      </div>
-    </section>
-  )
-}
-
-function ProofScene() {
-  return (
-    <section className="proof-scene" aria-label="Sanocea operating advantages">
-      <div className="shell proof-grid">
-        {proof.map((item) => (
-          <article key={item[0]}>
-            <strong>{item[0]}</strong>
-            <p>{item[1]}</p>
-          </article>
-        ))}
       </div>
     </section>
   )
@@ -676,6 +698,49 @@ function UseCaseScene() {
   )
 }
 
+function WorkflowProofScene() {
+  return (
+    <section className="scene workflow-proof-scene">
+      <div className="shell workflow-proof-layout">
+        <div className="section-head center">
+          <span className="chapter">AI work preparation</span>
+          <h2>What Sanocea actually does before your team opens another tab.</h2>
+          <p>
+            The AI advantage is not a chatbot on top of commerce. It is a prepared operating packet:
+            the signal is classified, evidence is attached, risk is named and the next controlled workflow
+            is ready for the person or rule that owns it.
+          </p>
+        </div>
+        <div className="workflow-film" aria-label="Example AI-prepared ecommerce workflows">
+          {workflowExamples.map((item, index) => (
+            <article className="workflow-example" key={item.issue}>
+              <div className="workflow-index">0{index + 1}</div>
+              <div className="workflow-signal">
+                <span>Incoming signal</span>
+                <h3>{item.issue}</h3>
+                <p>{item.signal}</p>
+              </div>
+              <div className="workflow-route" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </div>
+              <div className="workflow-prepares">
+                <span>AI prepares</span>
+                {item.prepares.map((step) => <b key={step}>{step}</b>)}
+              </div>
+              <div className="workflow-result">
+                <span>Controlled output</span>
+                <strong>{item.result}</strong>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function AuthorityScene() {
   return (
     <section className="scene authority-scene">
@@ -865,7 +930,6 @@ function App() {
       <Header />
       <main>
         <Hero />
-        <ProofScene />
         <OutcomesScene />
         <FragmentScene />
         <BottleneckScene />
@@ -874,6 +938,7 @@ function App() {
         <PacketScene />
         <PlatformCoverageScene />
         <UseCaseScene />
+        <WorkflowProofScene />
         <AuthorityScene />
         <CockpitScene />
         <FAQScene />
