@@ -7,12 +7,13 @@ const apiKey = process.env.POSTIZ_API_KEY
 const integrationId = process.env.POSTIZ_INSTAGRAM_INTEGRATION_ID
 const postType = process.env.POSTIZ_POST_TYPE || 'draft'
 const postDate = process.env.POSTIZ_POST_DATE || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+const dryRun = process.env.POSTIZ_DRY_RUN === '1'
 
-if (!apiKey) {
+if (!apiKey && !dryRun) {
   throw new Error('Missing POSTIZ_API_KEY')
 }
 
-if (!integrationId) {
+if (!integrationId && !dryRun) {
   throw new Error('Missing POSTIZ_INSTAGRAM_INTEGRATION_ID')
 }
 
@@ -31,7 +32,7 @@ const payload = {
   posts: [
     {
       integration: {
-        id: integrationId,
+        id: integrationId || 'dry-run-instagram-integration-id',
       },
       value: [
         {
@@ -45,6 +46,11 @@ const payload = {
       },
     },
   ],
+}
+
+if (dryRun) {
+  console.log(JSON.stringify(payload, null, 2))
+  process.exit(0)
 }
 
 const response = await fetch(`${apiUrl}/posts`, {
