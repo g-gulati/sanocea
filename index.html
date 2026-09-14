@@ -17,11 +17,11 @@
         var href = link.getAttribute('href') || '';
         var label = (link.textContent || '').trim();
 
-        if (href === 'mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic') {
+        if (href === 'https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com&su=Sanocea%20operations%20diagnostic') {
           gtag('event', 'diagnostic_email_click', {link_location: 'diagnostic_section'});
         } else if (href === 'https://wa.me/919909360065') {
           gtag('event', 'whatsapp_click', {link_location: 'diagnostic_section'});
-        } else if (href === 'mailto:hello@sanocea.com') {
+        } else if (href === 'https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com') {
           gtag('event', 'footer_email_click', {link_location: 'footer'});
         } else if (href === '#diagnostic' && label === 'Diagnose flow') {
           gtag('event', 'diagnostic_cta_click', {link_location: 'header'});
