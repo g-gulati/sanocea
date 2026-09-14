@@ -2,6 +2,12 @@
   "tenant_id": "sanocea",
   "brand_name": "Sanocea",
   "pilot_channel": "instagram",
+  "social_accounts": {
+    "instagram": {
+      "handle": "sanocea.global",
+      "url": "https://www.instagram.com/sanocea.global/"
+    }
+  },
   "positioning": "AI automation and digital operations for commerce teams selling across marketplaces, storefronts and regional channels.",
   "audience": [
     "multichannel ecommerce founders",
