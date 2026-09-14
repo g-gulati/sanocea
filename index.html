@@ -16,13 +16,25 @@
 
         var href = link.getAttribute('href') || '';
         var label = (link.textContent || '').trim();
+        var diagnosticMailto = 'mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic';
+        var diagnosticGmail = 'https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com&su=Sanocea%20operations%20diagnostic';
+        var footerMailto = 'mailto:hello@sanocea.com';
+        var footerGmail = 'https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com';
 
-        if (href === 'https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com&su=Sanocea%20operations%20diagnostic') {
+        if (href === diagnosticMailto || href === diagnosticGmail) {
           gtag('event', 'diagnostic_email_click', {link_location: 'diagnostic_section'});
+          if (href === diagnosticMailto) {
+            event.preventDefault();
+            window.open(diagnosticGmail, '_blank', 'noopener');
+          }
         } else if (href === 'https://wa.me/919909360065') {
           gtag('event', 'whatsapp_click', {link_location: 'diagnostic_section'});
-        } else if (href === 'https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com') {
+        } else if (href === footerMailto || href === footerGmail) {
           gtag('event', 'footer_email_click', {link_location: 'footer'});
+          if (href === footerMailto) {
+            event.preventDefault();
+            window.open(footerGmail, '_blank', 'noopener');
+          }
         } else if (href === '#diagnostic' && label === 'Diagnose flow') {
           gtag('event', 'diagnostic_cta_click', {link_location: 'header'});
         }
