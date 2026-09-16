@@ -118,6 +118,12 @@ def test_goods_receipt_refused_before_shipment(procurement):
 
 
 def test_stale_acknowledgement_does_not_regress_state(procurement):
+    """Step 7A.1 correction: staleness is now exact-sequence-reuse, not "any lower sequence than the
+    highest already applied" (see atomic_apply_acknowledgement's docstring for the real, reproduced
+    concurrency defect the old rule caused). A supplier resending the SAME sequence number (here,
+    sequence=2 again, with a different external_ref) is the scenario this test now exercises - a
+    genuinely new, lower, never-before-seen sequence number is legitimate and covered separately by
+    test_distinct_sequences_apply_regardless_of_arrival_order in test_phase41_procurement_integrity.py."""
     store, service, supplier = procurement
     _seed_offer(store, service, supplier)
     po = service.create_purchase_order("mer_A", supplier.id, [{"sku": "SKU-1", "quantity_ordered": 20}])
@@ -127,10 +133,10 @@ def test_stale_acknowledgement_does_not_regress_state(procurement):
     assert po_after_full.status == "CONFIRMED"
     position_after_full = service.inventory_position("mer_A", "SKU-1")
 
-    stale = service.record_supplier_acknowledgement("mer_A", po.id, external_ref="ack-1-stale", sequence=1, lines=[{"sku": "SKU-1", "quantity_confirmed": 5, "unit_cost": 500}], status="partially_confirmed")
+    stale = service.record_supplier_acknowledgement("mer_A", po.id, external_ref="ack-2-resent", sequence=2, lines=[{"sku": "SKU-1", "quantity_confirmed": 5, "unit_cost": 500}], status="partially_confirmed")
     assert stale.applied is False
     po_after_stale = store.get(type(po), "mer_A", po.id)
-    assert po_after_stale.status == "CONFIRMED", "a stale (lower-sequence) event must not regress PO state"
+    assert po_after_stale.status == "CONFIRMED", "a stale (exact-sequence-reuse) event must not regress PO state"
     assert service.inventory_position("mer_A", "SKU-1") == position_after_full
     exceptions = store.list(ExceptionRecord, "mer_A")
     assert any(e.category == "stale_acknowledgement_ignored" for e in exceptions)

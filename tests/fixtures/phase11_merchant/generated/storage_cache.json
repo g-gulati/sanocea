@@ -2386,5 +2386,11 @@
     "checksum": "d111d9e799da0eafe2923a5f0becac7009110516c817737aec36a2a9bc4a4182",
     "size": 9946,
     "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  },
+  "phase11_northstar:phase1/supplier/catalog.xlsx:5ca9696b32e9e86f003b01e9dc10976504464d7fb54fab93fe3502788384465d": {
+    "uri": "s3://sanocea-phase05/merchants/phase11_northstar/phase1/supplier/catalog.xlsx",
+    "checksum": "5ca9696b32e9e86f003b01e9dc10976504464d7fb54fab93fe3502788384465d",
+    "size": 9946,
+    "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   }
 }

@@ -90,6 +90,16 @@ CREATE TABLE IF NOT EXISTS listing_verifications (
 );
 CREATE INDEX IF NOT EXISTS idx_listing_verifications_outcome ON listing_verifications(merchant_id, outcome);
 
+-- Stage 4: Durable merchant-scoped product identity decisions (SAME / DIFFERENT)
+CREATE TABLE IF NOT EXISTS identity_decisions (
+  id TEXT PRIMARY KEY,
+  merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  data JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_identity_decisions_merchant ON identity_decisions(merchant_id);
+
 CREATE TABLE IF NOT EXISTS merchant_configurations (
   merchant_id TEXT PRIMARY KEY REFERENCES merchants(id) ON DELETE CASCADE,
   config JSONB NOT NULL,
@@ -103,6 +113,27 @@ CREATE TABLE IF NOT EXISTS credential_references (
   locator TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (merchant_id, ref)
+);
+
+-- Step P0.1: production credential storage - see packages/domain_contract/credentials.py
+-- (DurableEncryptedCredentialProvider). Contains NO credentials and NO encryption key - `ciphertext`/
+-- `nonce` are meaningless without the externally-supplied master key for `key_version`. `id` is a
+-- separate surrogate key (not merchant_id/ref) so a locator can identify one exact row even across a
+-- rotation; `(merchant_id, ref)` stays UNIQUE so ON CONFLICT can implement safe replace/rotate in one
+-- statement. `revoked_at IS NOT NULL` means the credential must never be returned by resolve() again -
+-- rows are never hard-deleted, preserving evidence, matching this codebase's append-only audit
+-- philosophy elsewhere.
+CREATE TABLE IF NOT EXISTS encrypted_credentials (
+  id TEXT PRIMARY KEY,
+  merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  ref TEXT NOT NULL,
+  ciphertext BYTEA NOT NULL,
+  nonce BYTEA NOT NULL,
+  key_version TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revoked_at TIMESTAMPTZ,
+  UNIQUE (merchant_id, ref)
 );
 
 CREATE TABLE IF NOT EXISTS customers (
@@ -201,6 +232,22 @@ CREATE TABLE IF NOT EXISTS inventory (
 CREATE INDEX IF NOT EXISTS idx_inventory_merchant_sku ON inventory(merchant_id, (data->>'sku'));
 CREATE UNIQUE INDEX IF NOT EXISTS uq_inventory_merchant_sku_location ON inventory(merchant_id, (data->>'sku'), (data->>'location_ref'));
 
+-- 2026-09 reservation-lifecycle fix: the reservation OWNERSHIP ledger - see
+-- packages/domain_contract/models.py InventoryReservation docstring for why ConnectorCommand history
+-- alone was proven insufficient. uq_inventory_reservations_idempotency makes duplicate reservation
+-- creation DB-impossible, not just app-checked (mirrors uq_purchase_order_idempotency below - same
+-- final-authority-idempotency pattern, same reason).
+CREATE TABLE IF NOT EXISTS inventory_reservations (
+  id TEXT PRIMARY KEY,
+  merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  data JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_inventory_reservations_source ON inventory_reservations(merchant_id, (data->>'source_type'), (data->>'source_id'));
+CREATE INDEX IF NOT EXISTS idx_inventory_reservations_sku_location ON inventory_reservations(merchant_id, (data->>'sku'), (data->>'location_ref'));
+CREATE UNIQUE INDEX IF NOT EXISTS uq_inventory_reservations_idempotency ON inventory_reservations(merchant_id, (data->>'idempotency_key'));
+
 CREATE TABLE IF NOT EXISTS fulfilments (
   id TEXT PRIMARY KEY,
   merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
@@ -256,6 +303,13 @@ CREATE TABLE IF NOT EXISTS refunds (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_refunds_order ON refunds(merchant_id, (data->>'order_id'));
+-- Step 7B: final-authority idempotency for the Return -> Refund automatic trigger - at most one Refund
+-- per (merchant_id, return_id), mirroring uq_purchase_order_idempotency's exact partial-unique-index
+-- pattern. This, not any application-level pre-check, is what makes two genuinely concurrent
+-- observations of the same refund-eligible Return converge on exactly one Refund row.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_refund_return_id
+  ON refunds(merchant_id, (data->>'return_id'))
+  WHERE (data->>'return_id') IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS cancellations (
   id TEXT PRIMARY KEY,

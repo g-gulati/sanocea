@@ -106,14 +106,39 @@ def test_delayed_acknowledgement_still_applies_correctly(procurement):
 
 
 def test_stale_out_of_order_acknowledgement_does_not_affect_cumulative_total(procurement):
+    """Step 7A.1 correction: staleness is now decided per EXACT sequence reuse, not "any lower sequence
+    than the highest already applied" - see atomic_apply_acknowledgement's docstring for the real,
+    reproduced concurrency defect that made the old rule wrong (it silently discarded genuinely new,
+    concurrent, distinct-sequence deltas whenever a higher-numbered one happened to be PROCESSED first).
+    A genuinely new, never-before-seen LOWER sequence number is legitimate and must apply - proven by
+    test_distinct_sequences_apply_regardless_of_arrival_order below. What must still be rejected as
+    stale is a SUPPLIER RESENDING THE SAME SEQUENCE NUMBER again (a genuine duplicate/out-of-order-
+    resend risk, distinct from an identical external_ref replay, which is separately deduped upstream
+    by a DB-unique constraint and never reaches this decision at all)."""
     store, service, supplier = procurement
     po = _submitted_po(store, service, supplier)
     service.record_supplier_acknowledgement("mer_A", po.id, external_ref="ack-seq5", sequence=5, lines=[{"sku": "SKU-1", "quantity_confirmed": 60, "unit_cost": 500}], status="partially_confirmed")
-    stale = service.record_supplier_acknowledgement("mer_A", po.id, external_ref="ack-seq1-stale", sequence=1, lines=[{"sku": "SKU-1", "quantity_confirmed": 999, "unit_cost": 500}], status="confirmed")
+    stale = service.record_supplier_acknowledgement("mer_A", po.id, external_ref="ack-seq5-resent", sequence=5, lines=[{"sku": "SKU-1", "quantity_confirmed": 999, "unit_cost": 500}], status="confirmed")
     assert stale.applied is False
     line = _line(store, po.id)
-    assert line.quantity_confirmed == 60, "a stale event's quantity must never be added to the cumulative total"
+    assert line.quantity_confirmed == 60, "a stale (exact-sequence-reuse) event's quantity must never be added to the cumulative total"
     assert service.inventory_position("mer_A", "SKU-1")["confirmed_inbound"] == 60
+
+
+def test_distinct_sequences_apply_regardless_of_arrival_order(procurement):
+    """The corrected counterpart to the test above: a genuinely NEW, never-before-seen sequence number
+    is a legitimate, additive contribution and must apply even when it is numerically LOWER than a
+    sequence already applied - because it represents a DIFFERENT event, not a stale resend of the same
+    one. This is exactly what the Step 7A.1 real-Postgres concurrency proof exercises under a genuine
+    race; this is its single-threaded, deterministic-ordering counterpart."""
+    store, service, supplier = procurement
+    po = _submitted_po(store, service, supplier, qty=100)
+    service.record_supplier_acknowledgement("mer_A", po.id, external_ref="ack-seq2", sequence=2, lines=[{"sku": "SKU-1", "quantity_confirmed": 40, "unit_cost": 500}], status="partially_confirmed")
+    result = service.record_supplier_acknowledgement("mer_A", po.id, external_ref="ack-seq1", sequence=1, lines=[{"sku": "SKU-1", "quantity_confirmed": 60, "unit_cost": 500}], status="partially_confirmed")
+    assert result.applied is True
+    line = _line(store, po.id)
+    assert line.quantity_confirmed == 100
+    assert service.inventory_position("mer_A", "SKU-1")["confirmed_inbound"] == 100
 
 
 def test_multi_line_po_over_confirmation_is_per_line(procurement):

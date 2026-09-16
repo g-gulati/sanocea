@@ -90,6 +90,36 @@ class Product(CanonicalEntity):
     status: Literal["draft", "approved", "published", "archived"] = "draft"
 
 
+class ProvenanceClassification(str, Enum):
+    SOURCE_FACT = "SOURCE_FACT"
+    DERIVED_DETERMINISTIC = "DERIVED_DETERMINISTIC"
+    AI_ENRICHED = "AI_ENRICHED"
+    AI_SUGGESTED = "AI_SUGGESTED"
+    MISSING = "MISSING"
+    HUMAN_APPROVED = "HUMAN_APPROVED"
+    EXTERNALLY_VERIFIED = "EXTERNALLY_VERIFIED"
+
+
+class CommercialFact(BaseModel):
+    name: str
+    value: Any = None
+    source: str = ""
+    locator: dict[str, Any] = Field(default_factory=dict)
+    evidence_ref: str = ""
+    classification: str = "SOURCE_FACT"
+    confidence: float = 1.0
+    approved: bool = False
+    approved_by: str | None = None
+    approved_at: datetime | None = None
+    verified: bool = False
+    verified_by: str | None = None
+    verified_at: datetime | None = None
+    conflicted: bool = False
+    conflict_sources: list[dict[str, Any]] = Field(default_factory=list)
+    resolution_note: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
 class ExtractedAttribute(BaseModel):
     name: str
     value: Any
@@ -103,6 +133,34 @@ class ExtractedAttribute(BaseModel):
     rejected: bool = False
 
 
+class VariantDraft(BaseModel):
+    id: str = Field(default_factory=lambda: new_id("vdf"))
+    sku: str | None = None
+    barcode: str | None = None
+    option_values: dict[str, str] = Field(default_factory=dict)
+    price: int | None = None
+    compare_at_price: int | None = None
+    cost_price: int | None = None
+    weight: float | None = None
+    dimensions: dict[str, Any] = Field(default_factory=dict)
+    inventory_quantity: int | None = None
+    commercial_facts: dict[str, CommercialFact] = Field(default_factory=dict)
+    conflicts: list[str] = Field(default_factory=list)
+    status: Literal["ACTIVE", "STALE", "REMOVED"] = "ACTIVE"
+    source_locators: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class IdentityDecision(CanonicalEntity):
+    id: str = Field(default_factory=lambda: new_id("idd"))
+    source_identifier_a: str
+    source_identifier_b: str
+    decision: Literal["SAME", "DIFFERENT"]
+    decided_by: str
+    decided_at: datetime = Field(default_factory=now_utc)
+    canonical_id: str | None = None
+    notes: str | None = None
+
+
 class ProductDraft(CanonicalEntity):
     id: str = Field(default_factory=lambda: new_id("pdr"))
     product_id: str | None = None
@@ -113,11 +171,35 @@ class ProductDraft(CanonicalEntity):
     product_type: str | None = None
     category: str | None = None
     attributes: dict[str, Any] = Field(default_factory=dict)
+    commercial_facts: dict[str, CommercialFact] = Field(default_factory=dict)
     extracted_attributes: list[ExtractedAttribute] = Field(default_factory=list)
     evidence_refs: list[str] = Field(default_factory=list)
     validation_errors: list[str] = Field(default_factory=list)
     conflicts: list[str] = Field(default_factory=list)
-    state: Literal["READY", "NEEDS_APPROVAL", "INCOMPLETE", "CONFLICTED", "INVALID"] = "INCOMPLETE"
+    conflict_details: dict[str, Any] = Field(default_factory=dict)
+
+    # Orthogonal Identity Status (Stage 4 Amendment 2)
+    identity_status: Literal["RESOLVED", "AMBIGUOUS", "UNRESOLVED", "CONFLICT"] = "UNRESOLVED"
+    identity_key: str | None = None
+    identity_candidates: list[dict[str, Any]] = Field(default_factory=list)
+    identity_conflict_reason: str | None = None
+
+    # Variants & Options Modeling (Stage 4 Amendment 6)
+    options: list[str] = Field(default_factory=list)
+    variants: list[VariantDraft] = Field(default_factory=list)
+    stale_revision: bool = False
+    source_revision: str | None = None
+
+    state: Literal[
+        "READY",
+        "NEEDS_APPROVAL",
+        "INCOMPLETE",
+        "CONFLICTED",
+        "INVALID",
+        "NEEDS_INFORMATION",
+        "CONFLICT",
+        "BLOCKED",
+    ] = "INCOMPLETE"
     approved_for_publication: bool = False
     approved_by: str | None = None
     approved_at: datetime | None = None
@@ -149,6 +231,14 @@ class Inventory(CanonicalEntity):
     quantity: int
     reserved: int = 0
     status: str = "observed"
+    # `available` is a STRICT DERIVED/CACHE value, never independently mutated - authoritative formula
+    # is always `quantity - reserved` (2026-09 reservation-lifecycle fix; see InventoryReservation).
+    # Kept as a real persisted field rather than a computed property for backward compatibility with
+    # every existing caller/fixture that constructs Inventory(..., available=X) directly - but every
+    # WRITE path this fix touches (reserve/release/consume/restock/observe_inventory) now derives it
+    # from quantity-reserved instead of applying an independent delta or overwrite, closing the exact
+    # bug this fix found: an external inventory sync used to reset `available` to the raw synced
+    # quantity, silently discarding whatever was currently reserved.
     available: int | None = None
     committed: int = 0
     # Phase 4: quantity a supplier has CONFIRMED (via SupplierAcknowledgement) but that has not yet
@@ -157,6 +247,36 @@ class Inventory(CanonicalEntity):
     # added to sellable stock automatically. Only an explicit goods-receipt action moves it there.
     confirmed_inbound: int = 0
     observed_at: datetime = Field(default_factory=now_utc)
+
+
+class InventoryReservation(CanonicalEntity):
+    """The reservation OWNERSHIP ledger (2026-09 reservation-lifecycle fix). `Inventory.reserved` is
+    the aggregate counter; this is the per-reservation record that makes release/consume correct under
+    partial fulfilment and concurrency - proven necessary by direct inspection (not assumed) before
+    adding it: `ConnectorCommand`/idempotency history is an immutable, append-only AUDIT trail of
+    individual events, not a live record with a mutable "how much of this reservation is still
+    outstanding" counter, so it cannot alone answer "release exactly what THIS order actually owns,
+    even after a partial release/consume already happened" without unsafely re-deriving state by
+    scanning history. Modeled after the reservation-ledger pattern found in mature OSS commerce systems
+    (Medusa's ReservationItem, Saleor's Allocation, ERPNext's Stock Reservation Entries) - the SEMANTIC
+    is adopted, not their code or schema.
+    """
+    id: str = Field(default_factory=lambda: new_id("rsv"))
+    sku: str
+    location_ref: str
+    source_type: str  # "order" | "exchange" - what created this reservation
+    source_id: str  # Order.id or Exchange.id
+    # Disambiguates two OrderLines sharing the same SKU within the same order (a real ambiguity found
+    # during Step 1A review, not hypothetical: the reservation idempotency_key alone used to be keyed by
+    # (order_id, sku), so a second same-SKU line would collide with the first line's key and silently
+    # reserve nothing for itself). None for exchange reservations, which have no OrderLine.
+    order_line_id: str | None = None
+    idempotency_key: str  # unique per (merchant_id, idempotency_key) - DB-enforced, not just app-checked
+    quantity_requested: int  # what was asked for (may exceed quantity_reserved - a real shortfall)
+    quantity_reserved: int  # immutable: the exact amount actually reserved at creation time
+    quantity_released: int = 0  # cumulative, never exceeds quantity_reserved
+    quantity_consumed: int = 0  # cumulative, never exceeds quantity_reserved - quantity_released
+    status: str = "active"  # active | closed (released+consumed together reached quantity_reserved)
 
 
 class Customer(CanonicalEntity):
@@ -349,11 +469,22 @@ class Return(CanonicalEntity):
     requested_variant_sku: str | None = None
     eligibility: str | None = None
     approval_id: str | None = None
+    # Set only when status becomes "accepted" (progress_return event "inspection_passed") - a DISTINCT
+    # decision from acceptance itself: an accepted return is not automatically restockable (damaged/
+    # tampered/non-resalable goods are accepted but never resold). None before that point; never
+    # inferred, always the caller's explicit disposition. See PostOrderOperationsService.progress_return.
+    restockable: bool | None = None
 
 
 class Refund(CanonicalEntity):
     id: str = Field(default_factory=lambda: new_id("ref"))
     order_id: str
+    # Step 7B: durable ownership back to the Return that triggered this refund, when applicable - None
+    # for a refund created directly (e.g. a support/API-driven request_refund, unrelated to any return).
+    # DB-uniquely enforced per (merchant_id, return_id) where set (see migrations/0001_phase05.sql
+    # uq_refund_return_id) - the actual concurrency-safety mechanism for "one Return -> at most one
+    # Refund", not merely an application-level convention.
+    return_id: str | None = None
     amount: int
     currency: str
     # OPERATIONAL EXECUTION lifecycle (Phase 2.1 - "did we tell the provider, did the provider confirm"):
@@ -599,6 +730,10 @@ class SupplierSku(CanonicalEntity):
 class ReplenishmentRecommendation(CanonicalEntity):
     id: str = Field(default_factory=lambda: new_id("rep"))
     sku: str
+    # Step 5: the destination this recommendation's inventory-position truth was read for - resolved
+    # once (Step 2's resolve_location_ref) before this record is created, never re-resolved later.
+    # Defaults to "default" for full backward compatibility with pre-Step-5 single-location merchants.
+    location_ref: str = "default"
     recommended_quantity: int
     chosen_supplier_id: str | None = None
     # Every input and derived value that produced recommended_quantity - "explain exactly why".
@@ -627,6 +762,12 @@ class PurchaseOrderLine(CanonicalEntity):
     purchase_order_id: str
     sku: str
     supplier_sku: str | None = None
+    # Step 5 (Part B): the ONE canonical destination location for this line, decided once at PO
+    # creation (resolved via Step 2's resolve_location_ref if the caller did not supply one explicitly)
+    # and never re-resolved or overridden afterward - acknowledgement, shipment, and goods receipt all
+    # read this field rather than re-deriving a location. Defaults to "default" for full backward
+    # compatibility with pre-Step-5 single-location merchants/fixtures.
+    location_ref: str = "default"
     quantity_ordered: int
     unit_cost: int
     currency: str
@@ -671,6 +812,10 @@ class InboundShipmentLine(CanonicalEntity):
     inbound_shipment_id: str
     sku: str
     quantity_shipped: int
+    # Step 5B: the EXACT canonical PurchaseOrderLine this shipment line resolved to - set whenever
+    # resolution succeeded (via echoed line_ref or an unambiguous legacy SKU match), None when it
+    # failed closed (ambiguous_po_line/unknown_po_line/no matching line at all).
+    purchase_order_line_id: str | None = None
 
 
 class GoodsReceipt(CanonicalEntity):
@@ -689,4 +834,18 @@ class GoodsReceiptLine(CanonicalEntity):
     raw_sku_reference: str | None = None
     quantity_received: int
     quantity_expected: int | None = None
-    disposition: Literal["match", "shortage", "excess", "wrong_sku", "unexpected_item"] = "match"
+    # Step 5A: `ambiguous_po_line` - a legacy SKU-only receipt matched MORE THAN ONE PurchaseOrderLine on
+    # this PO (e.g. the same SKU ordered to two different locations, or twice to the same location) and
+    # was refused rather than guessed. `unknown_po_line` - an explicit `po_line_id` was supplied but does
+    # not resolve to any line on this PO.
+    disposition: Literal["match", "shortage", "excess", "wrong_sku", "unexpected_item", "ambiguous_po_line", "unknown_po_line"] = "match"
+    # Step 5 (Part F): the location inventory actually mutated for - always the resolved PO line's
+    # canonical location_ref, never a caller-supplied override (see Part H). None for a line that never
+    # resolved to exactly one known PO line (wrong_sku/unexpected_item/ambiguous_po_line/unknown_po_line)
+    # - no inventory was touched for it.
+    location_ref: str | None = None
+    # Step 5A (PO-LINE RECEIPT IDENTITY): the EXACT canonical PurchaseOrderLine this receipt line
+    # resolved to and mutated - the strongest identity available, always set whenever exactly one line
+    # was resolved (whether via an explicit po_line_id or an unambiguous legacy SKU match). None when
+    # resolution failed (wrong_sku/unexpected_item/ambiguous_po_line/unknown_po_line).
+    purchase_order_line_id: str | None = None

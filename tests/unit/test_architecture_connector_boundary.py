@@ -51,7 +51,7 @@ ALLOWED_CONNECTOR_IMPORT_FILES = {
     "packages/runtime/storefront_registry.py",  # imports Channel only today, but kept in the allowlist
 }
 
-FORBIDDEN_LITERALS = {"shopify", "woocommerce", "shopify_live"}
+FORBIDDEN_LITERALS = {"shopify", "woocommerce", "shopify_live", "bigcommerce", "flipkart", "amazon", "meesho"}
 
 
 def _iter_protected_files() -> list[Path]:

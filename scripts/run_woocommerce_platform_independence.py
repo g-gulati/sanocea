@@ -154,7 +154,7 @@ def main() -> None:
             "woocommerce_consumer_secret": WC_CONSUMER_SECRET,
             "woocommerce_webhook_secret": WEBHOOK_SECRET,
         },
-        "channels": [{"type": "woocommerce", "name": "WooCommerce", "credential_ref": "woocommerce_consumer_key"}],
+        "channels": [{"type": "woocommerce", "name": "WordPress/WooCommerce", "credential_ref": "woocommerce_consumer_key"}],
     })
     if onboard_status != 200:
         raise RuntimeError(f"could not onboard {MERCHANT_ID}: {onboard_status} {onboard_result}")

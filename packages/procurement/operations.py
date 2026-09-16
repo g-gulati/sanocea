@@ -10,6 +10,7 @@ from openpyxl import load_workbook
 
 from sanocea.packages.audit import AuditLedger
 from sanocea.packages.connector_sdk import MutationRequest
+from sanocea.packages.domain_contract.location import resolve_location_ref
 from sanocea.packages.domain_contract.models import (
     Approval,
     ExceptionRecord,
@@ -238,7 +239,17 @@ class ProcurementService:
         velocity = units_sold / lookback_days if lookback_days else 0.0
         return {"sku": sku, "lookback_days": lookback_days, "units_sold": units_sold, "velocity_per_day": round(velocity, 4)}
 
-    def recommend_replenishment(self, merchant_id: str, sku: str) -> ReplenishmentRecommendation:
+    def recommend_replenishment(self, merchant_id: str, sku: str, location_ref: str | None = None) -> ReplenishmentRecommendation:
+        """Step 5 (Part C): LOCATION-SPECIFIC replenishment truth. `location_ref` resolves exactly once
+        (Step 2's resolve_location_ref - explicit caller value, else merchant-configured default, else
+        the legacy "default" literal) and every reading of inventory_position below uses that ONE
+        resolved location - a merchant with ample stock at one location must never mask a genuine
+        shortage at another (the Surat/Mumbai example in the Step 5 mandate). Sales velocity remains a
+        merchant/SKU-wide signal (OrderLine carries no location_ref - fulfilment is not tracked
+        per-location on the order side) - this is a deliberate, disclosed scope limit, not an oversight;
+        pooling actual on-hand/reserved/ATS across locations is what Part C forbids, not sharing a demand
+        signal that has no location dimension to begin with.
+        """
         config = self.store.get_config(merchant_id).get("procurement", {})
         per_sku_cfg = config.get("replenishment", {})
         sku_cfg = per_sku_cfg.get(sku, per_sku_cfg.get("default", {}))
@@ -248,7 +259,8 @@ class ProcurementService:
         max_stock_cfg = sku_cfg.get("max_stock")
         lookback_days = int(config.get("velocity_lookback_days", 30))
 
-        position = self.inventory_position(merchant_id, sku)
+        resolved_location = resolve_location_ref(self.store, merchant_id, explicit=location_ref)
+        position = self.inventory_position(merchant_id, sku, resolved_location)
         velocity = self.recent_sales_velocity(merchant_id, sku, lookback_days=lookback_days)
         offer = self.select_supplier_offer(merchant_id, sku)
         lead_time_days = offer.lead_time_days if offer else int(config.get("default_lead_time_days", 7))
@@ -265,6 +277,7 @@ class ProcurementService:
 
         needs_reorder = position["inventory_position"] <= reorder_point
         reasoning: dict[str, Any] = {
+            "location_ref": resolved_location,
             "inventory_position": position,
             "velocity": velocity,
             "safety_stock": safety_stock,
@@ -311,7 +324,7 @@ class ProcurementService:
             )
 
         rec = ReplenishmentRecommendation(
-            merchant_id=merchant_id, sku=sku, recommended_quantity=recommended_quantity,
+            merchant_id=merchant_id, sku=sku, location_ref=resolved_location, recommended_quantity=recommended_quantity,
             chosen_supplier_id=offer.supplier_id if offer else None, reasoning=reasoning,
         )
         self.store.put(rec)
@@ -441,9 +454,18 @@ class ProcurementService:
     # ================================================================================================
 
     def create_purchase_order(self, merchant_id: str, supplier_id: str, lines: list[dict[str, Any]], *, idempotency_key: str | None = None) -> PurchaseOrder:
-        """lines: [{"sku": ..., "quantity_ordered": ...}] - cost/currency/MOQ are ALWAYS looked up from
-        the on-file SupplierSku, never accepted from the caller. A line with no active SupplierSku is
-        refused outright rather than invented."""
+        """lines: [{"sku": ..., "quantity_ordered": ..., "location_ref": <optional>}] - cost/currency/MOQ
+        are ALWAYS looked up from the on-file SupplierSku, never accepted from the caller. A line with no
+        active SupplierSku is refused outright rather than invented.
+
+        Step 5 (Part B/D/I): each line's DESTINATION location is decided HERE, exactly once, via Step 2's
+        resolve_location_ref (explicit `location_ref` on the raw line wins; otherwise the merchant's
+        configured default; otherwise the legacy "default" literal - full backward compatibility for
+        callers that never pass location_ref at all). Once persisted on PurchaseOrderLine, this is the
+        CANONICAL destination for the rest of this line's lifecycle - acknowledgement, shipment, and
+        goods receipt all read it back rather than re-resolving. Different lines on the same PO may
+        legitimately resolve to different locations (line-level, not header-level, matching the granularity
+        ERPNext uses for its own per-line "Accepted Warehouse" - OSS finding, semantics only, Decision C)."""
         supplier = self._supplier(merchant_id, supplier_id)
         if supplier is None:
             raise ValueError(f"unknown supplier {supplier_id}")
@@ -460,7 +482,11 @@ class ProcurementService:
                 )
                 continue
             currency = currency or offer.currency
-            resolved_lines.append({"sku": raw["sku"], "supplier_sku": offer.supplier_sku, "quantity_ordered": int(raw["quantity_ordered"]), "unit_cost": offer.cost, "currency": offer.currency})
+            location_ref = resolve_location_ref(self.store, merchant_id, explicit=raw.get("location_ref"))
+            resolved_lines.append({
+                "sku": raw["sku"], "supplier_sku": offer.supplier_sku, "quantity_ordered": int(raw["quantity_ordered"]),
+                "unit_cost": offer.cost, "currency": offer.currency, "location_ref": location_ref,
+            })
 
         po = PurchaseOrder(merchant_id=merchant_id, supplier_id=supplier_id, status="DRAFT" if resolved_lines else "BLOCKED", currency=currency or "INR", idempotency_key=idempotency_key)
         persisted_po = self.store.put(po)
@@ -470,7 +496,10 @@ class ProcurementService:
             self.audit.record(merchant_id=merchant_id, actor="procurement", source="procurement", action="purchase_order_blocked", object_type="PurchaseOrder", object_id=persisted_po.id, result="BLOCKED")
             return persisted_po
         for rl in resolved_lines:
-            self.store.put(PurchaseOrderLine(merchant_id=merchant_id, purchase_order_id=persisted_po.id, sku=rl["sku"], supplier_sku=rl["supplier_sku"], quantity_ordered=rl["quantity_ordered"], unit_cost=rl["unit_cost"], currency=rl["currency"]))
+            self.store.put(PurchaseOrderLine(
+                merchant_id=merchant_id, purchase_order_id=persisted_po.id, sku=rl["sku"], supplier_sku=rl["supplier_sku"],
+                location_ref=rl["location_ref"], quantity_ordered=rl["quantity_ordered"], unit_cost=rl["unit_cost"], currency=rl["currency"],
+            ))
         self.audit.record(merchant_id=merchant_id, actor="procurement", source="procurement", action="purchase_order_created", object_type="PurchaseOrder", object_id=persisted_po.id, result="DRAFT")
         return self.validate_purchase_order(merchant_id, persisted_po.id)
 
@@ -525,9 +554,16 @@ class ProcurementService:
         if self.supplier_connector is None:
             raise RuntimeError("supplier connector required for PO submission")
         lines = [l for l in self.store.list(PurchaseOrderLine, merchant_id) if l.purchase_order_id == po_id]
+        # Step 5B: `line_ref` is this PO's own canonical PurchaseOrderLine.id, sent as an opaque token -
+        # the supplier is never asked to understand Sanocea's schema, only to echo it back exactly as
+        # received on any later acknowledgement/shipment event (the smallest generic mechanism: no
+        # separate reference-generation/mapping table, since po_line.id is already an opaque stable
+        # string). This is what lets acknowledgement/inbound resolve to the EXACT line that was ordered,
+        # even when two lines on the same PO share a SKU (see record_supplier_acknowledgement/
+        # record_inbound_shipment's identity resolution).
         payload = {
             "purchase_order_id": po.id, "supplier_id": po.supplier_id, "currency": po.currency,
-            "lines": [{"sku": l.sku, "supplier_sku": l.supplier_sku, "quantity_ordered": l.quantity_ordered, "unit_cost": l.unit_cost} for l in lines],
+            "lines": [{"sku": l.sku, "supplier_sku": l.supplier_sku, "quantity_ordered": l.quantity_ordered, "unit_cost": l.unit_cost, "line_ref": l.id} for l in lines],
         } | ({"simulate": simulate} if simulate else {})
         idempotency_key = f"po-submit:{po.id}"
         try:
@@ -588,26 +624,23 @@ class ProcurementService:
             )
             ack = SupplierAcknowledgement(merchant_id=merchant_id, purchase_order_id=po_id, external_ref=external_ref, sequence=sequence, lines=lines, status=status, applied=False)
             return self.store.put(ack)
-        highest_applied = max(
-            (a.sequence for a in self.store.list(SupplierAcknowledgement, merchant_id) if a.purchase_order_id == po_id and a.applied),
-            default=-1,
-        )
-        applied = sequence > highest_applied
-        ack = SupplierAcknowledgement(merchant_id=merchant_id, purchase_order_id=po_id, external_ref=external_ref, sequence=sequence, lines=lines, status=status, applied=applied)
+        # Step 7A.1: `applied` is no longer pre-computed via an unlocked read of "highest applied
+        # sequence so far" here - that plain read raced against concurrent acknowledgements for the
+        # SAME PO and could incorrectly mark a genuinely NEW, distinct, lower-numbered sequence as stale
+        # merely because a numerically higher (but unrelated) sequence happened to be PROCESSED first
+        # (found as a real, reproduced Postgres lost-update; see atomic_apply_acknowledgement's
+        # docstring for the full root-cause/staleness-rule reasoning). The atomic per-line call below is
+        # now the SOLE, race-free authority on staleness. `applied=False` here is only a placeholder to
+        # satisfy the model while the DB-unique external_ref constraint does its own, unrelated,
+        # unchanged duplicate-delivery dedup job.
+        ack = SupplierAcknowledgement(merchant_id=merchant_id, purchase_order_id=po_id, external_ref=external_ref, sequence=sequence, lines=lines, status=status, applied=False)
         persisted = self.store.put(ack)
         if persisted.id != ack.id:
             return persisted  # duplicate external_ref - DB-enforced idempotency, no re-processing
 
-        if not applied:
-            self.exceptions.create(
-                merchant_id=merchant_id, category="stale_acknowledgement_ignored",
-                message=f"Acknowledgement sequence {sequence} <= highest applied sequence {highest_applied} for PO {po_id} - evidence kept, state NOT altered",
-                object_id=po_id, severity="warning",
-            )
-            self.audit.record(merchant_id=merchant_id, actor="procurement", source="supplier", action="acknowledgement_stale_ignored", object_type="PurchaseOrder", object_id=po_id, result="ignored")
-            return persisted
-
+        po_lines = [l for l in self.store.list(PurchaseOrderLine, merchant_id) if l.purchase_order_id == po_id]
         any_over_confirmed = False
+        event_applied: bool | None = None
         for line in lines:
             offer = self._offer(merchant_id, po.supplier_id, line["sku"])
             cost_decision, cost_info = self._cost_decision(merchant_id, offer.cost if offer else None, int(line["unit_cost"]))
@@ -617,35 +650,68 @@ class ProcurementService:
                     message=f"Acknowledged cost variance for {line['sku']} on PO {po_id}: {cost_info}",
                     object_id=po_id, severity="error" if cost_decision == Decision.DENY else "warning",
                 )
-            po_line = self._po_line(merchant_id, po_id, line["sku"])
+            po_line, resolution_failure = self._resolve_po_line_for_event(po_lines, line_ref=line.get("line_ref"), sku=line["sku"])
+            if resolution_failure:
+                # Step 5B - a NEW failure mode: previously `_po_line`'s first-match lookup could never
+                # detect ambiguity, it would silently credit whichever line happened to be listed first.
+                # The pre-existing "SKU not found on this PO at all" case (resolution_failure is None,
+                # po_line is None) is intentionally left as a silent no-op below, unchanged from before
+                # Step 5B - only genuinely NEW ambiguity/bad-reference cases are flagged here.
+                self.exceptions.create(
+                    merchant_id=merchant_id, category=f"acknowledgement_{resolution_failure}",
+                    message=(
+                        f"Acknowledgement line for sku={line['sku']!r} line_ref={line.get('line_ref')!r} on PO {po_id} "
+                        f"could not be resolved to exactly one PO line ({resolution_failure}) - refused, no mutation"
+                    ),
+                    object_id=po_id, severity="error",
+                )
             if po_line is not None:
-                # Cumulative, race-free confirmation (Phase 4.1): the atomic increment is the ONLY
-                # source of truth for the running total - never a local read-modify-write. The TRUE
+                # Step 7A.1 - ONE atomic transaction: the sequence-staleness claim, the PurchaseOrderLine
+                # cumulative increment, and the location-scoped confirmed_inbound increment (capped to
+                # the legitimate/ordered portion) all happen together, or none of them do. The TRUE
                 # cumulative total is recorded on the line (visible/auditable even when it exceeds
-                # quantity_ordered), but confirmed_inbound only ever receives the LEGITIMATE portion -
-                # the delta between the ordered-quantity-CAPPED total before and after this event. An
-                # over-confirming event (duplicate-risk or genuine supplier error) can never push
-                # confirmed_inbound - and therefore inventory_position - past what was actually ordered.
+                # quantity_ordered), but confirmed_inbound only ever receives the LEGITIMATE portion - an
+                # over-confirming event can never push confirmed_inbound past what was actually ordered.
                 raw_delta = int(line["quantity_confirmed"])
-                new_true_total = self.store.atomic_apply_po_line_confirmation(merchant_id, po_line.id, raw_delta)
-                previous_true_total = new_true_total - raw_delta
-                legitimate_before = min(previous_true_total, po_line.quantity_ordered)
-                legitimate_after = min(new_true_total, po_line.quantity_ordered)
-                legitimate_delta = max(legitimate_after - legitimate_before, 0)
-                if legitimate_delta:
-                    self._adjust_confirmed_inbound(merchant_id, line["sku"], legitimate_delta)
-                if new_true_total > po_line.quantity_ordered:
+                result = self.store.atomic_apply_acknowledgement(merchant_id, po_id, po_line.id, line["sku"], po_line.location_ref, sequence, raw_delta)
+                if event_applied is None:
+                    event_applied = result["applied"]
+                if not result["applied"]:
+                    continue  # this exact sequence was already applied for this PO - handled once, below the loop
+                if result["over_confirmed"]:
                     any_over_confirmed = True
                     self.exceptions.create(
                         merchant_id=merchant_id, category="supplier_overconfirmation",
                         message=(
-                            f"Cumulative acknowledged quantity for {line['sku']} on PO {po_id} is {new_true_total}, "
+                            f"Cumulative acknowledged quantity for {line['sku']} on PO {po_id} is {result['new_true_total']}, "
                             f"exceeding ordered quantity {po_line.quantity_ordered} - possible duplicate/erroneous "
-                            f"remittance from supplier. Only {legitimate_delta} of this event's {raw_delta} units "
+                            f"remittance from supplier. Only {result['legitimate_delta']} of this event's {raw_delta} units "
                             f"were credited to confirmed_inbound; inventory position was NOT silently inflated."
                         ),
                         object_id=po_id, severity="error",
                     )
+
+        if event_applied is False:
+            # Step 7A.1 fix: `store.put()` cannot correct `applied` on an already-inserted
+            # SupplierAcknowledgement row (PostgresStore's put() for this model is INSERT-only, ON
+            # CONFLICT DO NOTHING, keyed on external_ref - a second put() call is silently discarded,
+            # never updating existing fields; see mark_acknowledgement_applied's docstring for the full
+            # story of this genuine, found bug). A direct, targeted update is required instead.
+            self.store.mark_acknowledgement_applied(merchant_id, persisted.id, False)
+            persisted.applied = False
+            self.exceptions.create(
+                merchant_id=merchant_id, category="stale_acknowledgement_ignored",
+                message=f"Acknowledgement sequence {sequence} was already applied for PO {po_id} - evidence kept, state NOT altered",
+                object_id=po_id, severity="warning",
+            )
+            self.audit.record(merchant_id=merchant_id, actor="procurement", source="supplier", action="acknowledgement_stale_ignored", object_type="PurchaseOrder", object_id=po_id, result="ignored")
+            return persisted
+
+        # event_applied is True, or None (no line resolved to a real PO line at all - nothing was
+        # mutated, so there was nothing to atomically gate; treated as applied/evidence-only, matching
+        # pre-7A.1 behavior for this edge case).
+        self.store.mark_acknowledgement_applied(merchant_id, persisted.id, True)
+        persisted.applied = True
 
         if status == "rejected":
             po.status = "REJECTED"
@@ -660,12 +726,6 @@ class ProcurementService:
         self.audit.record(merchant_id=merchant_id, actor="procurement", source="supplier", action="acknowledgement_applied", object_type="PurchaseOrder", object_id=po_id, result=po.status)
         return persisted
 
-    def _adjust_confirmed_inbound(self, merchant_id: str, sku: str, delta: int) -> None:
-        # atomic_adjust_inventory (real DB-enforced upsert, or a lock-guarded equivalent for the
-        # in-memory store) closes a genuine race: two concurrent acknowledgement events for a SKU with
-        # no prior Inventory row could otherwise both read "does not exist" and each create a competing
-        # row, silently losing one contribution - not just a crash.
-        self.store.atomic_adjust_inventory(merchant_id, sku, "default", confirmed_inbound_delta=delta)
 
     def _update_supplier_reliability(self, merchant_id: str, supplier_id: str) -> None:
         po_ids = {p.id for p in self.store.list(PurchaseOrder, merchant_id) if p.supplier_id == supplier_id and p.status not in {"DRAFT", "BLOCKED", "REQUIRES_APPROVAL", "APPROVED", "AUTO_APPROVED", "SUBMITTED"}}
@@ -687,6 +747,16 @@ class ProcurementService:
     def record_inbound_shipment(
         self, merchant_id: str, po_id: str, *, external_shipment_ref: str, sequence: int, lines: list[dict[str, Any]], status: str = "dispatched",
     ) -> InboundShipment:
+        """lines: [{"sku": ..., "quantity_shipped": int, "line_ref": <optional, PREFERRED - the exact
+        canonical PurchaseOrderLine.id, echoed back exactly as sent on PO submission>}]
+
+        Step 5B: resolved via the same exact-identity hierarchy as acknowledgement - `line_ref` first,
+        else an unambiguous legacy SKU match on this PO. `quantity_shipped` accumulates on the resolved
+        line only; a shipment for one line must never be attributed to a sibling line sharing its SKU.
+        Preserves `PurchaseOrderLine.location_ref` unchanged (no location is read from or written by an
+        inbound shipment event at all - it never mutates inventory - so there is no location to
+        re-resolve or override here in the first place).
+        """
         po = self.store.get(PurchaseOrder, merchant_id, po_id)
         if po.status not in self._SHIPMENT_VALID_STATUSES:
             self.exceptions.create(
@@ -711,9 +781,22 @@ class ProcurementService:
             self.audit.record(merchant_id=merchant_id, actor="procurement", source="supplier", action="shipment_stale_ignored", object_type="PurchaseOrder", object_id=po_id, result="ignored")
             return persisted
 
+        po_lines = [l for l in self.store.list(PurchaseOrderLine, merchant_id) if l.purchase_order_id == po_id]
         for line in lines:
-            self.store.put(InboundShipmentLine(merchant_id=merchant_id, inbound_shipment_id=persisted.id, sku=line["sku"], quantity_shipped=int(line["quantity_shipped"])))
-            po_line = self._po_line(merchant_id, po_id, line["sku"])
+            po_line, resolution_failure = self._resolve_po_line_for_event(po_lines, line_ref=line.get("line_ref"), sku=line["sku"])
+            if resolution_failure:
+                self.exceptions.create(
+                    merchant_id=merchant_id, category=f"shipment_{resolution_failure}",
+                    message=(
+                        f"Shipment line for sku={line['sku']!r} line_ref={line.get('line_ref')!r} on PO {po_id} could "
+                        f"not be resolved to exactly one PO line ({resolution_failure}) - refused, no mutation"
+                    ),
+                    object_id=po_id, severity="error",
+                )
+            self.store.put(InboundShipmentLine(
+                merchant_id=merchant_id, inbound_shipment_id=persisted.id, sku=line["sku"],
+                quantity_shipped=int(line["quantity_shipped"]), purchase_order_line_id=po_line.id if po_line else None,
+            ))
             if po_line is not None:
                 po_line.quantity_shipped += int(line["quantity_shipped"])
                 self.store.put(po_line)
@@ -731,7 +814,33 @@ class ProcurementService:
     def record_goods_receipt(
         self, merchant_id: str, po_id: str, *, external_receipt_ref: str, lines: list[dict[str, Any]], inbound_shipment_id: str | None = None,
     ) -> GoodsReceipt:
-        """lines: [{"raw_sku_reference": <what is physically labeled>, "quantity_received": int}]"""
+        """lines: [{"raw_sku_reference": <what is physically labeled>, "quantity_received": int,
+        "po_line_id": <optional, PREFERRED - the exact canonical PurchaseOrderLine.id>,
+        "location_ref": <optional - what the receiving payload CLAIMS the receiving location is>}]
+
+        Step 5A (PO-LINE RECEIPT IDENTITY): a receipt line must resolve to EXACTLY ONE canonical
+        PurchaseOrderLine before any inventory mutation, via a strict hierarchy - never SKU alone as
+        authoritative identity, and never list/dict insertion order to break a tie:
+
+          1. `po_line_id`, if supplied - the strongest identity available (this PO's own canonical line
+             id). Must belong to THIS PO or the line is refused as `unknown_po_line`; no fallback to SKU
+             matching is attempted once an explicit id is given.
+          2. Otherwise, `raw_sku_reference` matched against this PO's own lines (legacy input, backward
+             compatible with pre-Step-5A payloads). Resolves ONLY when EXACTLY ONE PurchaseOrderLine on
+             this PO carries that SKU. Two or more matches - the same SKU ordered to two different
+             locations, or twice to the SAME location (a strictly harder case: location cannot
+             disambiguate it either) - is `ambiguous_po_line`: refused outright, no mutation, no
+             guessing. (sku, location_ref) is deliberately NOT used as a disambiguating composite key -
+             the canonical model does not guarantee that pair is unique, so treating it as an identity
+             would be exactly the "weaker, must fail closed" tier this hierarchy exists to avoid leaning
+             on when a stronger identity (po_line_id) is available instead.
+
+        Step 5 (Part F/H, unchanged): physical receipt always mutates inventory at the RESOLVED line's
+        OWN canonical `location_ref` - never a location named in the payload. `location_ref` on an
+        incoming line is VALIDATION EVIDENCE ONLY: it can flag a mismatch against the resolved line's
+        canonical destination, but it never selects which line resolves, and never chooses which
+        location is mutated - no override path exists.
+        """
         po = self.store.get(PurchaseOrder, merchant_id, po_id)
         if po.status not in self._RECEIPT_VALID_STATUSES:
             self.exceptions.create(
@@ -741,7 +850,11 @@ class ProcurementService:
             )
             receipt = GoodsReceipt(merchant_id=merchant_id, purchase_order_id=po_id, inbound_shipment_id=inbound_shipment_id, external_receipt_ref=external_receipt_ref, status="received_with_exceptions")
             return self.store.put(receipt)
-        po_lines_by_sku = {l.sku: l for l in self.store.list(PurchaseOrderLine, merchant_id) if l.purchase_order_id == po_id}
+        po_lines = [l for l in self.store.list(PurchaseOrderLine, merchant_id) if l.purchase_order_id == po_id]
+        po_lines_by_id = {l.id: l for l in po_lines}
+        po_lines_by_sku: dict[str, list[PurchaseOrderLine]] = {}
+        for l in po_lines:
+            po_lines_by_sku.setdefault(l.sku, []).append(l)
         receipt = GoodsReceipt(merchant_id=merchant_id, purchase_order_id=po_id, inbound_shipment_id=inbound_shipment_id, external_receipt_ref=external_receipt_ref)
         persisted_receipt = self.store.put(receipt)
         if persisted_receipt.id != receipt.id:
@@ -751,18 +864,57 @@ class ProcurementService:
         for raw in lines:
             sku_ref = raw.get("raw_sku_reference")
             quantity_received = int(raw["quantity_received"])
-            po_line = po_lines_by_sku.get(sku_ref) if sku_ref else None
+            explicit_po_line_id = raw.get("po_line_id")
+
+            po_line: PurchaseOrderLine | None = None
+            disposition: str | None = None
+            failure_message: str | None = None
+            if explicit_po_line_id:
+                po_line = po_lines_by_id.get(explicit_po_line_id)
+                if po_line is None:
+                    disposition = "unknown_po_line"
+                    failure_message = f"Receipt referenced po_line_id={explicit_po_line_id!r} which does not belong to PO {po.id} - refused, inventory NOT touched"
+            else:
+                candidates = po_lines_by_sku.get(sku_ref, []) if sku_ref else []
+                if len(candidates) == 1:
+                    po_line = candidates[0]
+                elif len(candidates) > 1:
+                    disposition = "ambiguous_po_line"
+                    failure_message = (
+                        f"Receipt reference {sku_ref!r} matches {len(candidates)} PO lines on PO {po.id} "
+                        f"(same SKU on multiple lines/locations) - ambiguous without an explicit po_line_id, "
+                        f"refused rather than guessed, inventory NOT touched"
+                    )
+                else:
+                    disposition = "wrong_sku" if sku_ref else "unexpected_item"
+                    failure_message = f"Received {quantity_received} units of unrecognized reference {sku_ref!r} against PO {po.id} - missing/wrong PO reference"
 
             if po_line is None:
-                disposition = "wrong_sku" if sku_ref else "unexpected_item"
-                self.store.put(GoodsReceiptLine(merchant_id=merchant_id, goods_receipt_id=persisted_receipt.id, sku=None, raw_sku_reference=sku_ref, quantity_received=quantity_received, quantity_expected=None, disposition=disposition))
+                self.store.put(GoodsReceiptLine(
+                    merchant_id=merchant_id, goods_receipt_id=persisted_receipt.id, sku=None, raw_sku_reference=sku_ref,
+                    quantity_received=quantity_received, quantity_expected=None, disposition=disposition,
+                    location_ref=None, purchase_order_line_id=None,
+                ))
+                self.exceptions.create(merchant_id=merchant_id, category=f"goods_receipt_{disposition}", message=failure_message, object_id=po.id, severity="error")
+                has_exception = True
+                continue  # Uncertain/ambiguous receipt: do NOT touch inventory for an unresolved reference.
+
+            claimed_location = raw.get("location_ref")
+            if claimed_location and claimed_location != po_line.location_ref:
+                # Part H - a wrong-location receipt must be FLAGGED, never silently mutate the location
+                # the payload claims. The canonical PO-line destination remains authoritative below
+                # regardless; no override path exists for Step 5.
                 self.exceptions.create(
-                    merchant_id=merchant_id, category=f"goods_receipt_{disposition}",
-                    message=f"Received {quantity_received} units of unrecognized reference {sku_ref!r} against PO {po.id} - missing/wrong PO reference",
+                    merchant_id=merchant_id, category="goods_receipt_wrong_location_attempted",
+                    message=(
+                        f"Receipt for {po_line.sku} (po_line_id={po_line.id}) on PO {po.id} claimed location "
+                        f"{claimed_location!r}, but this PO line's canonical destination is {po_line.location_ref!r} "
+                        f"- receiving at the claimed location was refused; inventory was applied at the canonical "
+                        f"destination only."
+                    ),
                     object_id=po.id, severity="error",
                 )
                 has_exception = True
-                continue  # Uncertain receipt: do NOT touch inventory for an unresolved reference.
 
             expected_remaining = po_line.quantity_ordered - po_line.quantity_received
             if quantity_received < expected_remaining:
@@ -771,20 +923,27 @@ class ProcurementService:
                 disposition = "excess"
             else:
                 disposition = "match"
-            self.store.put(GoodsReceiptLine(merchant_id=merchant_id, goods_receipt_id=persisted_receipt.id, sku=po_line.sku, raw_sku_reference=sku_ref, quantity_received=quantity_received, quantity_expected=expected_remaining, disposition=disposition))
+            self.store.put(GoodsReceiptLine(
+                merchant_id=merchant_id, goods_receipt_id=persisted_receipt.id, sku=po_line.sku, raw_sku_reference=sku_ref,
+                quantity_received=quantity_received, quantity_expected=expected_remaining, disposition=disposition,
+                location_ref=po_line.location_ref, purchase_order_line_id=po_line.id,
+            ))
             if disposition != "match":
                 self.exceptions.create(
                     merchant_id=merchant_id, category=f"goods_receipt_{disposition}",
-                    message=f"{disposition} for {po_line.sku} on PO {po.id}: expected {expected_remaining}, received {quantity_received}",
+                    message=f"{disposition} for {po_line.sku} (po_line_id={po_line.id}) on PO {po.id}: expected {expected_remaining}, received {quantity_received}",
                     object_id=po.id, severity="warning",
                 )
                 has_exception = True
 
             # The physical count itself is real regardless of the discrepancy classification - the
-            # ACTUAL counted quantity (never the expected/claimed quantity) is what becomes sellable.
+            # ACTUAL counted quantity (never the expected/claimed quantity) is what becomes sellable, and
+            # it is applied at the EXACT RESOLVED LINE's own canonical location only (Part F/Step 5A) -
+            # never the payload's claimed location (Part H), and never a different line sharing the
+            # same SKU.
             po_line.quantity_received += quantity_received
             self.store.put(po_line)
-            self._apply_goods_receipt_to_inventory(merchant_id, po_line.sku, quantity_received)
+            self._apply_goods_receipt_to_inventory(merchant_id, po_line.sku, po_line.location_ref, quantity_received)
 
         persisted_receipt = self.store.get(GoodsReceipt, merchant_id, persisted_receipt.id)
         persisted_receipt.status = "received_with_exceptions" if has_exception else "received"
@@ -793,9 +952,11 @@ class ProcurementService:
         self.audit.record(merchant_id=merchant_id, actor="procurement", source="warehouse", action="goods_receipt_recorded", object_type="PurchaseOrder", object_id=po_id, result=persisted_receipt.status)
         return persisted_receipt
 
-    def _apply_goods_receipt_to_inventory(self, merchant_id: str, sku: str, quantity_received: int) -> None:
+    def _apply_goods_receipt_to_inventory(self, merchant_id: str, sku: str, location_ref: str, quantity_received: int) -> None:
+        # Step 5 (Part F): increase quantity/available and reduce confirmed_inbound at the PO line's
+        # OWN destination location only - every other location's Inventory row is untouched by this call.
         self.store.atomic_adjust_inventory(
-            merchant_id, sku, "default",
+            merchant_id, sku, location_ref,
             confirmed_inbound_delta=-quantity_received, quantity_delta=quantity_received, available_delta=quantity_received,
         )
 
@@ -836,5 +997,39 @@ class ProcurementService:
     def _offer(self, merchant_id: str, supplier_id: str, sku: str) -> SupplierSku | None:
         return next((o for o in self.store.list(SupplierSku, merchant_id) if o.supplier_id == supplier_id and o.sku == sku and o.status == "active"), None)
 
-    def _po_line(self, merchant_id: str, po_id: str, sku: str) -> PurchaseOrderLine | None:
-        return next((l for l in self.store.list(PurchaseOrderLine, merchant_id) if l.purchase_order_id == po_id and l.sku == sku), None)
+    def _resolve_po_line_for_event(
+        self, po_lines: list[PurchaseOrderLine], *, line_ref: str | None, sku: str | None,
+    ) -> tuple[PurchaseOrderLine | None, str | None]:
+        """Step 5B - shared exact PO-line identity resolution for supplier acknowledgement and inbound
+        shipment events (goods receipt has its own, separately-accepted Step 5A resolution with
+        different zero-match handling - deliberately kept independent, not unified with this one).
+        Never SKU alone, supplier SKU alone, or (sku, location_ref) as authoritative identity - the
+        canonical model does not guarantee (sku, location_ref) is unique, so it is never used to select
+        between candidates anywhere in this hierarchy.
+
+        `po_lines` is this PO's own lines, pre-fetched once by the caller (avoids re-querying the store
+        once per line in a multi-line event).
+
+        Returns (po_line, disposition):
+          - (line, None) - resolved to exactly one line via `line_ref` (preferred - this PO's own
+            canonical PurchaseOrderLine.id, echoed back exactly as sent on PO submission) or an
+            unambiguous legacy SKU match.
+          - (None, "unknown_po_line") - an explicit `line_ref` was supplied but does not belong to this
+            PO; no fallback to SKU matching is attempted once an explicit reference is given.
+          - (None, "ambiguous_po_line") - no `line_ref` given, and more than one line on this PO carries
+            the supplied SKU (the same SKU ordered to two different locations, or twice to the SAME
+            location) - refused rather than guessed; never resolved by list/dict insertion order.
+          - (None, None) - no `line_ref` given and no line on this PO carries the supplied SKU at all.
+            This is the PRE-EXISTING "unknown SKU" case (unchanged since before Step 5B) and is
+            intentionally left silent here (no exception, matching the caller's prior behavior) - only
+            the genuinely NEW ambiguous/bad-reference cases are surfaced as exceptions by the caller.
+        """
+        if line_ref:
+            po_line = next((l for l in po_lines if l.id == line_ref), None)
+            return (po_line, None) if po_line is not None else (None, "unknown_po_line")
+        candidates = [l for l in po_lines if l.sku == sku] if sku else []
+        if len(candidates) == 1:
+            return candidates[0], None
+        if len(candidates) > 1:
+            return None, "ambiguous_po_line"
+        return None, None

@@ -1,0 +1,49 @@
+{
+  "observed_at_utc": "2026-09-16T07:42:20+00:00",
+  "url": "https://www.jiomart.com/product/anchal-refined-soyabean-oil-5-ltr-jar-with-700-g-pouch-combo-light-healthy-cooking-oil-for-everyday-meals-mj725u-50189182",
+  "status_code": 200,
+  "final_url": "https://www.jiomart.com/product/anchal-refined-soyabean-oil-5-ltr-jar-with-700-g-pouch-combo-light-healthy-cooking-oil-for-everyday-meals-mj725u-50189182",
+  "ld_json": [
+    {
+      "@context": "http://schema.org",
+      "@type": "Product",
+      "productID": "",
+      "sku": "",
+      "identifier": "",
+      "name": " - ",
+      "color": "",
+      "image": "",
+      "logo": "",
+      "brand": {
+        "@type": "Brand",
+        "name": "",
+        "image": "",
+        "identifier": ""
+      },
+      "category": "",
+      "pattern": "",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "bestRating": "5",
+        "ratingValue": "",
+        "ratingCount": ""
+      },
+      "typeOfGood": "",
+      "offers": {
+        "@type": "Offer",
+        "availability": "https://schema.org/InStock",
+        "price": "",
+        "priceCurrency": "",
+        "priceSpecification": {
+          "@type": "DeliveryChargeSpecification",
+          "maxPrice": "",
+          "minPrice": "",
+          "price": "",
+          "priceCurrency": ""
+        }
+      }
+    }
+  ],
+  "next_data_present": false,
+  "next_data": null
+}

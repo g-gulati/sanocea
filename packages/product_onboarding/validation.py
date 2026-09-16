@@ -3,7 +3,18 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 
-from sanocea.packages.domain_contract.models import ProductDraft
+from sanocea.packages.domain_contract.models import ProductDraft, ProvenanceClassification, now_utc
+from sanocea.packages.product_onboarding.provenance import (
+    PROTECTED_COMMERCIAL_FACTS,
+    ZeroInventionPolicy,
+    normalize_commercial_fact_value,
+    sync_facts_to_extracted_attributes,
+)
+try:
+    from sanocea.packages.product_onboarding.variants import VariantMatrixEngine
+except ImportError:
+    from packages.product_onboarding.variants import VariantMatrixEngine
+
 
 
 @dataclass(frozen=True)
@@ -17,7 +28,10 @@ class ProductCompletenessValidator:
         self.store = store
 
     def validate(self, draft: ProductDraft) -> ProductDraft:
-        existing_errors = [error for error in draft.validation_errors if not error.startswith("missing_required_attribute:")]
+        existing_errors = [
+            error for error in draft.validation_errors
+            if not error.startswith("missing_required_attribute:") and not error.startswith("zero_invention_violation:")
+        ]
         self.apply_deterministic_mappings(draft)
         config = self.store.get_config(draft.merchant_id)
         product_rules = config.get("product_rules", {})
@@ -28,58 +42,116 @@ class ProductCompletenessValidator:
         for field in required:
             value = getattr(draft, field, None) if hasattr(draft, field) else draft.attributes.get(field)
             if value in (None, ""):
-                missing.append(field)
+                fact = draft.commercial_facts.get(field)
+                if fact and fact.value not in (None, ""):
+                    if field == "price":
+                        val = normalize_commercial_fact_value("price", fact.value)
+                        if val is not None and val > 0:
+                            draft.price = val
+                            value = val
+                        else:
+                            missing.append(field)
+                    else:
+                        value = fact.value
+                        if hasattr(draft, field):
+                            setattr(draft, field, value)
+                        else:
+                            draft.attributes[field] = value
+                else:
+                    missing.append(field)
+                    if field not in draft.commercial_facts:
+                        draft.commercial_facts[field] = ZeroInventionPolicy.create_missing_fact(field)
+                    else:
+                        draft.commercial_facts[field].classification = ProvenanceClassification.MISSING.value
+                        draft.commercial_facts[field].value = None
+
+        # Enforce Zero-Invention Policy on protected commercial facts
+        zero_invention_errors = []
+        for name, fact in draft.commercial_facts.items():
+            if name in PROTECTED_COMMERCIAL_FACTS:
+                if fact.classification in (ProvenanceClassification.AI_ENRICHED.value, ProvenanceClassification.AI_SUGGESTED.value):
+                    zero_invention_errors.append(f"zero_invention_violation:{name}")
+
+        # Identity fallback: If identity_status is UNRESOLVED but deterministic authoritative identifiers exist, mark RESOLVED
+        if draft.identity_status == "UNRESOLVED":
+            if draft.sku or draft.product_id:
+                draft.identity_status = "RESOLVED"
+                draft.identity_key = f"sku:{draft.sku}" if draft.sku else f"product_id:{draft.product_id}"
+
+        # Stage 4 Amendment 6: Validate variant matrix if variants are present
+        if draft.variants:
+            variant_engine = VariantMatrixEngine()
+            variant_conflicts = variant_engine.validate_variant_matrix(draft)
+            if variant_conflicts:
+                draft.conflicts = list(set(draft.conflicts + variant_conflicts))
+
         conflicts = self._detect_conflicts(draft)
-        draft.validation_errors = existing_errors + [f"missing_required_attribute:{field}" for field in missing]
+        draft.validation_errors = existing_errors + [f"missing_required_attribute:{field}" for field in missing] + zero_invention_errors
         draft.conflicts = conflicts
-        if any(error == "invalid_price" for error in draft.validation_errors):
+        if any(error == "invalid_price" for error in draft.validation_errors) or zero_invention_errors:
             draft.state = "INVALID"
         elif conflicts:
             draft.state = "CONFLICTED"
         elif missing:
             draft.state = "INCOMPLETE"
-        elif any(not attr.approved and not attr.verified for attr in draft.extracted_attributes):
+        elif any(not attr.approved and not attr.verified for attr in draft.extracted_attributes) or any(not fact.approved and not fact.verified for fact in draft.commercial_facts.values()):
             draft.state = "NEEDS_APPROVAL"
         else:
             draft.state = "READY"
         if draft.state == "NEEDS_APPROVAL" and self._trusted_evidence_can_be_verified(draft):
             for attr in draft.extracted_attributes:
                 attr.verified = True
+            for fact in draft.commercial_facts.values():
+                fact.verified = True
             draft.state = "READY"
+        sync_facts_to_extracted_attributes(draft)
         self.store.put(draft)
         return draft
 
     def apply_publication_policy(self, draft: ProductDraft) -> PublicationDecision:
         config = self.store.get_config(draft.merchant_id)
         publication = config.get("publication", {})
+        exceptions: list[str] = []
+        # Stage 4 Amendment 2: Strict orthogonal check on identity_status
+        if draft.identity_status != "RESOLVED":
+            exceptions.append(f"unresolved_product_identity:{draft.identity_status}")
+            if draft.identity_conflict_reason:
+                exceptions.append(draft.identity_conflict_reason)
+        if draft.state != "READY":
+            exceptions.append(f"draft_state:{draft.state}")
+        if draft.validation_errors or draft.conflicts:
+            exceptions.extend(draft.validation_errors + draft.conflicts)
+        if any(fact.conflicted for fact in draft.commercial_facts.values()):
+            exceptions.append("unresolved_commercial_fact_conflicts")
+        for name, fact in draft.commercial_facts.items():
+            if name in PROTECTED_COMMERCIAL_FACTS:
+                if fact.classification in (ProvenanceClassification.AI_ENRICHED.value, ProvenanceClassification.AI_SUGGESTED.value):
+                    exceptions.append(f"zero_invention_violation:{name}")
+                if fact.classification == ProvenanceClassification.MISSING.value:
+                    exceptions.append(f"missing_protected_fact:{name}")
+        if not draft.sku:
+            exceptions.append("missing_sku")
+        if not self._unique_sku(draft):
+            exceptions.append("duplicate_sku")
+        if draft.price is None or draft.price <= 0:
+            exceptions.append("invalid_price")
+        if not draft.currency:
+            exceptions.append("missing_currency")
+        if "internal_only_field" in draft.attributes:
+            exceptions.append("internal_only_field")
+
+        if exceptions:
+            return PublicationDecision("EXCEPTION", exceptions)
+
         if publication.get("require_approval", True):
             return PublicationDecision("REQUIRE_APPROVAL", ["merchant_requires_publication_approval"])
-        if draft.state != "READY":
-            return PublicationDecision("EXCEPTION", [f"draft_state:{draft.state}"])
-        if draft.validation_errors or draft.conflicts:
-            return PublicationDecision("EXCEPTION", draft.validation_errors + draft.conflicts)
-        if not draft.sku:
-            return PublicationDecision("EXCEPTION", ["missing_sku"])
-        if not self._unique_sku(draft):
-            return PublicationDecision("EXCEPTION", ["duplicate_sku"])
-        if draft.price is None or draft.price <= 0:
-            return PublicationDecision("EXCEPTION", ["invalid_price"])
-        if not draft.currency:
-            return PublicationDecision("EXCEPTION", ["missing_currency"])
-        # A platform-neutral rule: an internal-only field that leaked into extracted attributes (e.g. a
-        # supplier's internal margin figure) must never reach ANY storefront, regardless of which
-        # connector eventually publishes this draft - not a Shopify-specific constraint. Named
-        # "internal_only_field" (not e.g. "unsupported_shopify_field", its pre-multi-platform name) per
-        # docs/architecture/multi-platform-connector-hardening.md closure item 2.
-        if "internal_only_field" in draft.attributes:
-            return PublicationDecision("EXCEPTION", ["internal_only_field"])
         auto_categories = set(publication.get("auto_publish_categories") or [])
         if auto_categories and (draft.category or draft.product_type) not in auto_categories:
             return PublicationDecision("REQUIRE_APPROVAL", ["category_not_auto_publishable"])
         max_price = publication.get("auto_publish_max_price")
         if max_price is not None and draft.price > int(max_price):
             return PublicationDecision("REQUIRE_APPROVAL", ["price_above_auto_publish_threshold"])
-        if any(not attr.approved and not attr.verified for attr in draft.extracted_attributes):
+        if any(not attr.approved and not attr.verified for attr in draft.extracted_attributes) or any(not fact.approved and not fact.verified for fact in draft.commercial_facts.values()):
             return PublicationDecision("REQUIRE_APPROVAL", ["unapproved_extracted_facts"])
         draft.approved_for_publication = True
         self.store.put(draft)
@@ -88,27 +160,53 @@ class ProductCompletenessValidator:
     def approve_extracted_facts(self, draft: ProductDraft, actor: str) -> ProductDraft:
         for attr in draft.extracted_attributes:
             attr.approved = True
+        for fact in draft.commercial_facts.values():
+            if not fact.conflicted:
+                fact.approved = True
+                fact.approved_by = actor
+                fact.approved_at = now_utc()
         draft.approved_by = actor
-        from sanocea.packages.domain_contract.models import now_utc
-
         draft.approved_at = now_utc()
         return self.validate(draft)
 
     def approve_publication(self, draft: ProductDraft, actor: str) -> ProductDraft:
+        if draft.identity_status != "RESOLVED":
+            raise ValueError(
+                f"Cannot approve product draft {draft.id} for publication: identity is {draft.identity_status} "
+                f"({draft.identity_conflict_reason or 'unresolved'})"
+            )
+        for attr in draft.extracted_attributes:
+            attr.approved = True
+        for fact in draft.commercial_facts.values():
+            if not fact.conflicted:
+                fact.approved = True
+                fact.approved_by = actor
+                fact.approved_at = now_utc()
+        draft.state = "READY"
         draft.approved_for_publication = True
         draft.approved_by = actor
-        from sanocea.packages.domain_contract.models import now_utc
-
         draft.approved_at = now_utc()
         self.store.put(draft)
         return draft
 
     def _detect_conflicts(self, draft: ProductDraft) -> list[str]:
+        conflicts = set()
+        for c in draft.conflicts:
+            conflicts.add(c)
+        for fact_name, fact in draft.commercial_facts.items():
+            if fact.conflicted:
+                conflicts.add(f"conflicting_product_evidence:{fact_name}")
         values = defaultdict(set)
         for attr in draft.extracted_attributes:
             if attr.value not in (None, ""):
+                fact = draft.commercial_facts.get(attr.name)
+                if fact and not fact.conflicted and fact.approved:
+                    continue
                 values[attr.name].add(self._normalize_value(attr.name, attr.value))
-        return [f"conflicting_product_evidence:{name}" for name, observed in values.items() if len(observed) > 1]
+        for name, observed in values.items():
+            if len(observed) > 1:
+                conflicts.add(f"conflicting_product_evidence:{name}")
+        return sorted(list(conflicts))
 
     def apply_deterministic_mappings(self, draft: ProductDraft) -> ProductDraft:
         for key in ("colour", "color"):

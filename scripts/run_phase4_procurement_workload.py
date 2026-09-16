@@ -205,7 +205,7 @@ def _run_commercial_workload(store: PostgresStore, dsn: str) -> dict[str, Any]:
         offer = service.select_supplier_offer(MERCHANT_A, sku)
         sim.register_stock(offer.supplier_sku, available=100000, moq=offer.moq)
         po_lines = [l for l in store.list(PurchaseOrderLine, MERCHANT_A) if l.purchase_order_id == po.id]
-        ack_event = sim.acknowledge(po.external_ref, [{"sku": l.sku, "supplier_sku": l.supplier_sku, "quantity_ordered": l.quantity_ordered, "unit_cost": l.unit_cost} for l in po_lines])
+        ack_event = sim.acknowledge(po.external_ref, [{"sku": l.sku, "supplier_sku": l.supplier_sku, "quantity_ordered": l.quantity_ordered, "unit_cost": l.unit_cost, "line_ref": l.id} for l in po_lines])
         service.record_supplier_acknowledgement(MERCHANT_A, po.id, external_ref=ack_event["external_ref"], sequence=ack_event["sequence"], lines=ack_event["lines"], status=ack_event["status"])
         po = store.get(PurchaseOrder, MERCHANT_A, po.id)
         if po.status == "CONFIRMED":
@@ -291,7 +291,7 @@ def _run_adversarial_workload(store: PostgresStore, dsn: str) -> dict[str, Any]:
     sim2 = SupplierSimulator()
     sim2.register_stock("ADV-MOQ-SUP", available=1000, moq=50)
     po_lines = [l for l in store.list(PurchaseOrderLine, MERCHANT_A) if l.purchase_order_id == po.id]
-    ack = sim2.acknowledge(po.external_ref, [{"sku": l.sku, "supplier_sku": l.supplier_sku, "quantity_ordered": l.quantity_ordered, "unit_cost": l.unit_cost} for l in po_lines], fault="moq_reject")
+    ack = sim2.acknowledge(po.external_ref, [{"sku": l.sku, "supplier_sku": l.supplier_sku, "quantity_ordered": l.quantity_ordered, "unit_cost": l.unit_cost, "line_ref": l.id} for l in po_lines], fault="moq_reject")
     service.record_supplier_acknowledgement(MERCHANT_A, po.id, external_ref=ack["external_ref"], sequence=ack["sequence"], lines=ack["lines"], status=ack["status"])
     outcomes["moq_rejection"] = {"ack_status": ack["status"], "po_status": store.get(PurchaseOrder, MERCHANT_A, po.id).status, "correct": ack["status"] == "rejected"}
 
@@ -586,7 +586,7 @@ def _run_merchant_b(store: PostgresStore, dsn: str) -> dict[str, Any]:
         sim = SupplierSimulator()
         sim.register_stock(offer.supplier_sku, available=100000, moq=offer.moq)
         po_lines = [l for l in store.list(PurchaseOrderLine, MERCHANT_B) if l.purchase_order_id == po.id]
-        ack = sim.acknowledge(po.external_ref, [{"sku": l.sku, "supplier_sku": l.supplier_sku, "quantity_ordered": l.quantity_ordered, "unit_cost": l.unit_cost} for l in po_lines])
+        ack = sim.acknowledge(po.external_ref, [{"sku": l.sku, "supplier_sku": l.supplier_sku, "quantity_ordered": l.quantity_ordered, "unit_cost": l.unit_cost, "line_ref": l.id} for l in po_lines])
         service.record_supplier_acknowledgement(MERCHANT_B, po.id, external_ref=ack["external_ref"], sequence=ack["sequence"], lines=ack["lines"], status=ack["status"])
         po = store.get(PurchaseOrder, MERCHANT_B, po.id)
         if po.status != "CONFIRMED":

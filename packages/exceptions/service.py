@@ -23,6 +23,10 @@ class ExceptionCategory(str, Enum):
     CONNECTOR_RATE_LIMITED = "connector_rate_limited"
     CONNECTOR_5XX = "connector_5xx"
     EXTERNAL_MUTATION_UNCERTAIN = "external_mutation_uncertain"
+    # Step 9Q.2 - a channel reported a status value outside the connector's known/confirmed vocabulary.
+    # Never silently guessed at or dropped - the raw external status is preserved on the Order and this
+    # exception surfaces it for manual mapping, exactly the same discipline as reconciliation_divergence.
+    UNMAPPED_CHANNEL_STATUS = "unmapped_channel_status"
 
 
 class ExceptionService:

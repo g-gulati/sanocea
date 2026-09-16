@@ -48,6 +48,55 @@ class ProductOnboardingWorkflow:
                     self.store.put(Approval(merchant_id=merchant_id, action="approve_product_facts", object_id=draft.id, requested_by="product_onboarding"))
         return validated
 
+    def ingest_package(self, merchant_id: str, paths: list[Path]) -> list[ProductDraft]:
+        """Ingest a mixed package of merchant source files (CSV, XLSX, PDF, Images) into validated ProductDrafts."""
+        drafts = self.ingestor.ingest_package(merchant_id, paths)
+        validated = [self.validator.validate(draft) for draft in drafts]
+        for draft in validated:
+            if draft.state in ("INCOMPLETE", "CONFLICTED", "INVALID"):
+                category = ExceptionCategory.CONFLICTING_PRODUCT_EVIDENCE if draft.state == "CONFLICTED" else ExceptionCategory.MISSING_REQUIRED_ATTRIBUTE
+                self.exceptions.create(
+                    merchant_id=merchant_id,
+                    category=category,
+                    message=f"Product draft {draft.id} requires corrective work: {draft.state}",
+                    object_id=draft.id,
+                    evidence_ref=draft.evidence_refs[0] if draft.evidence_refs else None,
+                )
+            elif draft.state == "NEEDS_APPROVAL":
+                existing = self.store.find_one(Approval, merchant_id, action="approve_product_facts", object_id=draft.id, status="pending")
+                if existing is None:
+                    self.store.put(Approval(merchant_id=merchant_id, action="approve_product_facts", object_id=draft.id, requested_by="product_onboarding"))
+        return validated
+
+    def resolve_conflict(
+        self,
+        merchant_id: str,
+        draft_id: str,
+        fact_name: str,
+        chosen_value: Any,
+        chosen_source: str,
+        actor: str,
+        note: str | None = None,
+    ) -> ProductDraft:
+        """Resolves a conflicting commercial fact with human authorization, updating the draft and audit ledger."""
+        from sanocea.packages.product_onboarding.provenance import resolve_fact_conflict
+
+        draft = self.store.get(ProductDraft, merchant_id, draft_id)
+        draft = resolve_fact_conflict(draft, fact_name, chosen_value, chosen_source, actor, note)
+        draft = self.validator.validate(draft)
+        self.store.put(draft)
+        self.audit.record(
+            merchant_id=merchant_id,
+            actor=actor,
+            source="product_onboarding",
+            action="conflict_resolved",
+            object_type="ProductDraft",
+            object_id=draft.id,
+            result=draft.state,
+            evidence_ref=chosen_source,
+        )
+        return draft
+
     def approve_product_facts(self, merchant_id: str, draft_id: str, approver_id: str) -> ProductDraft:
         """Resolves the pending approve_product_facts Approval (if any) with a real authenticated
         approver identity, then re-validates - a draft may move straight to READY here."""

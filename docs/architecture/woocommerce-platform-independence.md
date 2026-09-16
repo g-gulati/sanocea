@@ -2,6 +2,15 @@
 
 Status: `REAL EXTERNAL PLATFORM - LOCAL - PASS`
 
+**Terminology note:** WooCommerce is the ecommerce layer running on WordPress - its REST API is
+integrated with (and authenticated alongside) the WordPress REST API, and WooCommerce itself supplies
+the commerce resources (products, orders, inventory) and webhook system Sanocea's connector integrates
+with. Merchant-facing material (onboarding UI, operator-facing channel labels, sales/support material)
+should say **"WordPress/WooCommerce"** for clarity to merchants who think of their store as "my
+WordPress site." The technical connector, channel type, module paths, and class name remain
+**WooCommerce** (`connectors/woocommerce/`, `WooCommerceConnector`, channel `type: "woocommerce"`) -
+this is a display-naming convention only, not a rename, and there is no separate "WordPress connector."
+
 ## Objective
 
 Prove Sanocea's Commerce Operations core can integrate with a real, independently-implemented

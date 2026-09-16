@@ -15,6 +15,15 @@ class CapabilityStatus(str, Enum):
     SUPPORTED = "supported"
     UNSUPPORTED = "unsupported"
     ASYNC_ONLY = "async_only"
+    # Step 9Q.2 - two additions for connectors built against a channel's PUBLIC first-party contract
+    # before real merchant/platform access exists (Flipkart being the first case): the capability is
+    # real and its request/response shape is implemented and contract-tested, but cannot be exercised
+    # against the live platform without credentials the merchant/platform has not yet issued.
+    ACCESS_REQUIRED = "access_required"
+    # The capability's EXISTENCE (or its exact request/response shape) was not confirmed by primary
+    # documentation during research - never silently treated as SUPPORTED, never implemented against a
+    # guessed schema. See docs/connectors/flipkart-certification.md for the exact items in this state.
+    UNCONFIRMED = "unconfirmed"
 
 
 class MutationMode(str, Enum):
@@ -36,9 +45,17 @@ class ConnectorCapabilities(BaseModel):
     capabilities: dict[str, Capability]
 
     def require(self, name: str) -> Capability:
+        """Step 9Q.2: only SUPPORTED/ASYNC_ONLY capabilities may actually be invoked. ACCESS_REQUIRED
+        (real, contract-implemented, but no live credential yet) and UNCONFIRMED (existence/shape not
+        established by primary documentation) both refuse execution here, with a distinct exception
+        each - never silently degrade into "attempt it anyway" or a fabricated response."""
         capability = self.capabilities.get(name)
         if capability is None or capability.status == CapabilityStatus.UNSUPPORTED:
             raise UnsupportedCapability(name)
+        if capability.status == CapabilityStatus.ACCESS_REQUIRED:
+            raise CapabilityAccessRequired(name)
+        if capability.status == CapabilityStatus.UNCONFIRMED:
+            raise CapabilityUnconfirmed(name)
         return capability
 
 
@@ -70,6 +87,17 @@ class RateLimitState(BaseModel):
 
 class UnsupportedCapability(Exception):
     pass
+
+
+class CapabilityAccessRequired(Exception):
+    """The capability is really implemented against the platform's own documented contract, but cannot
+    be exercised yet because no merchant/platform credential has been issued for it."""
+
+
+class CapabilityUnconfirmed(Exception):
+    """No primary documentation confirmed this capability's existence/shape - refusing to execute
+    rather than guess. See docs/connectors/<connector>-certification.md for what's unconfirmed and
+    why."""
 
 
 class Connector(Protocol):

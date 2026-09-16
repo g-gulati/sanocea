@@ -65,21 +65,47 @@ class StorefrontConnectorRegistry:
         return storefront_channels[0].type if storefront_channels else None
 
     def resolve(self, merchant_id: str) -> Any:
-        cached = self._cache.get(merchant_id)
-        if cached is not None:
-            return cached
         channel_type = self.channel_type_for(merchant_id)
         if channel_type is None:
             raise UnknownStorefrontChannelError(merchant_id)
-        connector = self._factories[channel_type](self.store, self.workflow, merchant_id)
-        self._cache[merchant_id] = connector
-        return connector
+        return self.resolve_for_channel_type(merchant_id, channel_type)
 
     def resolve_expect(self, merchant_id: str, expected_channel_type: str) -> Any:
         actual = self.channel_type_for(merchant_id)
         if actual != expected_channel_type:
             raise ChannelMismatchError(merchant_id, expected_channel_type, actual)
-        return self.resolve(merchant_id)
+        return self.resolve_for_channel_type(merchant_id, expected_channel_type)
+
+    def resolve_for_channel_type(self, merchant_id: str, channel_type: str) -> Any:
+        """P0 Remediation: every merchant + channel type resolves to ONE authoritative connector
+        instance across all resolution paths (`resolve()`, `resolve_for_channel_type()`, and
+        `resolve_for_channel_id()`). Eliminates the dual-cache split where resolve() cached under
+        merchant_id while resolve_for_channel_type() cached under f"{merchant_id}:{channel_type}",
+        which created desynchronized in-memory connector instances."""
+        cache_key = f"{merchant_id}:{channel_type}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+        if channel_type not in self._factories:
+            raise UnknownStorefrontChannelError(merchant_id)
+        matching = [c for c in self.store.list(Channel, merchant_id) if c.type == channel_type]
+        if not matching:
+            raise UnknownStorefrontChannelError(merchant_id)
+        connector = self._factories[channel_type](self.store, self.workflow, merchant_id)
+        self._cache[cache_key] = connector
+        # Alias self._cache[merchant_id] if this is the merchant's primary/first storefront
+        primary_type = self.channel_type_for(merchant_id)
+        if primary_type == channel_type:
+            self._cache[merchant_id] = connector
+        return connector
+
+    def resolve_for_channel_id(self, merchant_id: str, channel_id: str) -> Any:
+        """Same as resolve_for_channel_type, but starting from a specific Channel.id (what
+        Publication.channel_id and Order.channel_id actually carry) rather than a bare type string."""
+        channels = [c for c in self.store.list(Channel, merchant_id) if c.id == channel_id]
+        if not channels:
+            raise UnknownStorefrontChannelError(merchant_id)
+        return self.resolve_for_channel_type(merchant_id, channels[0].type)
 
     def __call__(self, merchant_id: str) -> Any:
         return self.resolve(merchant_id)
@@ -99,3 +125,16 @@ def as_resolver(value: Any) -> Callable[[str], Any]:
     if isinstance(value, StorefrontConnectorRegistry):
         return value
     return lambda merchant_id: value
+
+
+def as_channel_resolver(value: Any) -> Callable[[str, str], Any]:
+    """Step 9Q.2 - the channel-aware counterpart to as_resolver(), for callers that know a SPECIFIC
+    channel_id (Publication.channel_id, Order.channel_id) and must not rely on resolve()'s "whichever
+    channel happens to be first" behavior once a merchant has more than one storefront. For the single-
+    connector case (every existing caller, unchanged), channel_id is accepted and ignored - there is
+    only ever one connector to return, exactly as as_resolver() already behaves."""
+    if value is None:
+        return lambda merchant_id, channel_id: None
+    if isinstance(value, StorefrontConnectorRegistry):
+        return value.resolve_for_channel_id
+    return lambda merchant_id, channel_id: value

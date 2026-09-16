@@ -73,6 +73,18 @@ class DoclingExtractor:
         return extracted
 
     def _extract_pdf_text_layer(self, content: bytes) -> str:
+        try:
+            import pymupdf
+            doc = pymupdf.open(stream=content, filetype="pdf")
+            lines = []
+            for page in doc:
+                t = page.get_text()
+                if t.strip():
+                    lines.append(t.strip())
+            if lines:
+                return "\n".join(lines)
+        except Exception:
+            pass
         raw = content.decode("latin-1", errors="ignore")
         lines = []
         for match in re.finditer(r"\((.*?)\)\s*Tj", raw, flags=re.DOTALL):

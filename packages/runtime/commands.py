@@ -43,6 +43,10 @@ def execute_refund(services: Services, merchant_id: str, refund_id: str, reason:
     return services.post_order.execute_refund(merchant_id, refund_id, reason=reason, simulate=simulate)
 
 
+def recover_refund_mutation(services: Services, merchant_id: str, refund_id: str) -> Refund:
+    return services.post_order.recover_refund_mutation(merchant_id, refund_id)
+
+
 def request_return(services: Services, merchant_id: str, order_id: str, reason: str):
     order = services.store.get(Order, merchant_id, order_id)
     return services.post_order.evaluate_return(merchant_id, order, reason)
@@ -66,8 +70,20 @@ def request_cancellation(services: Services, merchant_id: str, order_id: str):
     return services.post_order.evaluate_cancellation(merchant_id, order)
 
 
+def approve_cancellation(services: Services, merchant_id: str, cancellation_id: str, approver_id: str):
+    return services.post_order.approve_cancellation(merchant_id, cancellation_id, approver_id)
+
+
+def reject_cancellation(services: Services, merchant_id: str, cancellation_id: str, approver_id: str, reason: str | None = None):
+    return services.post_order.reject_cancellation(merchant_id, cancellation_id, approver_id, reason=reason)
+
+
 def execute_cancellation(services: Services, merchant_id: str, cancellation_id: str, simulate: str | None = None):
     return services.post_order.execute_cancellation(merchant_id, cancellation_id, simulate=simulate)
+
+
+def recover_cancellation_mutation(services: Services, merchant_id: str, cancellation_id: str):
+    return services.post_order.recover_cancellation_mutation(merchant_id, cancellation_id)
 
 
 # --- Post-order: fulfilment, shipment, tracking, NDR (Journey B) --------------------------------------
@@ -153,6 +169,14 @@ def ingest_product_file(services: Services, merchant_id: str, tmp_path: Path, co
     return services.catalogue.ingest_file(merchant_id, tmp_path, content_type)
 
 
+def ingest_product_package(services: Services, merchant_id: str, tmp_paths: list[Path]) -> list[ProductDraft]:
+    return services.catalogue.ingest_package(merchant_id, tmp_paths)
+
+
+def resolve_draft_conflict(services: Services, merchant_id: str, draft_id: str, fact_name: str, chosen_value: Any, chosen_source: str, actor: str, note: str | None = None) -> ProductDraft:
+    return services.catalogue.resolve_conflict(merchant_id, draft_id, fact_name, chosen_value, chosen_source, actor, note=note)
+
+
 def approve_product_facts(services: Services, merchant_id: str, draft_id: str, approver_id: str) -> ProductDraft:
     return services.catalogue.approve_product_facts(merchant_id, draft_id, approver_id)
 
@@ -167,3 +191,4 @@ def approve_publication(services: Services, merchant_id: str, draft_id: str, cha
 
 def reverify_publication(services: Services, merchant_id: str, publication_id: str):
     return services.catalogue.reverify(merchant_id, publication_id)
+

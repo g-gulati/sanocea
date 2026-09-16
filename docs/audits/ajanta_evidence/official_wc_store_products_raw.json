@@ -1,0 +1,1768 @@
+{
+  "observed_at_utc": "2026-09-16T07:42:20+00:00",
+  "url": "https://ajantasoya.com/wp-json/wc/store/products?per_page=100",
+  "products": [
+    {
+      "id": 31662,
+      "name": "Sunflower Oil Offer",
+      "slug": "buy-one-sunflower-oil-get-1l-free",
+      "parent": 0,
+      "type": "simple",
+      "variation": "",
+      "permalink": "https://ajantasoya.com/product/buy-one-sunflower-oil-get-1l-free/",
+      "sku": "NRSO-1-2",
+      "short_description": "<p style=\"color: #000!important;font-size: 16px!important;padding-top: 10px\">33 Years of Trust – अब उसे सीधे आप तक पहुँचा रहे हैं<br />\nWe are Proud Supplier to Indian Army</p>\n<div class=\"row product-batch-row-free-shipping\">\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important\"><strong class=\"blink-you-fs\">Free Shipping</strong></h5>\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-me\">Dispatched within 24 hours</strong></h5>\n</div>\n<ul class=\"refined\">\n<li>Light texture for balanced, everyday meals</li>\n<li>Neutral flavour that keeps dishes authentic</li>\n<li>Suitable for high-heat cooking like frying &amp; sautéing</li>\n<li>Delivery in 5–7 business days</li>\n</ul>\n<div class=\"row product-batch-row\">\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2026/01/117.png\" alt=\"boost immunity\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2026/01/116.png\" alt=\"get healthy skin\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2026/01/115.png\" alt=\"powerful antioxidants\" /></div>\n</div>",
+      "description": "",
+      "on_sale": false,
+      "prices": {
+        "price": "0",
+        "regular_price": "0",
+        "sale_price": "0",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "price_html": "<span class=\"woocommerce-Price-amount amount\">Free</span>",
+      "average_rating": "0",
+      "review_count": 0,
+      "images": [
+        {
+          "id": 27881,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E.",
+          "alt": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E."
+        }
+      ],
+      "categories": [
+        {
+          "id": 115,
+          "name": "Anchal Refined Sunflower Oil",
+          "slug": "anchal-refined-sunflower-oil",
+          "link": "https://ajantasoya.com/product-category/anchal-refined-sunflower-oil/"
+        }
+      ],
+      "tags": [],
+      "brands": [],
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 56,
+              "name": "Refined Sunflower Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A &amp; D, Free from Argemone oil",
+              "slug": "refined-sunflower-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "grouped_products": [],
+      "has_options": false,
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "is_on_backorder": false,
+      "low_stock_remaining": null,
+      "stock_availability": {
+        "text": "109 in stock",
+        "class": "in-stock"
+      },
+      "sold_individually": false,
+      "weight": "910",
+      "dimensions": {
+        "length": "11",
+        "width": "9",
+        "height": "31"
+      },
+      "formatted_weight": "910 g",
+      "formatted_dimensions": "11 × 9 × 31 cm",
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Sunflower Oil Offer&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=31662",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "is_password_protected": false,
+      "extensions": {},
+      "_links": {
+        "self": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products/31662",
+            "targetHints": {
+              "allow": [
+                "GET"
+              ]
+            }
+          }
+        ],
+        "collection": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products"
+          }
+        ],
+        "related": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?related=31662&per_page=10"
+          }
+        ]
+      }
+    },
+    {
+      "id": 31555,
+      "name": "Buy 5L Mustard Oil Jar, Get 1L Soyabean Oil Bottle Free",
+      "slug": "buy-5l-mustard-oil-jar-get-1l-soyabean-oil-bottle-free",
+      "parent": 0,
+      "type": "simple",
+      "variation": "",
+      "permalink": "https://ajantasoya.com/product/buy-5l-mustard-oil-jar-get-1l-soyabean-oil-bottle-free/",
+      "sku": "NRSO-704",
+      "short_description": "<p style=\"color: #000!important;font-size: 16px!important;padding-top: 10px\">34 Years of Trust – अब उसे सीधे आप तक पहुँचा रहे हैं<br />\nWe are Proud Supplier to Indian Army</p>\n<div class=\"row product-batch-row-free-shipping\">\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important\"><strong class=\"blink-you-fs\">Free Shipping</strong></h5>\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-me\">Dispatched within 24 hours</strong></h5>\n</div>\n<ul class=\"refined\">\n<li>Balanced oil for daily, versatile cooking</li>\n<li>Light texture for balanced, everyday meals</li>\n<li>Neutral flavour that keeps dishes authentic</li>\n<li>Works well across Indian cooking styles</li>\n<li>Delivery in 5–7 business days</li>\n</ul>\n<div class=\"row product-batch-row\">\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/Enriched-Omega-3-Omega-6.png\" alt=\"enriched with omega3 and omega6\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2026/06/SOYABEAN-ICON-IN-MUSTARD.png\" alt=\"good for heart health\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/Anti-Bacterial-Antifungla.png\" alt=\"anti bacterial and anti fungal\" /></div>\n</div>",
+      "description": "",
+      "on_sale": true,
+      "prices": {
+        "price": "100000",
+        "regular_price": "150000",
+        "sale_price": "100000",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "price_html": "MRP&nbsp;&nbsp;<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>1,500</span></del> <span class=\"screen-reader-text\">Original price was: &#8377;1,500.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>1,000</span></ins><span class=\"screen-reader-text\">Current price is: &#8377;1,000.</span><span class=\"ms\" style=\"position:absolute;line-height:46px;font-size:14px;font-weight:normal!important\">(Inclusive of all taxes)</span>",
+      "average_rating": "0",
+      "review_count": 0,
+      "images": [
+        {
+          "id": 31791,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free.jpg 1000w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-900x900.jpg 900w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-32x32.jpg 32w",
+          "sizes": "(max-width: 1000px) 100vw, 1000px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-900x900.jpg 900w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free-32x32.jpg 32w, https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free.jpg 1000w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Buy 5L Mustard Oil Jar, Get 1L Soyabean Oil Bottle Free",
+          "alt": ""
+        },
+        {
+          "id": 24210,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-32x32.jpg 32w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar-32x32.jpg 32w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal cold-pressed mustard oil is the most trusted brand among consumers. It is healthy and perfect for everyday cooking.",
+          "alt": "Anchal cold-pressed mustard oil is the most trusted brand among consumers. It is healthy and perfect for everyday cooking."
+        },
+        {
+          "id": 27703,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Sunflower oil is rich in omega-6 and is lightweight.",
+          "alt": "Anchal Sunflower oil is rich in omega-6 and is lightweight."
+        },
+        {
+          "id": 21178,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/6.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/6-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/6.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/6-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/6-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/6-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/6-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/6-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/06/6-32x32.jpg 32w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/6-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/6-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/6-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/6-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/6-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/06/6-32x32.jpg 32w, https://ajantasoya.com/wp-content/uploads/2025/06/6.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "6",
+          "alt": ""
+        },
+        {
+          "id": 27706,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Cooking Oil",
+          "alt": ""
+        },
+        {
+          "id": 31638,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar.webp",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-600x600.webp",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar.webp 800w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-150x150.webp 150w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-768x768.webp 768w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-600x600.webp 600w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-100x100.webp 100w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-32x32.webp 32w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-600x600.webp 600w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-150x150.webp 150w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-768x768.webp 768w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-100x100.webp 100w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar-32x32.webp 32w, https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar.webp 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Mustard 5L Jar",
+          "alt": ""
+        },
+        {
+          "id": 27707,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Cooking Oil 1L bottle",
+          "alt": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly"
+        }
+      ],
+      "categories": [
+        {
+          "id": 99,
+          "name": "Combo Offer",
+          "slug": "combo-offer",
+          "link": "https://ajantasoya.com/product-category/combo-offer/"
+        }
+      ],
+      "tags": [],
+      "brands": [],
+      "attributes": [
+        {
+          "id": 0,
+          "name": "Weight",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "5L Jar – 4550 g\n1L Bottle – 910 g",
+              "slug": "5L Jar – 4550 g\n1L Bottle – 910 g"
+            }
+          ]
+        },
+        {
+          "id": 0,
+          "name": "Dimensions",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)",
+              "slug": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 55,
+              "name": "Mustard Oil Fortified with vitamin A, D &amp; E",
+              "slug": "mustard-oil-fortified-with-vitamin-a-d-e"
+            },
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "grouped_products": [],
+      "has_options": false,
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "is_on_backorder": false,
+      "low_stock_remaining": null,
+      "stock_availability": {
+        "text": "58 in stock",
+        "class": "in-stock"
+      },
+      "sold_individually": false,
+      "weight": "",
+      "dimensions": {
+        "length": "",
+        "width": "",
+        "height": ""
+      },
+      "formatted_weight": "N/A",
+      "formatted_dimensions": "N/A",
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Buy 5L Mustard Oil Jar, Get 1L Soyabean Oil Bottle Free&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=31555",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "is_password_protected": false,
+      "extensions": {},
+      "_links": {
+        "self": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products/31555",
+            "targetHints": {
+              "allow": [
+                "GET"
+              ]
+            }
+          }
+        ],
+        "collection": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products"
+          }
+        ],
+        "cross_sells": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?include=20946,20283"
+          }
+        ],
+        "related": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?related=31555&per_page=10"
+          }
+        ]
+      }
+    },
+    {
+      "id": 31520,
+      "name": "Buy 5L Soyabean Oil Jar, Get 1L Sunflower Oil Bottle Free",
+      "slug": "buy-5l-soyabean-oil-jar-get-1l-sunflower-oil-bottle-free",
+      "parent": 0,
+      "type": "simple",
+      "variation": "",
+      "permalink": "https://ajantasoya.com/product/buy-5l-soyabean-oil-jar-get-1l-sunflower-oil-bottle-free/",
+      "sku": "NRSO-703",
+      "short_description": "<p style=\"color: #000!important;font-size: 16px!important;padding-top: 10px\">34 Years of Trust – अब उसे सीधे आप तक पहुँचा रहे हैं<br />\nWe are Proud Supplier to Indian Army</p>\n<div class=\"row product-batch-row-free-shipping\">\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important\"><strong class=\"blink-you-fs\">Free Shipping</strong></h5>\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-me\">Dispatched within 24 hours</strong></h5>\n</div>\n<ul class=\"refined\">\n<li>Balanced oil for daily, versatile cooking</li>\n<li>Light texture for balanced, everyday meals</li>\n<li>Neutral flavour that keeps dishes authentic</li>\n<li>Works well across Indian cooking styles</li>\n<li>Delivery in 5–7 business days</li>\n</ul>\n<div class=\"row product-batch-row\">\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/8.png\" alt=\"boost immunity\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2026/06/SUNFLOWER-ICON-IN-SOYABEAN.png\" alt=\"get healthy skin\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/7.png\" alt=\"powerful antioxidants\" /></div>\n</div>",
+      "description": "",
+      "on_sale": true,
+      "prices": {
+        "price": "99600",
+        "regular_price": "144000",
+        "sale_price": "99600",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "price_html": "MRP&nbsp;&nbsp;<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>1,440</span></del> <span class=\"screen-reader-text\">Original price was: &#8377;1,440.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>996</span></ins><span class=\"screen-reader-text\">Current price is: &#8377;996.</span><span class=\"ms\" style=\"position:absolute;line-height:46px;font-size:14px;font-weight:normal!important\">(Inclusive of all taxes)</span>",
+      "average_rating": "0",
+      "review_count": 0,
+      "images": [
+        {
+          "id": 31793,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free.jpg 1000w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-900x900.jpg 900w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-32x32.jpg 32w",
+          "sizes": "(max-width: 1000px) 100vw, 1000px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-900x900.jpg 900w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free-32x32.jpg 32w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free.jpg 1000w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "5L Soyabean Oil Jar with 1L Sunflower Oil Bottle Free",
+          "alt": ""
+        },
+        {
+          "id": 27881,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E.",
+          "alt": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E."
+        },
+        {
+          "id": 21263,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-32x32.jpg 32w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-32x32.jpg 32w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Buy Anchal 5L soybean oil",
+          "alt": ""
+        },
+        {
+          "id": 27883,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle.jpg 800w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Sunflower Oil is ideal for frying, sautéing and baking.",
+          "alt": "Anchal Sunflower Oil is ideal for frying, sautéing and baking."
+        },
+        {
+          "id": 21257,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-32x32.jpg 32w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-32x32.jpg 32w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal 5L soybean oil",
+          "alt": ""
+        },
+        {
+          "id": 27882,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free.jpg 800w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly.",
+          "alt": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly."
+        }
+      ],
+      "categories": [
+        {
+          "id": 99,
+          "name": "Combo Offer",
+          "slug": "combo-offer",
+          "link": "https://ajantasoya.com/product-category/combo-offer/"
+        }
+      ],
+      "tags": [],
+      "brands": [],
+      "attributes": [
+        {
+          "id": 0,
+          "name": "Weight",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "5L Jar – 4550 g\n1L Bottle – 910 g",
+              "slug": "5L Jar – 4550 g\n1L Bottle – 910 g"
+            }
+          ]
+        },
+        {
+          "id": 0,
+          "name": "Dimensions",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)",
+              "slug": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            },
+            {
+              "id": 56,
+              "name": "Refined Sunflower Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A &amp; D, Free from Argemone oil",
+              "slug": "refined-sunflower-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "grouped_products": [],
+      "has_options": false,
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "is_on_backorder": false,
+      "low_stock_remaining": null,
+      "stock_availability": {
+        "text": "89 in stock",
+        "class": "in-stock"
+      },
+      "sold_individually": false,
+      "weight": "",
+      "dimensions": {
+        "length": "",
+        "width": "",
+        "height": ""
+      },
+      "formatted_weight": "N/A",
+      "formatted_dimensions": "N/A",
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Buy 5L Soyabean Oil Jar, Get 1L Sunflower Oil Bottle Free&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=31520",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "is_password_protected": false,
+      "extensions": {},
+      "_links": {
+        "self": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products/31520",
+            "targetHints": {
+              "allow": [
+                "GET"
+              ]
+            }
+          }
+        ],
+        "collection": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products"
+          }
+        ],
+        "cross_sells": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?include=20946,20283"
+          }
+        ],
+        "related": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?related=31520&per_page=10"
+          }
+        ]
+      }
+    },
+    {
+      "id": 31463,
+      "name": "Buy 5L Soyabean Oil Jar, Get 1L Mustard Oil Bottle Free",
+      "slug": "buy-5l-soyabean-oil-jar-get-1l-mustard-oil-bottle-free",
+      "parent": 0,
+      "type": "simple",
+      "variation": "",
+      "permalink": "https://ajantasoya.com/product/buy-5l-soyabean-oil-jar-get-1l-mustard-oil-bottle-free/",
+      "sku": "NRSO-702",
+      "short_description": "<p style=\"color: #000!important;font-size: 16px!important;padding-top: 10px\">34 Years of Trust – अब उसे सीधे आप तक पहुँचा रहे हैं<br />\nWe are Proud Supplier to Indian Army</p>\n<div class=\"row product-batch-row-free-shipping\">\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important\"><strong class=\"blink-you-fs\">Free Shipping</strong></h5>\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-me\">Dispatched within 24 hours</strong></h5>\n</div>\n<ul class=\"refined\">\n<li>Balanced oil for daily, versatile cooking</li>\n<li>Light on the palate, easy for regular use</li>\n<li>Strong, authentic flavour rooted in tradition</li>\n<li>Ideal for tadka, pickles &amp; regional cooking</li>\n<li>Delivery in 5–7 business days</li>\n</ul>\n<div class=\"row product-batch-row\">\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/8.png\" alt=\"boost immunity\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2026/06/MUSTARD.png\" alt=\"get healthy skin\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/7.png\" alt=\"powerful antioxidants\" /></div>\n</div>",
+      "description": "",
+      "on_sale": true,
+      "prices": {
+        "price": "97200",
+        "regular_price": "145000",
+        "sale_price": "97200",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "price_html": "MRP&nbsp;&nbsp;<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>1,450</span></del> <span class=\"screen-reader-text\">Original price was: &#8377;1,450.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>972</span></ins><span class=\"screen-reader-text\">Current price is: &#8377;972.</span><span class=\"ms\" style=\"position:absolute;line-height:46px;font-size:14px;font-weight:normal!important\">(Inclusive of all taxes)</span>",
+      "average_rating": "0",
+      "review_count": 0,
+      "images": [
+        {
+          "id": 31794,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free.jpeg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-600x600.jpeg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free.jpeg 1000w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-150x150.jpeg 150w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-768x768.jpeg 768w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-600x600.jpeg 600w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-900x900.jpeg 900w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-100x100.jpeg 100w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-32x32.jpeg 32w",
+          "sizes": "(max-width: 1000px) 100vw, 1000px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-600x600.jpeg 600w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-150x150.jpeg 150w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-768x768.jpeg 768w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-900x900.jpeg 900w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-100x100.jpeg 100w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free-32x32.jpeg 32w, https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free.jpeg 1000w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "5L Soyabean Oil Jar with 1L Mustard Oil Bottle Free",
+          "alt": ""
+        },
+        {
+          "id": 27693,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Premium Mustard Oil 1 ltr Bottle",
+          "alt": "Anchal Kachi Ghani mustard oil is suitable for Indian cooking. It is healthy and easy to digest."
+        },
+        {
+          "id": 21263,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-32x32.jpg 32w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil-32x32.jpg 32w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Buy Anchal 5L soybean oil",
+          "alt": ""
+        },
+        {
+          "id": 27690,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Byu Mustard Oil 1L Bottle",
+          "alt": ""
+        },
+        {
+          "id": 21257,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-32x32.jpg 32w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-250x250.jpg 250w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil-32x32.jpg 32w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal 5L soybean oil",
+          "alt": ""
+        },
+        {
+          "id": 27694,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Unrefined Mustard Oil 1 ltr",
+          "alt": ""
+        }
+      ],
+      "categories": [
+        {
+          "id": 99,
+          "name": "Combo Offer",
+          "slug": "combo-offer",
+          "link": "https://ajantasoya.com/product-category/combo-offer/"
+        }
+      ],
+      "tags": [],
+      "brands": [],
+      "attributes": [
+        {
+          "id": 0,
+          "name": "Weight",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "5L Jar – 4550 g\n1L Bottle – 910 g",
+              "slug": "5L Jar – 4550 g\n1L Bottle – 910 g"
+            }
+          ]
+        },
+        {
+          "id": 0,
+          "name": "Dimensions",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)",
+              "slug": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 55,
+              "name": "Mustard Oil Fortified with vitamin A, D &amp; E",
+              "slug": "mustard-oil-fortified-with-vitamin-a-d-e"
+            },
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "grouped_products": [],
+      "has_options": false,
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "is_on_backorder": false,
+      "low_stock_remaining": null,
+      "stock_availability": {
+        "text": "90 in stock",
+        "class": "in-stock"
+      },
+      "sold_individually": false,
+      "weight": "",
+      "dimensions": {
+        "length": "",
+        "width": "",
+        "height": ""
+      },
+      "formatted_weight": "N/A",
+      "formatted_dimensions": "N/A",
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Buy 5L Soyabean Oil Jar, Get 1L Mustard Oil Bottle Free&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=31463",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "is_password_protected": false,
+      "extensions": {},
+      "_links": {
+        "self": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products/31463",
+            "targetHints": {
+              "allow": [
+                "GET"
+              ]
+            }
+          }
+        ],
+        "collection": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products"
+          }
+        ],
+        "cross_sells": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?include=20946,20283"
+          }
+        ],
+        "related": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?related=31463&per_page=10"
+          }
+        ]
+      }
+    },
+    {
+      "id": 24222,
+      "name": "Soyaben Oil Offer",
+      "slug": "buy-one-get-1l-free",
+      "parent": 0,
+      "type": "simple",
+      "variation": "",
+      "permalink": "https://ajantasoya.com/product/buy-one-get-1l-free/",
+      "sku": "NRSO-1-1",
+      "short_description": "<p style=\"color: #000!important;font-size: 16px!important;padding-top: 10px\">33 Years of Trust – अब उसे सीधे आप तक पहुँचा रहे हैं<br />\nWe are Proud Supplier to Indian Army</p>\n<div class=\"row product-batch-row-free-shipping\">\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important\"><strong class=\"blink-you-fs\">Free Shipping </strong></h5>\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-me\"> Dispatched within 24 hours</strong></h5>\n</div>\n<ul class=\"refined\">\n<li>Balanced oil for daily, versatile cooking</li>\n<li>Light on the palate, easy for regular use</li>\n<li>Works well across Indian cooking styles</li>\n<li>Delivery in 5–7 business days</li>\n</ul>\n<div class=\"row product-batch-row\">\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/8.png\" alt=\"buy good cholestrol healthy heart oil\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/7.png\" alt=\"Get healthy bone with vitamin k enriched oil\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/6.png\" alt=\"essential fatty acids omega 6\" /></div>\n</div>",
+      "description": "",
+      "on_sale": false,
+      "prices": {
+        "price": "0",
+        "regular_price": "0",
+        "sale_price": "0",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "price_html": "<span class=\"woocommerce-Price-amount amount\">Free</span>",
+      "average_rating": "0",
+      "review_count": 0,
+      "images": [
+        {
+          "id": 27703,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Sunflower oil is rich in omega-6 and is lightweight.",
+          "alt": "Anchal Sunflower oil is rich in omega-6 and is lightweight."
+        }
+      ],
+      "categories": [
+        {
+          "id": 33,
+          "name": "Refined Soyabean Oil",
+          "slug": "refined-soyabean-oil",
+          "link": "https://ajantasoya.com/product-category/refined-soyabean-oil/"
+        }
+      ],
+      "tags": [],
+      "brands": [],
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "grouped_products": [],
+      "has_options": false,
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "is_on_backorder": false,
+      "low_stock_remaining": null,
+      "stock_availability": {
+        "text": "140 in stock",
+        "class": "in-stock"
+      },
+      "sold_individually": false,
+      "weight": "910",
+      "dimensions": {
+        "length": "26",
+        "width": "7.5",
+        "height": "26"
+      },
+      "formatted_weight": "910 g",
+      "formatted_dimensions": "26 × 7.5 × 26 cm",
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Soyaben Oil Offer&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=24222",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "is_password_protected": false,
+      "extensions": {},
+      "_links": {
+        "self": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products/24222",
+            "targetHints": {
+              "allow": [
+                "GET"
+              ]
+            }
+          }
+        ],
+        "collection": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products"
+          }
+        ],
+        "related": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?related=24222&per_page=10"
+          }
+        ]
+      }
+    },
+    {
+      "id": 24220,
+      "name": "Mustard Oil Offer",
+      "slug": "buy-and-get-1l-free",
+      "parent": 0,
+      "type": "simple",
+      "variation": "",
+      "permalink": "https://ajantasoya.com/product/buy-and-get-1l-free/",
+      "sku": "PKGMO-1-1",
+      "short_description": "<p style=\"color: #000!important;font-size: 16px!important;padding-top: 10px\">33 Years of Trust – अब उसे सीधे आप तक पहुँचा रहे हैं<br />\nWe are Proud Supplier to Indian Army</p>\n<div class=\"row product-batch-row-free-shipping\">\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-you-fs\">Free Shipping</strong></h5>\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-me\"> Dispatched within 24 hours</strong></h5>\n</div>\n<ul class=\"new\">\n<li>Strong, authentic flavour rooted in tradition</li>\n<li>Cold-pressed to retain natural nutrients</li>\n<li>Ideal for tadka, pickles &amp; regional cooking</li>\n<li>Delivery in 5–7 business days</li>\n</ul>\n<div class=\"row product-batch-row\">\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/Enriched-Omega-3-Omega-6.png\" alt=\"enriched with omega3 and omega6\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/Good-Fat-Heart-Health.png\" alt=\"good for heart health\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/Anti-Bacterial-Antifungla.png\" alt=\"anti bacterial and anti fungal\" /></div>\n</div>",
+      "description": "",
+      "on_sale": false,
+      "prices": {
+        "price": "0",
+        "regular_price": "0",
+        "sale_price": "0",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "price_html": "<span class=\"woocommerce-Price-amount amount\">Free</span>",
+      "average_rating": "0",
+      "review_count": 0,
+      "images": [
+        {
+          "id": 27692,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Indian Cooking Mustard Oil",
+          "alt": ""
+        }
+      ],
+      "categories": [],
+      "tags": [],
+      "brands": [],
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 57,
+              "name": "Mustard Oil, Fortified with vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "mustard-oil-fortified-with-vitamin-a-d-e-free-from-argemone-oil-2"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "grouped_products": [],
+      "has_options": false,
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "is_on_backorder": false,
+      "low_stock_remaining": null,
+      "stock_availability": {
+        "text": "407 in stock",
+        "class": "in-stock"
+      },
+      "sold_individually": false,
+      "weight": "910",
+      "dimensions": {
+        "length": "26",
+        "width": "7.5",
+        "height": "26"
+      },
+      "formatted_weight": "910 g",
+      "formatted_dimensions": "26 × 7.5 × 26 cm",
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Mustard Oil Offer&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=24220",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "is_password_protected": false,
+      "extensions": {},
+      "_links": {
+        "self": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products/24220",
+            "targetHints": {
+              "allow": [
+                "GET"
+              ]
+            }
+          }
+        ],
+        "collection": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products"
+          }
+        ],
+        "related": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?related=24220&per_page=10"
+          }
+        ]
+      }
+    },
+    {
+      "id": 30455,
+      "name": "Anchal Refined Sunflower Oil",
+      "slug": "anchal-refined-sunflower-oil",
+      "parent": 0,
+      "type": "simple",
+      "variation": "",
+      "permalink": "https://ajantasoya.com/product/anchal-refined-sunflower-oil/",
+      "sku": "NRSO-4",
+      "short_description": "<p style=\"color: #000!important;font-size: 16px!important;padding-top: 10px\">34 Years of Trust – अब उसे सीधे आप तक पहुँचा रहे हैं<br />\nWe are Proud Supplier to Indian Army</p>\n<div class=\"row product-batch-row-free-shipping\">\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important\"><strong class=\"blink-you-fs\">Free Shipping</strong></h5>\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-me\">Dispatched within 24 hours</strong></h5>\n</div>\n<ul class=\"refined\">\n<li>Light texture for balanced, everyday meals</li>\n<li>Neutral flavour that keeps dishes authentic</li>\n<li>Suitable for high-heat cooking like frying &amp; sautéing</li>\n<li>Delivery in 5–7 business days</li>\n</ul>\n<div class=\"row product-batch-row\">\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2026/01/117.png\" alt=\"boost immunity\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2026/01/116.png\" alt=\"get healthy skin\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2026/01/115.png\" alt=\"powerful antioxidants\" /></div>\n</div>",
+      "description": "",
+      "on_sale": true,
+      "prices": {
+        "price": "19600",
+        "regular_price": "24000",
+        "sale_price": "19600",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "price_html": "MRP&nbsp;&nbsp;<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>240</span></del> <span class=\"screen-reader-text\">Original price was: &#8377;240.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>196</span></ins><span class=\"screen-reader-text\">Current price is: &#8377;196.</span><span class=\"ms\" style=\"position:absolute;line-height:46px;font-size:14px;font-weight:normal!important\">(Inclusive of all taxes)</span>",
+      "average_rating": "0",
+      "review_count": 0,
+      "images": [
+        {
+          "id": 31636,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil.jpeg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-600x600.jpeg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil.jpeg 1000w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-150x150.jpeg 150w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-768x768.jpeg 768w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-600x600.jpeg 600w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-900x900.jpeg 900w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-100x100.jpeg 100w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-32x32.jpeg 32w",
+          "sizes": "(max-width: 1000px) 100vw, 1000px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-600x600.jpeg 600w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-150x150.jpeg 150w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-768x768.jpeg 768w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-900x900.jpeg 900w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-100x100.jpeg 100w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil-32x32.jpeg 32w, https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil.jpeg 1000w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Refined Sunflower Oil",
+          "alt": ""
+        },
+        {
+          "id": 27884,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Sunflower oil is light, neutral, and has a mild aroma.",
+          "alt": "Anchal Sunflower oil is light, neutral, and has a mild aroma."
+        },
+        {
+          "id": 27881,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E.",
+          "alt": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E."
+        },
+        {
+          "id": 27883,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle.jpg 800w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Sunflower Oil is ideal for frying, sautéing and baking.",
+          "alt": "Anchal Sunflower Oil is ideal for frying, sautéing and baking."
+        },
+        {
+          "id": 27882,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free.jpg 800w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly.",
+          "alt": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly."
+        }
+      ],
+      "categories": [
+        {
+          "id": 115,
+          "name": "Anchal Refined Sunflower Oil",
+          "slug": "anchal-refined-sunflower-oil",
+          "link": "https://ajantasoya.com/product-category/anchal-refined-sunflower-oil/"
+        }
+      ],
+      "tags": [],
+      "brands": [],
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 56,
+              "name": "Refined Sunflower Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A &amp; D, Free from Argemone oil",
+              "slug": "refined-sunflower-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "grouped_products": [],
+      "has_options": false,
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "is_on_backorder": false,
+      "low_stock_remaining": null,
+      "stock_availability": {
+        "text": "109 in stock",
+        "class": "in-stock"
+      },
+      "sold_individually": false,
+      "weight": "910",
+      "dimensions": {
+        "length": "11",
+        "width": "9",
+        "height": "31"
+      },
+      "formatted_weight": "910 g",
+      "formatted_dimensions": "11 × 9 × 31 cm",
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Anchal Refined Sunflower Oil&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=30455",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "is_password_protected": false,
+      "extensions": {},
+      "_links": {
+        "self": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products/30455",
+            "targetHints": {
+              "allow": [
+                "GET"
+              ]
+            }
+          }
+        ],
+        "collection": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products"
+          }
+        ],
+        "cross_sells": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?include=20946,20283"
+          }
+        ],
+        "related": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?related=30455&per_page=10"
+          }
+        ]
+      }
+    },
+    {
+      "id": 20946,
+      "name": "Anchal Kachi Ghani Mustard Oil",
+      "slug": "anchal-kachi-ghani-mustard-oil",
+      "parent": 0,
+      "type": "variable",
+      "variation": "",
+      "permalink": "https://ajantasoya.com/product/anchal-kachi-ghani-mustard-oil/",
+      "sku": "PKGMO-3",
+      "short_description": "<p style=\"color: #000!important;font-size: 16px!important;padding-top: 10px\">34 Years of Trust – अब उसे सीधे आप तक पहुँचा रहे हैं<br />\nWe are Proud Supplier to Indian Army</p>\n<div class=\"row product-batch-row-free-shipping\">\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-you-fs\">Free Shipping</strong></h5>\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-me\"> Dispatched within 24 hours</strong></h5>\n</div>\n<p><strong>Buy 3 bottles, get 1 free at checkout<br />\nBuy 5L jar, get 1L bottle free at checkout<br />\n</strong></p>\n<ul class=\"new\">\n<li>Strong, authentic flavour rooted in tradition</li>\n<li>Cold-pressed to retain natural nutrients</li>\n<li>Ideal for tadka, pickles &amp; regional cooking</li>\n<li>Delivery in 5–7 business days</li>\n</ul>\n<div class=\"row product-batch-row\">\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/Enriched-Omega-3-Omega-6.png\" alt=\"enriched with omega3 and omega6\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/Good-Fat-Heart-Health.png\" alt=\"good for heart health\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/Anti-Bacterial-Antifungla.png\" alt=\"anti bacterial and anti fungal\" /></div>\n</div>",
+      "description": "",
+      "on_sale": true,
+      "prices": {
+        "price": "23600",
+        "regular_price": "25000",
+        "sale_price": "23600",
+        "price_range": {
+          "min_amount": "23600",
+          "max_amount": "100500"
+        },
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "price_html": "<span class='variableshopmessage'></span><br>MRP&nbsp;&nbsp;<span class=\"from\">From </span><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>236</span>",
+      "average_rating": "0",
+      "review_count": 0,
+      "images": [
+        {
+          "id": 31634,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free.jpeg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-600x600.jpeg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free.jpeg 1000w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-150x150.jpeg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-768x768.jpeg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-600x600.jpeg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-900x900.jpeg 900w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-100x100.jpeg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-32x32.jpeg 32w",
+          "sizes": "(max-width: 1000px) 100vw, 1000px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-600x600.jpeg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-150x150.jpeg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-768x768.jpeg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-900x900.jpeg 900w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-100x100.jpeg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free-32x32.jpeg 32w, https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free.jpeg 1000w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Kachi Ghani Mustard Oil buy 3 get 1 free",
+          "alt": "Buy Anchal Kachi Ghani Mustard Oil buy 3 get 1 free"
+        },
+        {
+          "id": 27691,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Chemical Free Mustard Oil 1 Ltr",
+          "alt": ""
+        },
+        {
+          "id": 27693,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Premium Mustard Oil 1 ltr Bottle",
+          "alt": "Anchal Kachi Ghani mustard oil is suitable for Indian cooking. It is healthy and easy to digest."
+        },
+        {
+          "id": 27692,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Indian Cooking Mustard Oil",
+          "alt": ""
+        },
+        {
+          "id": 27690,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Byu Mustard Oil 1L Bottle",
+          "alt": ""
+        },
+        {
+          "id": 27694,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Unrefined Mustard Oil 1 ltr",
+          "alt": ""
+        }
+      ],
+      "categories": [
+        {
+          "id": 96,
+          "name": "Anchal Cooking Oil",
+          "slug": "anchal-cooking-oil",
+          "link": "https://ajantasoya.com/product-category/anchal-cooking-oil/"
+        }
+      ],
+      "tags": [],
+      "brands": [],
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 57,
+              "name": "Mustard Oil, Fortified with vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "mustard-oil-fortified-with-vitamin-a-d-e-free-from-argemone-oil-2"
+            }
+          ]
+        }
+      ],
+      "variations": [
+        {
+          "id": 27952,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": null
+            }
+          ]
+        },
+        {
+          "id": 20948,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "5l-jar"
+            }
+          ]
+        },
+        {
+          "id": 20949,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "1l-bottle"
+            }
+          ]
+        }
+      ],
+      "grouped_products": [],
+      "has_options": true,
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "is_on_backorder": false,
+      "low_stock_remaining": null,
+      "stock_availability": {
+        "text": "",
+        "class": "in-stock"
+      },
+      "sold_individually": false,
+      "weight": "4550",
+      "dimensions": {
+        "length": "19",
+        "width": "9.5",
+        "height": "29"
+      },
+      "formatted_weight": "4550 g",
+      "formatted_dimensions": "19 × 9.5 × 29 cm",
+      "add_to_cart": {
+        "text": "Select options",
+        "description": "Select options for &ldquo;Anchal Kachi Ghani Mustard Oil&rdquo;",
+        "url": "https://ajantasoya.com/product/anchal-kachi-ghani-mustard-oil/",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "is_password_protected": false,
+      "extensions": {},
+      "_links": {
+        "self": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products/20946",
+            "targetHints": {
+              "allow": [
+                "GET"
+              ]
+            }
+          }
+        ],
+        "collection": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products"
+          }
+        ],
+        "cross_sells": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?include=20283,30455"
+          }
+        ],
+        "related": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?related=20946&per_page=10"
+          }
+        ]
+      }
+    },
+    {
+      "id": 20283,
+      "name": "Anchal Refined Soyabean Oil",
+      "slug": "anchal-refined-soyabean-oil",
+      "parent": 0,
+      "type": "variable",
+      "variation": "",
+      "permalink": "https://ajantasoya.com/product/anchal-refined-soyabean-oil/",
+      "sku": "NRSO-2",
+      "short_description": "<p style=\"color: #000!important;font-size: 16px!important;padding-top: 10px\">34 Years of Trust – अब उसे सीधे आप तक पहुँचा रहे हैं<br />\nWe are Proud Supplier to Indian Army</p>\n<div class=\"row product-batch-row-free-shipping\">\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important\"><strong class=\"blink-you-fs\">Free Shipping </strong></h5>\n<h5 class=\"blinks\" style=\"text-align: left;font-size: 18px;display: inline-block !important;padding-right: 10px;color: #af000d\"><strong class=\"blink-me\"> Dispatched within 24 hours</strong></h5>\n</div>\n<p><strong>Buy 3 bottles, get 1 free at checkout<br />\n</strong><strong>Buy 5L jar, get 1L bottle free at checkout</strong></p>\n<ul class=\"refined\">\n<li>Balanced oil for daily, versatile cooking</li>\n<li>Light on the palate, easy for regular use</li>\n<li>Works well across Indian cooking styles</li>\n<li>Delivery in 5–7 business days</li>\n</ul>\n<div class=\"row product-batch-row\">\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/8.png\" alt=\"buy good cholestrol healthy heart oil\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/7.png\" alt=\"Get healthy bone with vitamin k enriched oil\" /></div>\n<div class=\"column\"><img style=\"width: 80%;display: inline-block !important\" src=\"https://ajantasoya.com/wp-content/uploads/2025/08/6.png\" alt=\"essential fatty acids omega 6\" /></div>\n</div>",
+      "description": "",
+      "on_sale": true,
+      "prices": {
+        "price": "13600",
+        "regular_price": "15000",
+        "sale_price": "13600",
+        "price_range": {
+          "min_amount": "13600",
+          "max_amount": "96800"
+        },
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "price_html": "<span class='variableshopmessage'></span><br>MRP&nbsp;&nbsp;<span class=\"from\">From </span><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">&#8377;</span>136</span>",
+      "average_rating": "0",
+      "review_count": 0,
+      "images": [
+        {
+          "id": 31630,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free.jpeg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-600x600.jpeg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free.jpeg 1000w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-150x150.jpeg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-768x768.jpeg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-600x600.jpeg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-900x900.jpeg 900w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-100x100.jpeg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-32x32.jpeg 32w",
+          "sizes": "(max-width: 1000px) 100vw, 1000px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-600x600.jpeg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-150x150.jpeg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-768x768.jpeg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-900x900.jpeg 900w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-100x100.jpeg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free-32x32.jpeg 32w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free.jpeg 1000w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Refined Soyabean Oil- 1L bottle buy 3 get 1 free",
+          "alt": ""
+        },
+        {
+          "id": 27705,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Refined Soyabean Oil",
+          "alt": ""
+        },
+        {
+          "id": 27703,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Sunflower oil is rich in omega-6 and is lightweight.",
+          "alt": "Anchal Sunflower oil is rich in omega-6 and is lightweight."
+        },
+        {
+          "id": 27704,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Buy Soyabean Oil Online",
+          "alt": ""
+        },
+        {
+          "id": 27706,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Cooking Oil",
+          "alt": ""
+        },
+        {
+          "id": 27707,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle.jpg",
+          "thumbnail": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-600x600.jpg",
+          "srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle.jpg 800w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-768x768.jpg 768w",
+          "sizes": "(max-width: 800px) 100vw, 800px",
+          "thumbnail_srcset": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-600x600.jpg 600w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-100x100.jpg 100w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-150x150.jpg 150w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle-768x768.jpg 768w, https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle.jpg 800w",
+          "thumbnail_sizes": "(max-width: 600px) 100vw, 600px",
+          "name": "Anchal Cooking Oil 1L bottle",
+          "alt": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly"
+        }
+      ],
+      "categories": [
+        {
+          "id": 96,
+          "name": "Anchal Cooking Oil",
+          "slug": "anchal-cooking-oil",
+          "link": "https://ajantasoya.com/product-category/anchal-cooking-oil/"
+        }
+      ],
+      "tags": [],
+      "brands": [],
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": false
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            },
+            {
+              "id": 95,
+              "name": "700gm Value Pack",
+              "slug": "700gm-value-pack",
+              "default": true
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [
+        {
+          "id": 20284,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "700gm-value-pack"
+            }
+          ]
+        },
+        {
+          "id": 20285,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "1l-bottle"
+            }
+          ]
+        },
+        {
+          "id": 20286,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "5l-jar"
+            }
+          ]
+        }
+      ],
+      "grouped_products": [],
+      "has_options": true,
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "is_on_backorder": false,
+      "low_stock_remaining": null,
+      "stock_availability": {
+        "text": "",
+        "class": "in-stock"
+      },
+      "sold_individually": false,
+      "weight": "4550",
+      "dimensions": {
+        "length": "19",
+        "width": "9.5",
+        "height": "29"
+      },
+      "formatted_weight": "4550 g",
+      "formatted_dimensions": "19 × 9.5 × 29 cm",
+      "add_to_cart": {
+        "text": "Select options",
+        "description": "Select options for &ldquo;Anchal Refined Soyabean Oil&rdquo;",
+        "url": "https://ajantasoya.com/product/anchal-refined-soyabean-oil/",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "is_password_protected": false,
+      "extensions": {},
+      "_links": {
+        "self": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products/20283",
+            "targetHints": {
+              "allow": [
+                "GET"
+              ]
+            }
+          }
+        ],
+        "collection": [
+          {
+            "href": "https://ajantasoya.com/wp-json/wc/store/products"
+          }
+        ],
+        "cross_sells": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?include=20946,30455"
+          }
+        ],
+        "related": [
+          {
+            "embeddable": true,
+            "href": "https://ajantasoya.com/wp-json/wc/store/products?related=20283&per_page=10"
+          }
+        ]
+      }
+    }
+  ]
+}

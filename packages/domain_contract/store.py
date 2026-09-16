@@ -110,6 +110,46 @@ class Phase0Store:
         self._entities[type_name][entity.id] = copy.deepcopy(entity)
         return copy.deepcopy(entity)
 
+    def atomic_claim_refund_capacity(self, merchant_id: str, order_id: str, return_id: str, currency: str) -> dict[str, Any] | None:
+        """In-memory equivalent of PostgresStore.atomic_claim_refund_capacity - `self._po_line_lock` held
+        across the WHOLE re-read-committed + compute-remaining + claim sequence gives the same
+        single-process serialization guarantee Postgres's Order row lock gives across processes. See
+        that method's docstring for the full root-cause/state-machine reasoning."""
+        from sanocea.packages.domain_contract.models import Refund
+
+        with self._po_line_lock:
+            order = self._entities["Order"].get(order_id)
+            if order is None or order.merchant_id != merchant_id:
+                raise NotFoundError(order_id)
+            total_amount = int(order.total_amount)
+            committed = sum(
+                int(e.amount) for e in self._entities["Refund"].values()
+                if e.merchant_id == merchant_id and e.order_id == order_id and e.status != "denied"
+            )
+            remaining = max(total_amount - committed, 0)
+            if remaining <= 0:
+                return None
+            existing_for_return = next(
+                (e for e in self._entities["Refund"].values() if e.merchant_id == merchant_id and e.return_id == return_id),
+                None,
+            )
+            if existing_for_return is not None:
+                return existing_for_return.model_dump(mode="json")
+            refund = Refund(merchant_id=merchant_id, order_id=order_id, return_id=return_id, amount=remaining, currency=currency, status="permitted")
+            self._entities["Refund"][refund.id] = copy.deepcopy(refund)
+            return refund.model_dump(mode="json")
+
+    def mark_acknowledgement_applied(self, merchant_id: str, acknowledgement_id: str, applied: bool) -> None:
+        """In-memory equivalent of PostgresStore.mark_acknowledgement_applied. The in-memory store's own
+        generic put() already supports updating an existing row by id (see put()'s own comment), so this
+        method is provided purely for API parity between the two stores - PostgresStore's put() for
+        SupplierAcknowledgement specifically does NOT support this (INSERT-only, ON CONFLICT DO NOTHING),
+        which is the actual bug this pair of methods exists to work around."""
+        entity = self._entities["SupplierAcknowledgement"].get(acknowledgement_id)
+        if entity is None or entity.merchant_id != merchant_id:
+            raise NotFoundError(acknowledgement_id)
+        entity.applied = applied
+
     def atomic_apply_po_line_confirmation(self, merchant_id: str, line_id: str, delta: int) -> int:
         """Atomically increments PurchaseOrderLine.quantity_confirmed by `delta`, returning the
         resulting TRUE cumulative total (which may exceed quantity_ordered - callers decide what to do
@@ -124,13 +164,107 @@ class Phase0Store:
             entity.quantity_confirmed = int(entity.quantity_confirmed) + delta
             return entity.quantity_confirmed
 
+    def atomic_apply_acknowledgement(
+        self, merchant_id: str, po_id: str, po_line_id: str, sku: str, location_ref: str, sequence: int, raw_delta: int,
+    ) -> dict[str, Any]:
+        """In-memory equivalent of PostgresStore.atomic_apply_acknowledgement - `self._po_line_lock` held
+        across the WHOLE sequence-staleness-check + PO-line-increment + confirmed-inbound-increment
+        sequence gives the same single-process serialization guarantee Postgres's row locks give across
+        processes. See that method's docstring for the full root-cause/staleness-rule reasoning."""
+        from sanocea.packages.domain_contract.models import Inventory, SupplierAcknowledgement
+
+        with self._po_line_lock:
+            applied_sequences = {
+                e.sequence for e in self._entities["SupplierAcknowledgement"].values()
+                if e.merchant_id == merchant_id and e.purchase_order_id == po_id and e.applied
+            }
+            if sequence in applied_sequences:
+                return {"applied": False, "new_true_total": None, "legitimate_delta": 0, "over_confirmed": False}
+
+            line = self._entities["PurchaseOrderLine"].get(po_line_id)
+            if line is None or line.merchant_id != merchant_id:
+                raise NotFoundError(po_line_id)
+            previous_true_total = int(line.quantity_confirmed)
+            new_true_total = previous_true_total + raw_delta
+            line.quantity_confirmed = new_true_total
+
+            legitimate_before = min(previous_true_total, line.quantity_ordered)
+            legitimate_after = min(new_true_total, line.quantity_ordered)
+            legitimate_delta = max(legitimate_after - legitimate_before, 0)
+
+            if legitimate_delta:
+                existing = next(
+                    (e for e in self._entities["Inventory"].values() if e.merchant_id == merchant_id and e.sku == sku and e.location_ref == location_ref),
+                    None,
+                )
+                if existing is None:
+                    entity = Inventory(merchant_id=merchant_id, sku=sku, location_ref=location_ref, quantity=0, confirmed_inbound=max(legitimate_delta, 0))
+                else:
+                    entity = existing
+                    entity.confirmed_inbound = max(entity.confirmed_inbound + legitimate_delta, 0)
+                self._entities["Inventory"][entity.id] = copy.deepcopy(entity)
+
+            return {
+                "applied": True, "new_true_total": new_true_total, "legitimate_delta": legitimate_delta,
+                "over_confirmed": new_true_total > line.quantity_ordered,
+            }
+
+    def atomic_transition_cancellation_status(self, merchant_id: str, cancellation_id: str, from_statuses: set[str], to_status: str) -> bool:
+        """Step 7A - DB-atomic compare-and-swap for Cancellation.status. Reuses the SAME row-locking
+        idiom as atomic_apply_po_line_confirmation (a threading.Lock here; SELECT ... FOR UPDATE + a
+        conditional UPDATE in PostgresStore) rather than inventing a new subsystem.
+
+        The REAL race this closes (found by a genuine, reproduced concurrency failure, not
+        theoretical): a plain read-then-write status transition (e.g. approve_cancellation's old
+        "approval_required" -> "approved" write) can silently REGRESS a row that a concurrent
+        execute_cancellation call has already advanced further (e.g. all the way to "completed") back
+        to an earlier state, because the plain write never re-checks the CURRENT persisted value under
+        a lock before overwriting it - it was computed from a stale, already-superseded read. Every
+        Cancellation status transition (approve, reject, the stale-execution check, and the completion
+        claim) must go through this ONE compare-and-swap, not a bespoke read-then-write, or the same
+        regression class recurs at each new call site.
+
+        Returns True ONLY for the caller whose transition actually applied (the persisted status was
+        still one of `from_statuses` at lock-acquisition time); every other concurrent caller gets
+        False and must not proceed with the mutation/audit its own transition would have authorized.
+        """
+        with self._po_line_lock:
+            entity = self._entities["Cancellation"].get(cancellation_id)
+            if entity is None or entity.merchant_id != merchant_id:
+                raise NotFoundError(cancellation_id)
+            if entity.status not in from_statuses:
+                return False
+            entity.status = to_status
+            return True
+
+    def atomic_transition_refund_status(self, merchant_id: str, refund_id: str, from_statuses: set[str], to_status: str) -> bool:
+        """Step 9 - the SAME compare-and-swap idiom as atomic_transition_cancellation_status, applied to
+        Refund.status. Closes the same class of race for refund mutation-uncertainty recovery: a plain
+        read-then-write resolution of a "mutation_uncertain"/"mutation_submitted" refund must never
+        regress a row a concurrent resolution has already advanced further (e.g. to "completed").
+
+        Returns True ONLY for the caller whose transition actually applied; every other concurrent
+        caller gets False and must not proceed with reconciliation/audit/retry its own transition would
+        have authorized.
+        """
+        with self._po_line_lock:
+            entity = self._entities["Refund"].get(refund_id)
+            if entity is None or entity.merchant_id != merchant_id:
+                raise NotFoundError(refund_id)
+            if entity.status not in from_statuses:
+                return False
+            entity.status = to_status
+            return True
+
     def atomic_adjust_inventory(
         self, merchant_id: str, sku: str, location_ref: str, *,
         confirmed_inbound_delta: int = 0, quantity_delta: int = 0, available_delta: int = 0,
+        reserved_delta: int = 0,
     ):
         """In-memory equivalent of PostgresStore.atomic_adjust_inventory - threading.Lock is sufficient
         for the single-process in-memory store; see that method's docstring for the real race this
-        closes."""
+        closes, and for why `reserved_delta`/`available` must never be used to CREATE a reservation
+        (see `reserve_inventory_atomic` for that)."""
         from sanocea.packages.domain_contract.models import Inventory
 
         with self._inventory_lock:
@@ -142,14 +276,145 @@ class Phase0Store:
                 entity = Inventory(
                     merchant_id=merchant_id, sku=sku, location_ref=location_ref,
                     quantity=max(quantity_delta, 0), available=max(available_delta, 0), confirmed_inbound=max(confirmed_inbound_delta, 0),
+                    reserved=max(reserved_delta, 0),
                 )
             else:
                 entity = existing
                 entity.confirmed_inbound = max(entity.confirmed_inbound + confirmed_inbound_delta, 0)
                 entity.quantity = entity.quantity + quantity_delta
                 entity.available = (entity.available if entity.available is not None else 0) + available_delta
+                entity.reserved = max(entity.reserved + reserved_delta, 0)
             self._entities["Inventory"][entity.id] = copy.deepcopy(entity)
             return copy.deepcopy(entity)
+
+    def reserve_inventory_atomic(
+        self, merchant_id: str, sku: str, location_ref: str, *,
+        quantity_requested: int, source_type: str, source_id: str, idempotency_key: str,
+        order_line_id: str | None = None,
+    ):
+        """In-memory equivalent of PostgresStore.reserve_inventory_atomic - `self._inventory_lock` held
+        across the whole check-then-increment gives the same single-process serialization guarantee
+        Postgres's `SELECT ... FOR UPDATE` gives across processes. See that method's docstring for the
+        concurrency reasoning this exists to satisfy."""
+        from sanocea.packages.domain_contract.models import Inventory, InventoryReservation
+
+        with self._inventory_lock:
+            existing = next(
+                (e for e in self._entities["InventoryReservation"].values() if e.merchant_id == merchant_id and e.idempotency_key == idempotency_key),
+                None,
+            )
+            if existing is not None:
+                return copy.deepcopy(existing)
+            inv = next(
+                (e for e in self._entities["Inventory"].values() if e.merchant_id == merchant_id and e.sku == sku and e.location_ref == location_ref),
+                None,
+            )
+            reserve_qty = 0
+            if inv is not None:
+                reserve_qty = max(min(inv.quantity - inv.reserved, quantity_requested), 0)
+                if reserve_qty > 0:
+                    inv.reserved = max(inv.reserved + reserve_qty, 0)
+                    inv.available = max((inv.available if inv.available is not None else inv.quantity) - reserve_qty, 0)
+                    self._entities["Inventory"][inv.id] = copy.deepcopy(inv)
+            reservation = InventoryReservation(
+                merchant_id=merchant_id, sku=sku, location_ref=location_ref,
+                source_type=source_type, source_id=source_id, order_line_id=order_line_id, idempotency_key=idempotency_key,
+                quantity_requested=quantity_requested, quantity_reserved=reserve_qty,
+            )
+            self._entities["InventoryReservation"][reservation.id] = copy.deepcopy(reservation)
+            return copy.deepcopy(reservation)
+
+    def adjust_reservation_atomic(self, merchant_id: str, reservation_id: str, *, mode: str, amount: int):
+        """In-memory equivalent of PostgresStore.adjust_reservation_atomic - see that method's docstring
+        for the clamp-to-remaining idempotency reasoning, which applies identically here."""
+        with self._inventory_lock:
+            reservation = self._entities["InventoryReservation"].get(reservation_id)
+            if reservation is None or reservation.merchant_id != merchant_id:
+                raise NotFoundError(reservation_id)
+            reservation = copy.deepcopy(reservation)
+            remaining = reservation.quantity_reserved - reservation.quantity_released - reservation.quantity_consumed
+            apply_amount = max(min(amount, remaining), 0)
+            if apply_amount > 0:
+                if mode == "release":
+                    reservation.quantity_released += apply_amount
+                else:
+                    reservation.quantity_consumed += apply_amount
+                if reservation.quantity_released + reservation.quantity_consumed >= reservation.quantity_reserved:
+                    reservation.status = "closed"
+                self._entities["InventoryReservation"][reservation.id] = copy.deepcopy(reservation)
+                inv = next(
+                    (e for e in self._entities["Inventory"].values() if e.merchant_id == merchant_id and e.sku == reservation.sku and e.location_ref == reservation.location_ref),
+                    None,
+                )
+                if inv is not None:
+                    inv.reserved = max(inv.reserved - apply_amount, 0)
+                    if mode == "release":
+                        inv.available = max((inv.available if inv.available is not None else 0) + apply_amount, 0)
+                    else:
+                        inv.quantity = max(inv.quantity - apply_amount, 0)
+                    self._entities["Inventory"][inv.id] = copy.deepcopy(inv)
+            return reservation
+
+    def reserve_order_lines_atomic(
+        self, merchant_id: str, source_type: str, source_id: str, location_ref: str, lines: list[dict],
+    ) -> dict:
+        """In-memory equivalent of PostgresStore.reserve_order_lines_atomic - `self._inventory_lock` held
+        across the WHOLE check-then-insert-then-mutate sequence gives the same single-process
+        serialization guarantee Postgres's `SELECT ... FOR UPDATE` + unique-index-conflict combination
+        gives across processes. See that method's docstring for the full atomicity/lock-ordering/
+        idempotency-conflict reasoning."""
+        from sanocea.packages.domain_contract.models import Inventory, InventoryReservation
+
+        if not lines:
+            return {"success": True, "conflict": False, "line_results": []}
+        with self._inventory_lock:
+            existing_keys = {
+                e.idempotency_key for e in self._entities["InventoryReservation"].values() if e.merchant_id == merchant_id
+            }
+            if any(line["idempotency_key"] in existing_keys for line in lines):
+                return {"success": False, "conflict": True, "line_results": []}
+
+            def _inv(sku: str) -> Inventory | None:
+                return next(
+                    (e for e in self._entities["Inventory"].values() if e.merchant_id == merchant_id and e.sku == sku and e.location_ref == location_ref),
+                    None,
+                )
+
+            shortfalls = []
+            for line in lines:
+                inv = _inv(line["sku"])
+                available = (inv.quantity - inv.reserved) if inv else 0
+                if available < line["quantity_requested"]:
+                    shortfalls.append(line)
+
+            if shortfalls:
+                return {
+                    "success": False, "conflict": False,
+                    "line_results": [
+                        {"sku": line["sku"], "requested": line["quantity_requested"], "reserved": 0, "shortfall": line["quantity_requested"]}
+                        for line in lines
+                    ],
+                }
+
+            for line in lines:
+                reservation = InventoryReservation(
+                    merchant_id=merchant_id, sku=line["sku"], location_ref=location_ref,
+                    source_type=source_type, source_id=source_id, order_line_id=line.get("order_line_id"),
+                    idempotency_key=line["idempotency_key"],
+                    quantity_requested=line["quantity_requested"], quantity_reserved=line["quantity_requested"],
+                )
+                self._entities["InventoryReservation"][reservation.id] = copy.deepcopy(reservation)
+                inv = _inv(line["sku"])
+                inv.reserved = max(inv.reserved + line["quantity_requested"], 0)
+                inv.available = max((inv.available if inv.available is not None else inv.quantity) - line["quantity_requested"], 0)
+                self._entities["Inventory"][inv.id] = copy.deepcopy(inv)
+            return {
+                "success": True, "conflict": False,
+                "line_results": [
+                    {"sku": line["sku"], "requested": line["quantity_requested"], "reserved": line["quantity_requested"], "shortfall": 0}
+                    for line in lines
+                ],
+            }
 
     def get(self, model: type[T], merchant_id: str, entity_id: str) -> T:
         entity = self._entities[model.__name__].get(entity_id)

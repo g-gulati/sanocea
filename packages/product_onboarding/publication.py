@@ -23,23 +23,37 @@ class ProductPublicationService:
         # storefront_connector may be a single connector (existing single-platform callers, unchanged
         # behavior) or a StorefrontConnectorRegistry (multi-merchant/multi-platform) - as_resolver()
         # normalizes both into self.storefront(merchant_id) -> the right connector for THAT merchant.
-        from sanocea.packages.runtime.storefront_registry import as_resolver
+        from sanocea.packages.runtime.storefront_registry import as_channel_resolver, as_resolver
 
         self.storefront = as_resolver(storefront_connector)
+        # Step 9Q.2 - publish()/verify() below are the one existing case that already carries a SPECIFIC
+        # channel_id (Publication.channel_id) even before any merchant has more than one storefront -
+        # this resolves the CORRECT connector for that channel rather than self.storefront(merchant_id)'s
+        # "whichever channel happens to be first" behavior, which only ever mattered once a merchant
+        # actually has two storefronts (Step 9Q.2's Shopify+Flipkart scenario is the first one built).
+        self.storefront_for_channel = as_channel_resolver(storefront_connector)
         self.audit = AuditLedger(store)
         self.exceptions = ExceptionService(store)
 
     def _prepare_publish_payload(self, draft: ProductDraft) -> dict[str, Any]:
-        """A CONNECTOR-AGNOSTIC payload - title/sku/price/currency/product_type/attributes, no
-        Shopify-specific wire shape (variants array, metafields namespace/key/value). Each connector's
-        own execute_mutation() is responsible for translating this into whatever shape its own platform
-        actually needs (Shopify: variants+metafields; WooCommerce: its own product body) - moved behind
-        each connector's boundary. This fixes a real leak found in multi-platform connector hardening:
-        this method used to be named prepare_shopify_payload() and build Shopify's own wire shape
-        directly, forcing every OTHER connector (WooCommerce today, any future platform) to reverse the
-        Shopify-specific shape back out of a "canonical" payload that was never actually canonical."""
+        """A CONNECTOR-AGNOSTIC payload - title/sku/price/currency/product_type/attributes/options/variants.
+        Each connector translates this into its platform-specific wire shape."""
         if "internal_only_field" in draft.attributes:
             raise ValueError("draft contains a field that must never be published externally: internal_only_field")
+
+        variants_payload = []
+        for v in draft.variants:
+            if v.status == "ACTIVE":
+                variants_payload.append({
+                    "id": v.id,
+                    "sku": v.sku,
+                    "barcode": v.barcode,
+                    "price": f"{(v.price or draft.price or 0) / 100:.2f}",
+                    "compare_at_price": f"{v.compare_at_price / 100:.2f}" if v.compare_at_price else None,
+                    "option_values": v.option_values,
+                    "inventory_quantity": v.inventory_quantity,
+                })
+
         return {
             "title": draft.title,
             "product_type": draft.product_type,
@@ -47,28 +61,31 @@ class ProductPublicationService:
             "price": f"{(draft.price or 0) / 100:.2f}",
             "currency": draft.currency,
             "attributes": {k: str(v) for k, v in draft.attributes.items() if v not in (None, "")},
+            "options": draft.options,
+            "variants": variants_payload,
         }
 
     def create_publication(self, merchant_id: str, draft_id: str, channel_id: str) -> Publication:
         """Phase 4.6: get-or-create by (draft_id, channel_id) - a duplicate publication REQUEST for the
-        same draft+channel must reuse the same Publication row rather than minting a second one, so a
-        retried/duplicated command can never end up driving two independent publish() calls (each of
-        which mints its own PublicationAttempt) toward the same external listing. This is on top of,
-        not instead of, the connector-mutation-level idempotency key in publish() below - defence at
-        both the canonical-entity layer and the external-mutation layer."""
+        same draft+channel must reuse the same Publication row rather than minting a second one."""
         existing = self.store.find_one(Publication, merchant_id, product_draft_id=draft_id, channel_id=channel_id)
         if existing is not None and existing.status in ("approved", "publishing", "published"):
             return existing
         draft = self.store.get(ProductDraft, merchant_id, draft_id)
-        if draft.state not in ("READY", "NEEDS_APPROVAL") or not draft.approved_for_publication:
+        if (
+            draft.state not in ("READY", "NEEDS_APPROVAL")
+            or not draft.approved_for_publication
+            or draft.conflicts
+            or draft.identity_status != "RESOLVED"
+        ):
             self.exceptions.create(
                 merchant_id=merchant_id,
-                category=ExceptionCategory.MISSING_REQUIRED_ATTRIBUTE if draft.state == "INCOMPLETE" else ExceptionCategory.AMBIGUOUS_PRODUCT_DATA,
-                message=f"Product draft {draft.id} is not approved for publication: {draft.state}",
+                category=ExceptionCategory.CONFLICTING_PRODUCT_EVIDENCE if (draft.conflicts or draft.identity_status in ("CONFLICT", "AMBIGUOUS")) else (ExceptionCategory.MISSING_REQUIRED_ATTRIBUTE if draft.state == "INCOMPLETE" else ExceptionCategory.AMBIGUOUS_PRODUCT_DATA),
+                message=f"Product draft {draft.id} is not approved for publication: state={draft.state}, identity={draft.identity_status} (conflicts: {draft.conflicts})",
                 object_id=draft.id,
                 evidence_ref=draft.evidence_refs[0] if draft.evidence_refs else None,
             )
-            raise ValueError("draft not publishable")
+            raise ValueError(f"draft not publishable: state={draft.state}, identity={draft.identity_status}")
         publication = existing or Publication(
             merchant_id=merchant_id,
             product_draft_id=draft.id,
@@ -82,6 +99,11 @@ class ProductPublicationService:
     def publish(self, merchant_id: str, publication_id: str) -> ListingVerification:
         publication = self.store.get(Publication, merchant_id, publication_id)
         draft = self.store.get(ProductDraft, merchant_id, publication.product_draft_id)
+        if draft.state != "READY" or not draft.approved_for_publication or draft.conflicts or draft.identity_status != "RESOLVED":
+            raise ValueError(
+                f"Product draft {draft.id} is not publishable: state={draft.state}, approved={draft.approved_for_publication}, "
+                f"conflicts={draft.conflicts}, identity_status={draft.identity_status}"
+            )
         try:
             payload = self._prepare_publish_payload(draft)
         except Exception as exc:
@@ -93,7 +115,7 @@ class ProductPublicationService:
                 evidence_ref=draft.evidence_refs[0] if draft.evidence_refs else None,
             )
             raise
-        connector = self.storefront(merchant_id)
+        connector = self.storefront_for_channel(merchant_id, publication.channel_id)
         command = ConnectorCommand(
             merchant_id=merchant_id,
             connector=connector.name,
@@ -168,7 +190,7 @@ class ProductPublicationService:
         publication = self.store.get(Publication, merchant_id, publication_id)
         draft = self.store.get(ProductDraft, merchant_id, publication.product_draft_id)
         try:
-            external = self.storefront(merchant_id).fetch(merchant_id, "product", str(publication.external_product_id))
+            external = self.storefront_for_channel(merchant_id, publication.channel_id).fetch(merchant_id, "product", str(publication.external_product_id))
         except Exception as exc:
             verification = ListingVerification(
                 merchant_id=merchant_id,
@@ -212,7 +234,7 @@ class ProductPublicationService:
         self.audit.record(
             merchant_id=merchant_id,
             actor="publication",
-            source=self.storefront(merchant_id).name,
+            source=self.storefront_for_channel(merchant_id, publication.channel_id).name,
             action="listing_verified",
             object_type="Publication",
             object_id=publication.id,

@@ -10,6 +10,7 @@ import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 from pydantic import BaseModel
 
+from .credentials import CredentialProvider, EnvCredentialProvider
 from .models import (
     Approval,
     AuditEvent,
@@ -27,10 +28,12 @@ from .models import (
     Fulfilment,
     GoodsReceipt,
     GoodsReceiptLine,
+    IdentityDecision,
     InboundShipment,
     InboundShipmentLine,
     Inventory,
     InventoryObservation,
+    InventoryReservation,
     ListingVerification,
     MediaAsset,
     Merchant,
@@ -77,6 +80,7 @@ MODEL_TABLES: dict[str, str] = {
     "Variant": "variants",
     "MediaAsset": "media_assets",
     "Inventory": "inventory",
+    "InventoryReservation": "inventory_reservations",
     "Publication": "publications",
     "PublicationAttempt": "publication_attempts",
     "ListingVerification": "listing_verifications",
@@ -115,6 +119,7 @@ MODEL_TABLES: dict[str, str] = {
     "InboundShipmentLine": "inbound_shipment_lines",
     "GoodsReceipt": "goods_receipts",
     "GoodsReceiptLine": "goods_receipt_lines",
+    "IdentityDecision": "identity_decisions",
 }
 
 
@@ -124,7 +129,9 @@ TABLE_MODELS: dict[str, type[BaseModel]] = {
     "Product": Product,
     "ProductDraft": ProductDraft,
     "Variant": Variant,
+    "IdentityDecision": IdentityDecision,
     "Inventory": Inventory,
+    "InventoryReservation": InventoryReservation,
     "MediaAsset": MediaAsset,
     "Publication": Publication,
     "PublicationAttempt": PublicationAttempt,
@@ -167,24 +174,16 @@ TABLE_MODELS: dict[str, type[BaseModel]] = {
 }
 
 
-class EnvCredentialProvider:
-    """Local Phase 0.5 credential boundary.
-
-    Database rows store a locator such as `SANOCEA_CRED_MER_A_SHOPIFY`.
-    The secret value stays in the process environment. Production should swap
-    this provider for KMS/Vault without changing canonical entities.
-    """
-
-    def resolve(self, locator: str) -> str:
-        value = os.environ.get(locator)
-        if value is None:
-            raise KeyError(f"credential locator not available: {locator}")
-        return value
-
-
 class PostgresStore:
-    def __init__(self, dsn: str, credential_provider: EnvCredentialProvider | None = None) -> None:
+    def __init__(self, dsn: str, credential_provider: "CredentialProvider | None" = None) -> None:
         self.dsn = dsn
+        # Step P0.1: EnvCredentialProvider is a DEVELOPMENT-ONLY default, kept here purely for backward
+        # compatibility with every existing direct `PostgresStore(dsn)` construction across this
+        # codebase's test suite (none of which need durable/encrypted storage). Production code must
+        # NEVER rely on this default - apps/api/app.py's _build_store() always passes an explicit
+        # DurableEncryptedCredentialProvider, built via build_production_credential_provider(), which
+        # fails closed at startup if a master key is not configured, rather than silently falling back
+        # to this class. See packages/domain_contract/credentials.py.
         self.credential_provider = credential_provider or EnvCredentialProvider()
         self._reuse_connection = os.environ.get("SANOCEA_PG_REUSE_CONNECTION") == "1"
         self._connection = None
@@ -577,6 +576,35 @@ class PostgresStore:
                     return GoodsReceipt.model_validate(row[0])
                 else:
                     cur.execute("RELEASE SAVEPOINT gr_upsert")
+            elif isinstance(entity, Refund):
+                # Step 7B: mirrors PurchaseOrder's exact pattern above - Refund has a genuine multi-step
+                # lifecycle (permitted -> mutation_submitted -> external_confirmed -> reconciled ->
+                # completed) that re-persists the SAME row many times, so id-based upsert must remain the
+                # PRIMARY path (correct for both create and every later status update). The
+                # uq_refund_return_id partial unique index is a pure safety net against a genuinely NEW
+                # row (different id) duplicating an existing return-owned refund under concurrency -
+                # handled via a savepoint so we can recover within the same transaction, exactly like
+                # PurchaseOrder's idempotency_key does.
+                cur.execute("SAVEPOINT refund_upsert")
+                try:
+                    cur.execute(
+                        """
+                        INSERT INTO refunds (id, merchant_id, data, updated_at)
+                        VALUES (%s, %s, %s, now())
+                        ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = now()
+                        """,
+                        (entity.id, entity.merchant_id, Json(data)),
+                    )
+                except psycopg2.errors.UniqueViolation:
+                    cur.execute("ROLLBACK TO SAVEPOINT refund_upsert")
+                    cur.execute(
+                        "SELECT data FROM refunds WHERE merchant_id = %s AND data->>'return_id' = %s ORDER BY created_at ASC LIMIT 1",
+                        (entity.merchant_id, entity.return_id),
+                    )
+                    row = cur.fetchone()
+                    return Refund.model_validate(row[0])
+                else:
+                    cur.execute("RELEASE SAVEPOINT refund_upsert")
             elif isinstance(entity, Order):
                 cur.execute(
                     """
@@ -807,16 +835,20 @@ class PostgresStore:
         return row[0] if row else {}
 
     def set_credential_ref(self, merchant_id: str, ref: str, secret: str) -> None:
-        locator = f"SANOCEA_CRED_{merchant_id.upper()}_{ref.upper()}".replace("-", "_")
-        os.environ[locator] = secret
+        """Step P0.1 - delegates the ACTUAL secret storage to self.credential_provider.store(), which
+        returns an opaque locator; this method's own job is only to record WHICH provider produced that
+        locator (`credential_references.provider`), for observability/health purposes - never the secret
+        itself, and never provider-specific parsing of the locator's shape."""
+        provider_name = self.credential_provider.health().get("provider", "unknown")
+        locator = self.credential_provider.store(merchant_id, ref, secret)
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(
                 """
                 INSERT INTO credential_references (merchant_id, ref, provider, locator)
-                VALUES (%s, %s, 'env', %s)
-                ON CONFLICT (merchant_id, ref) DO UPDATE SET provider = 'env', locator = EXCLUDED.locator
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (merchant_id, ref) DO UPDATE SET provider = EXCLUDED.provider, locator = EXCLUDED.locator
                 """,
-                (merchant_id, ref, locator),
+                (merchant_id, ref, provider_name, locator),
             )
 
     def get_credential_ref(self, merchant_id: str, ref: str) -> str:
@@ -825,7 +857,27 @@ class PostgresStore:
             row = cur.fetchone()
         if not row:
             raise TenantAccessError(f"{merchant_id} cannot access credential {ref}")
-        return self.credential_provider.resolve(row[0])
+        try:
+            return self.credential_provider.resolve(row[0])
+        except KeyError as exc:
+            # "not found" and "revoked" both surface as KeyError from the provider - both mean the SAME
+            # thing to a caller as "no credential row exists at all": this tenant cannot currently use
+            # this credential. A decryption failure (ValueError, wrong/missing master key) is a distinct,
+            # operator-facing configuration problem and is deliberately NOT caught here - it should not
+            # be mistaken for an ordinary tenant-access refusal.
+            raise TenantAccessError(f"{merchant_id} cannot access credential {ref}") from exc
+
+    def delete_credential_ref(self, merchant_id: str, ref: str) -> None:
+        """Revokes a credential - after this call, get_credential_ref for the same (merchant_id, ref)
+        raises TenantAccessError, and any connector already holding a cached auth_headers()/token from
+        before the call is unaffected only until its own natural refresh/next resolve - consistent with
+        the disclosed limitation already documented for Meesho's static, non-refreshing credentials."""
+        with self.connect() as conn, conn.cursor() as cur:
+            cur.execute("SELECT locator FROM credential_references WHERE merchant_id = %s AND ref = %s", (merchant_id, ref))
+            row = cur.fetchone()
+        if not row:
+            raise TenantAccessError(f"{merchant_id} cannot access credential {ref}")
+        self.credential_provider.delete(row[0])
 
     def list_credential_refs(self, merchant_id: str) -> list[str]:
         with self.connect() as conn, conn.cursor() as cur:
@@ -890,6 +942,90 @@ class PostgresStore:
             )
         return result
 
+    def atomic_claim_refund_capacity(self, merchant_id: str, order_id: str, return_id: str, currency: str) -> dict[str, Any] | None:
+        """Step 7B.1 - closes a real, reproduced cross-Return refund-cap race (19/20 trials over-refunded
+        in the bounded reproduction that preceded this fix): `evaluate_return_refund`'s "remaining
+        refundable amount" computation was a plain, unlocked read - two DISTINCT Returns on the SAME
+        order, evaluated concurrently, could both read the same pre-refund remaining balance and both
+        create a full-amount Refund, together exceeding the order's authoritative refundable amount.
+
+        SELECT ... FOR UPDATE on the Order row is the per-order serialization point (the natural,
+        already-canonical authority every Refund traces back to via order_id) - the SAME idiom as every
+        other atomic primitive in this codebase, not a new locking mechanism. Inside that lock: re-read
+        the order's authoritative total, re-read EVERY Refund already committed against it (financially
+        committed = every status except "denied" - see this method's caller for the full state-machine
+        reasoning, in particular that "mutation_uncertain" and "permitted"/"approval_required" MUST
+        continue reserving capacity, since a status other than "denied" always represents money that has
+        moved or might still move), compute the remaining capacity, and - if any remains - claim it by
+        inserting the new Refund row for THIS return atomically, in the SAME transaction. A concurrent
+        claim for a DIFFERENT return on the same order blocks on this SAME lock and, once unblocked,
+        correctly sees the first claim's already-committed row reducing its own remaining capacity.
+
+        The Refund is created with a NEUTRAL, capacity-consuming placeholder status ("permitted") - the
+        caller is responsible for correcting it to "approval_required"/"denied" immediately afterward
+        using the merchant's actual policy threshold (which, for a return-triggered refund, can only
+        move a NON-DENIED decision between ALLOW and REQUIRE_APPROVAL once capacity has genuinely been
+        claimed - see evaluate_return_refund's docstring for why DENY is resolved BEFORE ever attempting
+        a claim, so it never contends for this lock at all). This keeps policy/approval business logic
+        out of the storage layer, while the SAFETY-CRITICAL capacity claim itself stays atomic.
+
+        Same-return replay protection (uq_refund_return_id, Step 7B) remains fully in effect and is
+        explicitly handled here too, via the same SAVEPOINT-based UniqueViolation recovery used
+        elsewhere in this file: cross-return serialization is an ADDITIONAL guarantee on top of it, not
+        a replacement.
+
+        Returns the newly-claimed Refund's data dict, or None if no capacity remained.
+        """
+        with self.connect() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT data FROM orders WHERE id = %(id)s AND merchant_id = %(mid)s FOR UPDATE", {"id": order_id, "mid": merchant_id})
+            order_row = cur.fetchone()
+            if not order_row:
+                raise NotFoundError(order_id)
+            total_amount = int(order_row["data"]["total_amount"])
+
+            cur.execute("SELECT data FROM refunds WHERE merchant_id = %(mid)s AND data->>'order_id' = %(oid)s", {"mid": merchant_id, "oid": order_id})
+            committed = sum(int(row["data"]["amount"]) for row in cur.fetchall() if row["data"].get("status") != "denied")
+            remaining = max(total_amount - committed, 0)
+            if remaining <= 0:
+                return None
+
+            refund = Refund(merchant_id=merchant_id, order_id=order_id, return_id=return_id, amount=remaining, currency=currency, status="permitted")
+            cur.execute("SAVEPOINT refund_capacity_claim")
+            try:
+                cur.execute(
+                    "INSERT INTO refunds (id, merchant_id, data) VALUES (%(id)s, %(mid)s, %(data)s)",
+                    {"id": refund.id, "mid": merchant_id, "data": Json(refund.model_dump(mode="json"))},
+                )
+            except psycopg2.errors.UniqueViolation:
+                cur.execute("ROLLBACK TO SAVEPOINT refund_capacity_claim")
+                cur.execute(
+                    "SELECT data FROM refunds WHERE merchant_id = %(mid)s AND data->>'return_id' = %(rid)s ORDER BY created_at ASC LIMIT 1",
+                    {"mid": merchant_id, "rid": return_id},
+                )
+                row = cur.fetchone()
+                return row["data"]
+            else:
+                cur.execute("RELEASE SAVEPOINT refund_capacity_claim")
+            return refund.model_dump(mode="json")
+
+    def mark_acknowledgement_applied(self, merchant_id: str, acknowledgement_id: str, applied: bool) -> None:
+        """Step 7A.1 - a direct, targeted UPDATE for SupplierAcknowledgement.applied. `store.put()` for
+        this model is INSERT-only (ON CONFLICT ... DO NOTHING, keyed on (merchant_id, purchase_order_id,
+        external_ref) - see put()'s SupplierAcknowledgement branch): a second put() call for a row that
+        already exists is SILENTLY DISCARDED, never updating existing fields. That is exactly correct
+        for the model's own external_ref-replay-dedup purpose, but it means `applied` (which
+        record_supplier_acknowledgement can only determine authoritatively AFTER the row has already
+        been inserted, to preserve the existing external_ref dedup ordering) can never be corrected via
+        put() - a genuine, found bug where the persisted `applied` value silently stayed at its initial
+        placeholder forever, defeating the whole sequence-staleness check downstream. No row lock is
+        needed here: exactly one call (the one that created/resolved this specific ack.id) ever writes
+        this field, so there is no concurrent writer to serialize against."""
+        with self.connect() as conn, conn.cursor() as cur:
+            cur.execute(
+                "UPDATE supplier_acknowledgements SET data = jsonb_set(data, '{applied}', %s), updated_at = now() WHERE id = %s AND merchant_id = %s",
+                (Json(applied), acknowledgement_id, merchant_id),
+            )
+
     def atomic_apply_po_line_confirmation(self, merchant_id: str, line_id: str, delta: int) -> int:
         """Atomically increments PurchaseOrderLine.quantity_confirmed by `delta` inside a single
         transaction using SELECT ... FOR UPDATE, returning the resulting TRUE cumulative total (which
@@ -909,9 +1045,144 @@ class PostgresStore:
             cur.execute("UPDATE purchase_order_lines SET data = %s, updated_at = now() WHERE id = %s", (Json(data), line_id))
             return new_total
 
+    def atomic_apply_acknowledgement(
+        self, merchant_id: str, po_id: str, po_line_id: str, sku: str, location_ref: str, sequence: int, raw_delta: int,
+    ) -> dict[str, Any]:
+        """Step 7A.1 - ONE atomic transaction coupling three consequences that were previously three
+        separate, under-synchronized operations: (1) the per-PO acknowledgement-sequence staleness
+        claim, (2) the PurchaseOrderLine.quantity_confirmed increment, and (3) the location-scoped
+        Inventory.confirmed_inbound increment (capped to the legitimate/ordered portion). A failure
+        anywhere in this transaction rolls back ALL THREE together - the PO line can never end up
+        confirmed while the matching inbound increment is lost, or vice versa.
+
+        ROOT CAUSE this closes (found via a real, reproduced Postgres race - see the Step 7A.1
+        investigation, not a theoretical concern): `record_supplier_acknowledgement` used to compute
+        "is this sequence stale" via a PLAIN, UNLOCKED read of the highest already-APPLIED sequence,
+        THEN separately call the (individually correct) `atomic_apply_po_line_confirmation`. Two
+        genuinely concurrent acknowledgement events for DIFFERENT, legitimate sequence numbers (e.g.
+        sequence=1 confirming +60, sequence=2 confirming +40, arriving with no real ordering between
+        them) could have their staleness DECIDED in an order that doesn't match their sequence numbers
+        purely due to processing/scheduling - and the OLD rule ("reject if sequence <= highest already
+        applied") then incorrectly discarded the lower-numbered one as "stale", losing 60 real, confirmed
+        units. This is not solvable by locking alone: even under perfect serialization, whichever of the
+        two is processed first still makes the other look "stale" under that rule.
+
+        STALENESS RULE (corrected): an acknowledgement event is stale/rejected if and only if this EXACT
+        `sequence` number has ALREADY been applied for this PO before - never merely because some OTHER,
+        numerically higher sequence was already applied. This is what makes genuinely concurrent,
+        DISTINCT acknowledgement deltas both apply regardless of processing order, while an EXACT
+        sequence being resent (a real replay/duplicate-with-a-different-external_ref risk, distinct from
+        an identical external_ref replay - which is already deduped upstream by a DB-unique constraint
+        and never reaches this method at all) is still correctly rejected, evidence-kept, state
+        unaltered.
+
+        Deterministic lock order, every caller, always: PurchaseOrder -> PurchaseOrderLine -> Inventory
+        (the Inventory step is itself a single-statement atomic UPSERT via
+        uq_inventory_merchant_sku_location's own ON CONFLICT handling, reusing atomic_adjust_inventory's
+        exact SQL pattern rather than a fourth locking primitive).
+
+        Returns {"applied": bool, "new_true_total": int | None, "legitimate_delta": int, "over_confirmed": bool}.
+        `new_true_total`/`legitimate_delta`/`over_confirmed` are only meaningful when `applied` is True.
+        """
+        with self.connect() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT id FROM purchase_orders WHERE id = %(po_id)s AND merchant_id = %(mid)s FOR UPDATE", {"po_id": po_id, "mid": merchant_id})
+            if not cur.fetchone():
+                raise NotFoundError(po_id)
+
+            cur.execute(
+                "SELECT DISTINCT (data->>'sequence')::int AS sequence FROM supplier_acknowledgements "
+                "WHERE merchant_id = %(mid)s AND data->>'purchase_order_id' = %(po_id)s AND (data->>'applied')::boolean = true",
+                {"mid": merchant_id, "po_id": po_id},
+            )
+            applied_sequences = {row["sequence"] for row in cur.fetchall()}
+            if sequence in applied_sequences:
+                return {"applied": False, "new_true_total": None, "legitimate_delta": 0, "over_confirmed": False}
+
+            cur.execute("SELECT data FROM purchase_order_lines WHERE id = %(id)s AND merchant_id = %(mid)s FOR UPDATE", {"id": po_line_id, "mid": merchant_id})
+            line_row = cur.fetchone()
+            if not line_row:
+                raise NotFoundError(po_line_id)
+            line_data = line_row["data"]
+            previous_true_total = int(line_data.get("quantity_confirmed", 0))
+            new_true_total = previous_true_total + raw_delta
+            quantity_ordered = int(line_data["quantity_ordered"])
+            line_data["quantity_confirmed"] = new_true_total
+            cur.execute("UPDATE purchase_order_lines SET data = %(data)s, updated_at = now() WHERE id = %(id)s", {"data": Json(line_data), "id": po_line_id})
+
+            legitimate_before = min(previous_true_total, quantity_ordered)
+            legitimate_after = min(new_true_total, quantity_ordered)
+            legitimate_delta = max(legitimate_after - legitimate_before, 0)
+
+            if legitimate_delta:
+                seed = Inventory(merchant_id=merchant_id, sku=sku, location_ref=location_ref, quantity=0, available=0, confirmed_inbound=max(legitimate_delta, 0))
+                cur.execute(
+                    """
+                    INSERT INTO inventory (id, merchant_id, data, updated_at)
+                    VALUES (%(id)s, %(merchant_id)s, %(data)s, now())
+                    ON CONFLICT (merchant_id, (data->>'sku'), (data->>'location_ref'))
+                    DO UPDATE SET
+                      data = jsonb_set(
+                        inventory.data, '{confirmed_inbound}',
+                        to_jsonb(GREATEST(COALESCE((inventory.data->>'confirmed_inbound')::int, 0) + %(ci)s, 0))
+                      ),
+                      updated_at = now()
+                    """,
+                    {"id": seed.id, "merchant_id": merchant_id, "data": Json(seed.model_dump(mode="json")), "ci": legitimate_delta},
+                )
+
+            return {
+                "applied": True, "new_true_total": new_true_total, "legitimate_delta": legitimate_delta,
+                "over_confirmed": new_true_total > quantity_ordered,
+            }
+
+    def atomic_transition_cancellation_status(self, merchant_id: str, cancellation_id: str, from_statuses: set[str], to_status: str) -> bool:
+        """Step 7A - the SAME SELECT ... FOR UPDATE idiom as atomic_apply_po_line_confirmation, applied
+        as a general compare-and-swap for Cancellation.status rather than a new subsystem.
+
+        The REAL race this closes (found by a genuine, reproduced concurrency failure, not
+        theoretical): a plain read-then-write status transition (e.g. approve_cancellation's old
+        "approval_required" -> "approved" write) can silently REGRESS a row that a concurrent
+        execute_cancellation call has already advanced further (e.g. all the way to "completed") back
+        to an earlier state, because the plain write never re-checks the CURRENT persisted value under
+        a lock before overwriting it. Every Cancellation status transition (approve, reject, the
+        stale-execution check, and the completion claim) must go through this ONE compare-and-swap.
+
+        Returns True ONLY for the caller whose transition actually applied (status was still one of
+        `from_statuses` at lock-acquisition time); every other concurrent caller gets False and must not
+        proceed with the mutation/audit its own transition would have authorized.
+        """
+        with self.connect() as conn, conn.cursor() as cur:
+            cur.execute("SELECT data FROM cancellations WHERE id = %s AND merchant_id = %s FOR UPDATE", (cancellation_id, merchant_id))
+            row = cur.fetchone()
+            if not row:
+                raise NotFoundError(cancellation_id)
+            data = row[0]
+            if data.get("status") not in from_statuses:
+                return False
+            data["status"] = to_status
+            cur.execute("UPDATE cancellations SET data = %s, updated_at = now() WHERE id = %s", (Json(data), cancellation_id))
+            return True
+
+    def atomic_transition_refund_status(self, merchant_id: str, refund_id: str, from_statuses: set[str], to_status: str) -> bool:
+        """Step 9 - the SAME SELECT ... FOR UPDATE compare-and-swap idiom as
+        atomic_transition_cancellation_status, applied to Refund.status for mutation-uncertainty
+        recovery. Returns True ONLY for the caller whose transition actually applied."""
+        with self.connect() as conn, conn.cursor() as cur:
+            cur.execute("SELECT data FROM refunds WHERE id = %s AND merchant_id = %s FOR UPDATE", (refund_id, merchant_id))
+            row = cur.fetchone()
+            if not row:
+                raise NotFoundError(refund_id)
+            data = row[0]
+            if data.get("status") not in from_statuses:
+                return False
+            data["status"] = to_status
+            cur.execute("UPDATE refunds SET data = %s, updated_at = now() WHERE id = %s", (Json(data), refund_id))
+            return True
+
     def atomic_adjust_inventory(
         self, merchant_id: str, sku: str, location_ref: str, *,
         confirmed_inbound_delta: int = 0, quantity_delta: int = 0, available_delta: int = 0,
+        reserved_delta: int = 0,
     ) -> Inventory:
         """Atomically creates-or-adjusts the Inventory row for (merchant_id, sku, location_ref) in one
         statement, using uq_inventory_merchant_sku_location's own ON CONFLICT atomicity - no
@@ -921,12 +1192,29 @@ class PostgresStore:
         old read-modify-write and each INSERT a competing new row - the second INSERT raised
         uq_inventory_merchant_sku_location's UniqueViolation uncaught, and even had it been caught
         naively, discarding the losing caller's delta would have been a silent lost update, not merely
-        a crash. All three counters are adjusted in the SAME atomic UPSERT regardless of whether the row
+        a crash. All counters are adjusted in the SAME atomic UPSERT regardless of whether the row
         already existed.
+
+        `reserved_delta` (2026-09 reservation-lifecycle fix): used ONLY for CONSUME (paired with
+        `quantity_delta`, same sign) and RESTOCK-adjacent bookkeeping where ownership/quantity is
+        already deterministically established by the caller (see `adjust_reservation_atomic` for the
+        general release/consume path, which locks the owning InventoryReservation row first). This
+        method's own upsert has no availability ceiling to check, so it must NEVER be used to CREATE a
+        reservation from a requested quantity - that is exactly the check-then-update race
+        `reserve_inventory_atomic` exists to close. Floored at 0 via GREATEST exactly like
+        `confirmed_inbound`, so `reserved < 0` is structurally impossible regardless of call order.
+
+        `available` remains a strict DERIVED/CACHE value (see Inventory model docstring): every caller
+        in this codebase must pass an `available_delta` that keeps it equal to `quantity - reserved`
+        (e.g. reserve: -N/+0; release: +N/-N on available/reserved; consume: 0/-N paired with
+        quantity_delta=-N; restock: +N/+0 paired with quantity_delta=+N) - this method does not derive
+        it automatically, to avoid silently changing existing callers' (e.g. procurement's goods-receipt)
+        established, already-correct delta pairs.
         """
         seed = Inventory(
             merchant_id=merchant_id, sku=sku, location_ref=location_ref,
             quantity=max(quantity_delta, 0), available=max(available_delta, 0), confirmed_inbound=max(confirmed_inbound_delta, 0),
+            reserved=max(reserved_delta, 0),
         )
         with self.connect() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
@@ -938,20 +1226,255 @@ class PostgresStore:
                   data = jsonb_set(
                     jsonb_set(
                       jsonb_set(
-                        inventory.data, '{confirmed_inbound}',
-                        to_jsonb(GREATEST(COALESCE((inventory.data->>'confirmed_inbound')::int, 0) + %(ci)s, 0))
+                        jsonb_set(
+                          inventory.data, '{confirmed_inbound}',
+                          to_jsonb(GREATEST(COALESCE((inventory.data->>'confirmed_inbound')::int, 0) + %(ci)s, 0))
+                        ),
+                        '{quantity}', to_jsonb(COALESCE((inventory.data->>'quantity')::int, 0) + %(q)s)
                       ),
-                      '{quantity}', to_jsonb(COALESCE((inventory.data->>'quantity')::int, 0) + %(q)s)
+                      '{available}', to_jsonb(COALESCE((inventory.data->>'available')::int, 0) + %(av)s)
                     ),
-                    '{available}', to_jsonb(COALESCE((inventory.data->>'available')::int, 0) + %(av)s)
+                    '{reserved}', to_jsonb(GREATEST(COALESCE((inventory.data->>'reserved')::int, 0) + %(rv)s, 0))
                   ),
                   updated_at = now()
                 RETURNING data
                 """,
-                {"id": seed.id, "merchant_id": merchant_id, "data": Json(seed.model_dump(mode="json")), "ci": confirmed_inbound_delta, "q": quantity_delta, "av": available_delta},
+                {
+                    "id": seed.id, "merchant_id": merchant_id, "data": Json(seed.model_dump(mode="json")),
+                    "ci": confirmed_inbound_delta, "q": quantity_delta, "av": available_delta, "rv": reserved_delta,
+                },
             )
             row = cur.fetchone()
         return Inventory.model_validate(row["data"])
+
+    def reserve_inventory_atomic(
+        self, merchant_id: str, sku: str, location_ref: str, *,
+        quantity_requested: int, source_type: str, source_id: str, idempotency_key: str,
+        order_line_id: str | None = None,
+    ) -> InventoryReservation:
+        """THE one database-atomic reservation-CREATION operation (2026-09 concurrency correction).
+        Plain additive deltas cannot safely create a reservation, because creation must both CHECK
+        available stock and INCREMENT `reserved` under the same concurrency boundary - two concurrent
+        callers each reading available=1 and each incrementing reserved is the exact oversell Saleor's
+        own issue #543 documents (checkout-time stock allocation with no locking). This closes it with
+        `SELECT ... FOR UPDATE` row-locking the specific Inventory row for the rest of the transaction,
+        mirroring the already-established `atomic_apply_po_line_confirmation` pattern in this same file.
+        A concurrent reservation attempt against the SAME (merchant, sku, location) blocks here until
+        this transaction commits, then sees the updated `reserved` and correctly computes reduced (or
+        zero) remaining availability - never both granting the last unit.
+
+        Idempotent replay: a second call with the same (merchant_id, idempotency_key) returns the
+        original InventoryReservation unchanged, enforced by uq_inventory_reservations_idempotency at
+        the DB level (not just an app-level check), so even a genuine concurrent duplicate call is safe.
+
+        Partial fill: reserves min(available, quantity_requested); the shortfall (if any) is visible as
+        quantity_requested - quantity_reserved on the returned record - callers decide what a shortfall
+        means (existing ExceptionRecord flow, unchanged). No Inventory row for this (sku, location) is
+        treated as zero availability, matching existing pre-fix behavior.
+        """
+        with self.connect() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                "SELECT data FROM inventory_reservations WHERE merchant_id = %(mid)s AND data->>'idempotency_key' = %(key)s",
+                {"mid": merchant_id, "key": idempotency_key},
+            )
+            existing = cur.fetchone()
+            if existing:
+                return InventoryReservation.model_validate(existing["data"])
+            cur.execute(
+                "SELECT data FROM inventory WHERE merchant_id = %(mid)s AND data->>'sku' = %(sku)s AND data->>'location_ref' = %(loc)s FOR UPDATE",
+                {"mid": merchant_id, "sku": sku, "loc": location_ref},
+            )
+            row = cur.fetchone()
+            reserve_qty = 0
+            if row is not None:
+                inv = Inventory.model_validate(row["data"])
+                reserve_qty = max(min(inv.quantity - inv.reserved, quantity_requested), 0)
+                if reserve_qty > 0:
+                    cur.execute(
+                        """
+                        UPDATE inventory SET
+                          data = jsonb_set(
+                            jsonb_set(data, '{reserved}', to_jsonb(GREATEST(COALESCE((data->>'reserved')::int, 0) + %(rq)s, 0))),
+                            '{available}', to_jsonb(GREATEST(COALESCE((data->>'available')::int, (data->>'quantity')::int) - %(rq)s, 0))
+                          ),
+                          updated_at = now()
+                        WHERE id = %(id)s
+                        """,
+                        {"rq": reserve_qty, "id": inv.id},
+                    )
+            reservation = InventoryReservation(
+                merchant_id=merchant_id, sku=sku, location_ref=location_ref,
+                source_type=source_type, source_id=source_id, order_line_id=order_line_id, idempotency_key=idempotency_key,
+                quantity_requested=quantity_requested, quantity_reserved=reserve_qty,
+            )
+            cur.execute(
+                "INSERT INTO inventory_reservations (id, merchant_id, data) VALUES (%(id)s, %(mid)s, %(data)s)",
+                {"id": reservation.id, "mid": merchant_id, "data": Json(reservation.model_dump(mode="json"))},
+            )
+            return reservation
+
+    def adjust_reservation_atomic(self, merchant_id: str, reservation_id: str, *, mode: str, amount: int) -> InventoryReservation:
+        """The one database-atomic reservation RELEASE/CONSUME operation. Ownership and quantity are
+        already deterministically established here (this reservation's own `quantity_reserved`, set once
+        at creation and never changed) - per the accepted design, additive deltas are safe for this half
+        of the lifecycle. `SELECT ... FOR UPDATE` on the reservation row still guards against two
+        concurrent release/consume attempts on the SAME reservation double-applying; `amount` is clamped
+        to whatever is actually still outstanding (`quantity_reserved - quantity_released -
+        quantity_consumed`), so this method is naturally idempotent - calling it twice with the same or
+        larger `amount` applies the remainder once, then 0 on any further call. Both the reservation row
+        and its owning Inventory row are updated in this SAME transaction.
+
+        mode="release": reserved -N, available +N (quantity unchanged - stock returns to the sellable pool).
+        mode="consume": reserved -N, quantity -N (available unchanged - the stock permanently left; it
+        was already excluded from `available` since the moment it was reserved).
+        """
+        with self.connect() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT data FROM inventory_reservations WHERE id = %(id)s AND merchant_id = %(mid)s FOR UPDATE", {"id": reservation_id, "mid": merchant_id})
+            row = cur.fetchone()
+            if row is None:
+                raise NotFoundError(reservation_id)
+            reservation = InventoryReservation.model_validate(row["data"])
+            remaining = reservation.quantity_reserved - reservation.quantity_released - reservation.quantity_consumed
+            apply_amount = max(min(amount, remaining), 0)
+            if apply_amount > 0:
+                if mode == "release":
+                    reservation.quantity_released += apply_amount
+                else:
+                    reservation.quantity_consumed += apply_amount
+                if reservation.quantity_released + reservation.quantity_consumed >= reservation.quantity_reserved:
+                    reservation.status = "closed"
+                cur.execute(
+                    "UPDATE inventory_reservations SET data = %(data)s, updated_at = now() WHERE id = %(id)s",
+                    {"data": Json(reservation.model_dump(mode="json")), "id": reservation.id},
+                )
+                if mode == "release":
+                    cur.execute(
+                        """
+                        UPDATE inventory SET
+                          data = jsonb_set(
+                            jsonb_set(data, '{reserved}', to_jsonb(GREATEST(COALESCE((data->>'reserved')::int, 0) - %(amt)s, 0))),
+                            '{available}', to_jsonb(GREATEST(COALESCE((data->>'available')::int, 0) + %(amt)s, 0))
+                          ),
+                          updated_at = now()
+                        WHERE merchant_id = %(mid)s AND data->>'sku' = %(sku)s AND data->>'location_ref' = %(loc)s
+                        """,
+                        {"amt": apply_amount, "mid": merchant_id, "sku": reservation.sku, "loc": reservation.location_ref},
+                    )
+                else:
+                    cur.execute(
+                        """
+                        UPDATE inventory SET
+                          data = jsonb_set(
+                            jsonb_set(data, '{reserved}', to_jsonb(GREATEST(COALESCE((data->>'reserved')::int, 0) - %(amt)s, 0))),
+                            '{quantity}', to_jsonb(GREATEST(COALESCE((data->>'quantity')::int, 0) - %(amt)s, 0))
+                          ),
+                          updated_at = now()
+                        WHERE merchant_id = %(mid)s AND data->>'sku' = %(sku)s AND data->>'location_ref' = %(loc)s
+                        """,
+                        {"amt": apply_amount, "mid": merchant_id, "sku": reservation.sku, "loc": reservation.location_ref},
+                    )
+            return reservation
+
+    def reserve_order_lines_atomic(
+        self, merchant_id: str, source_type: str, source_id: str, location_ref: str, lines: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Step 4 Part A/B/C/F - TRUE whole-order atomicity for one candidate-location attempt. Every
+        line is checked and reserved together in ONE database transaction: either ALL commit together, or
+        NOTHING is ever mutated or externally visible. This closes the exact gap Step 3's
+        sequential-per-line-with-Python-level-compensating-release design left open - a concurrent
+        transaction COULD observe an earlier line's committed reservation before a later line's failure
+        triggered the compensating release, because each line was its OWN separate transaction. Here,
+        `SELECT ... FOR UPDATE` locks are held across the WHOLE decision, and nothing is written until
+        every line is confirmed sufficient.
+
+        Part B - deterministic lock order: every required Inventory row at this location is locked in
+        SKU-ascending order (a stable, canonical, input-order-independent key) BEFORE any check or
+        mutation - the standard, well-established deadlock-avoidance technique (this step's OSS-adjacent
+        check: "sort resources by a stable key before locking, to avoid cyclic waiting" is generic
+        database practice, not specific to any one commerce system, and directly confirms this design).
+        Two concurrent multi-line orders whose SKU line order happens to be reversed lock in the SAME
+        physical order regardless, so neither can hold what the other needs while waiting for what the
+        other holds.
+
+        Part C/F - idempotency conflict as a real signal, not silently absorbed: each line's
+        `idempotency_key` is enforced by `inventory_reservations`' own uq_inventory_reservations_idempotency
+        unique index (Step 1). If a concurrent attempt for the SAME order-line already committed elsewhere
+        (e.g. a racing allocator reached a different candidate location first, or this is a genuine
+        replay), THIS transaction's own INSERT conflicts and the whole attempt aborts cleanly - nothing
+        mutated, `conflict=True` returned. The caller must then re-check the order's now-existing
+        reservations (the idempotent-replay / ALREADY_ALLOCATED case), never invent a second decision.
+
+        Returns `{"success": bool, "conflict": bool, "line_results": [{"sku","requested","reserved",
+        "shortfall"}, ...]}`. `lines` is `[{"sku", "quantity_requested", "order_line_id", "idempotency_key"}, ...]`.
+        """
+        if not lines:
+            return {"success": True, "conflict": False, "line_results": []}
+        skus_needed = sorted({line["sku"] for line in lines})
+        with self.connect() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+            try:
+                cur.execute(
+                    """
+                    SELECT data FROM inventory
+                    WHERE merchant_id = %(mid)s AND data->>'location_ref' = %(loc)s AND data->>'sku' = ANY(%(skus)s)
+                    ORDER BY data->>'sku' ASC
+                    FOR UPDATE
+                    """,
+                    {"mid": merchant_id, "loc": location_ref, "skus": skus_needed},
+                )
+                locked_by_sku = {row["data"]["sku"]: Inventory.model_validate(row["data"]) for row in cur.fetchall()}
+
+                shortfalls = []
+                for line in lines:
+                    inv = locked_by_sku.get(line["sku"])
+                    available = (inv.quantity - inv.reserved) if inv else 0
+                    if available < line["quantity_requested"]:
+                        shortfalls.append(line)
+
+                if shortfalls:
+                    conn.rollback()
+                    return {
+                        "success": False, "conflict": False,
+                        "line_results": [
+                            {"sku": line["sku"], "requested": line["quantity_requested"], "reserved": 0, "shortfall": line["quantity_requested"]}
+                            for line in lines
+                        ],
+                    }
+
+                for line in sorted(lines, key=lambda l: l["sku"]):
+                    reservation = InventoryReservation(
+                        merchant_id=merchant_id, sku=line["sku"], location_ref=location_ref,
+                        source_type=source_type, source_id=source_id, order_line_id=line.get("order_line_id"),
+                        idempotency_key=line["idempotency_key"],
+                        quantity_requested=line["quantity_requested"], quantity_reserved=line["quantity_requested"],
+                    )
+                    cur.execute(
+                        "INSERT INTO inventory_reservations (id, merchant_id, data) VALUES (%(id)s, %(mid)s, %(data)s)",
+                        {"id": reservation.id, "mid": merchant_id, "data": Json(reservation.model_dump(mode="json"))},
+                    )
+                    inv = locked_by_sku[line["sku"]]
+                    cur.execute(
+                        """
+                        UPDATE inventory SET
+                          data = jsonb_set(
+                            jsonb_set(data, '{reserved}', to_jsonb(GREATEST(COALESCE((data->>'reserved')::int, 0) + %(q)s, 0))),
+                            '{available}', to_jsonb(GREATEST(COALESCE((data->>'available')::int, 0) - %(q)s, 0))
+                          ),
+                          updated_at = now()
+                        WHERE id = %(id)s
+                        """,
+                        {"q": line["quantity_requested"], "id": inv.id},
+                    )
+                conn.commit()
+                return {
+                    "success": True, "conflict": False,
+                    "line_results": [
+                        {"sku": line["sku"], "requested": line["quantity_requested"], "reserved": line["quantity_requested"], "shortfall": 0}
+                        for line in lines
+                    ],
+                }
+            except psycopg2.errors.UniqueViolation:
+                conn.rollback()
+                return {"success": False, "conflict": True, "line_results": []}
 
     def create_api_key(self, *, merchant_id: str | None, role: str, label: str | None = None) -> tuple[str, str]:
         raw_key = generate_api_key()

@@ -5,9 +5,11 @@ description = "Phase 0 foundation for Sanocea Commerce OS"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi",
+  "python-multipart",
   "pydantic>=2",
   "uvicorn",
   "psycopg2-binary",
+  "cryptography",
   "temporalio",
   "boto3",
   "docling",

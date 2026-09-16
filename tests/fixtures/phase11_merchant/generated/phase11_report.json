@@ -173,63 +173,63 @@
   ],
   "performance": {
     "mode": "baseline",
-    "total_seconds": 14.3566,
+    "total_seconds": 17.334,
     "stages": [
       {
         "stage": "database_migration_reset",
-        "elapsed_seconds": 0.2455,
-        "cumulative_seconds": 0.2479
+        "elapsed_seconds": 0.3509,
+        "cumulative_seconds": 0.3533
       },
       {
         "stage": "object_storage_client_setup",
-        "elapsed_seconds": 0.4038,
-        "cumulative_seconds": 0.6677
+        "elapsed_seconds": 0.8058,
+        "cumulative_seconds": 1.1802
       },
       {
         "stage": "supplier_a_xlsx_load",
-        "elapsed_seconds": 0.0065,
-        "cumulative_seconds": 0.7023,
+        "elapsed_seconds": 0.0089,
+        "cumulative_seconds": 1.231,
         "file": "catalog.xlsx"
       },
       {
         "stage": "supplier_a_xlsx_parse_normalize_persist",
-        "elapsed_seconds": 0.1576,
-        "cumulative_seconds": 0.8599,
+        "elapsed_seconds": 0.1963,
+        "cumulative_seconds": 1.4273,
         "rows": 80
       },
       {
         "stage": "supplier_c_csv_load",
-        "elapsed_seconds": 0.0059,
-        "cumulative_seconds": 0.8658,
+        "elapsed_seconds": 0.0057,
+        "cumulative_seconds": 1.4331,
         "file": "catalog.csv"
       },
       {
         "stage": "supplier_c_csv_parse_normalize_persist",
-        "elapsed_seconds": 0.1124,
-        "cumulative_seconds": 0.9782,
+        "elapsed_seconds": 0.145,
+        "cumulative_seconds": 1.5781,
         "rows": 70
       },
       {
         "stage": "supplier_b_pdf_load",
-        "elapsed_seconds": 0.0011,
-        "cumulative_seconds": 0.9793,
+        "elapsed_seconds": 0.0013,
+        "cumulative_seconds": 1.5795,
         "file": "catalog.pdf"
       },
       {
         "stage": "supplier_b_pdf_extract",
-        "elapsed_seconds": 0.0003,
-        "cumulative_seconds": 0.9797,
+        "elapsed_seconds": 0.0005,
+        "cumulative_seconds": 1.5801,
         "bytes": 7641
       },
       {
         "stage": "supplier_b_pdf_normalize_persist",
-        "elapsed_seconds": 1.1958,
-        "cumulative_seconds": 2.1754
+        "elapsed_seconds": 1.4948,
+        "cumulative_seconds": 3.0749
       },
       {
         "stage": "supplier_b_pdf_extract_summary",
         "elapsed_seconds": 0.0,
-        "cumulative_seconds": 2.1755,
+        "cumulative_seconds": 3.075,
         "extractor": "pdf_text_layer",
         "cached": false,
         "elapsed_ms": 0,
@@ -238,45 +238,45 @@
       {
         "stage": "image_discovery",
         "elapsed_seconds": 0.0008,
-        "cumulative_seconds": 2.1763,
+        "cumulative_seconds": 3.0757,
         "images": 195
       },
       {
         "stage": "product_validation_media_publication",
-        "elapsed_seconds": 10.8915,
-        "cumulative_seconds": 13.067,
+        "elapsed_seconds": 12.4784,
+        "cumulative_seconds": 15.5534,
         "products": 200,
         "publication_attempts": 186
       },
       {
         "stage": "order_processing",
-        "elapsed_seconds": 0.7185,
-        "cumulative_seconds": 13.7855,
+        "elapsed_seconds": 1.117,
+        "cumulative_seconds": 16.6704,
         "orders": 50,
         "duplicate_events": 50
       },
       {
         "stage": "support_processing",
-        "elapsed_seconds": 0.548,
-        "cumulative_seconds": 14.3335,
+        "elapsed_seconds": 0.6179,
+        "cumulative_seconds": 17.2884,
         "conversations": 100,
         "ai_calls": 13
       },
       {
         "stage": "workload_total",
-        "elapsed_seconds": 14.3566,
-        "cumulative_seconds": 14.3566
+        "elapsed_seconds": 17.334,
+        "cumulative_seconds": 17.334
       }
     ],
     "object_storage": {
       "put_count": 1,
       "bytes_uploaded": 9946,
-      "average_put_latency_seconds": 0.0113,
-      "max_put_latency_seconds": 0.0113,
-      "total_storage_seconds": 0.0113,
+      "average_put_latency_seconds": 0.0134,
+      "max_put_latency_seconds": 0.0134,
+      "total_storage_seconds": 0.0134,
       "retries": 0,
       "duplicate_uploads_avoided": 395,
-      "cache_entries": 398
+      "cache_entries": 399
     },
     "document_extraction": {
       "supplier_b_extractor": "pdf_text_layer",

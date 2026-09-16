@@ -43,7 +43,12 @@ class SupplierSimulator:
         *,
         fault: str | None = None,
     ) -> dict[str, Any]:
-        """lines: [{"sku": ..., "supplier_sku": ..., "quantity_ordered": ..., "unit_cost": ...}, ...]
+        """lines: [{"sku": ..., "supplier_sku": ..., "quantity_ordered": ..., "unit_cost": ...,
+        "line_ref": <optional>}, ...] - `lines` here represents what the supplier actually RECEIVED on
+        submission (i.e. SimulatedSupplierConnector's stored `purchase_orders[ref]["lines"]`), so
+        whatever `line_ref` Sanocea sent outbound is exactly what is echoed back on `confirmed_lines`
+        below - the simulator never invents or looks up identity Sanocea did not actually hand it,
+        staying faithful to what a real supplier integration could do (Step 5B).
 
         fault: None (full confirm) | "reject" | "partial" | "moq_reject" | "stock_shortage" |
                "cost_change" | "delayed" (metadata only - caller controls actual timing/ordering)
@@ -69,7 +74,10 @@ class SupplierSimulator:
                 elif fault == "cost_change":
                     unit_cost = int(unit_cost * 1.15) + 1
                 if quantity_confirmed > 0:
-                    confirmed_lines.append({"sku": line["sku"], "quantity_confirmed": quantity_confirmed, "unit_cost": unit_cost})
+                    confirmed_line = {"sku": line["sku"], "quantity_confirmed": quantity_confirmed, "unit_cost": unit_cost}
+                    if line.get("line_ref"):
+                        confirmed_line["line_ref"] = line["line_ref"]
+                    confirmed_lines.append(confirmed_line)
             if not confirmed_lines:
                 status = "rejected"
             elif any(cl["quantity_confirmed"] < int(l["quantity_ordered"]) for cl, l in zip(confirmed_lines, lines)):
@@ -96,7 +104,10 @@ class SupplierSimulator:
         *,
         fault: str | None = None,
     ) -> dict[str, Any]:
-        """confirmed_lines: [{"sku": ..., "quantity_confirmed": ...}, ...] (from a prior acknowledge())
+        """confirmed_lines: [{"sku": ..., "quantity_confirmed": ..., "line_ref": <optional>}, ...] (from
+        a prior acknowledge()) - `line_ref`, if the acknowledgement carried one, is echoed through to
+        `shipped_lines` unchanged (Step 5B: the simulator never invents identity beyond what it was
+        actually given).
 
         fault: None (ship exactly what was confirmed) | "partial_shipment" (fewer units, rest presumably
                in a later shipment) | "delayed" (metadata only)
@@ -107,7 +118,10 @@ class SupplierSimulator:
             if fault == "partial_shipment":
                 quantity = max(quantity // 2, 0)
             if quantity > 0:
-                shipped_lines.append({"sku": line["sku"], "quantity_shipped": quantity})
+                shipped_line = {"sku": line["sku"], "quantity_shipped": quantity}
+                if line.get("line_ref"):
+                    shipped_line["line_ref"] = line["line_ref"]
+                shipped_lines.append(shipped_line)
         sequence = self._next(self._ship_sequence, external_po_ref)
         event = {
             "type": "shipment",

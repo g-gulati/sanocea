@@ -15,9 +15,9 @@
   },
   "onboarding": {
     "merchant_id": "phase46_merchant_c",
-    "operator_api_key": "sk_L-mmYTxU86cI9RRtD-NURLUfxzUyWzDlfCBUGYvnBsE",
+    "operator_api_key": "sk_OEokantrxBqnxdSbypn-VTdkB1pUIZccNgjleYzW37k",
     "other_merchant_id": "phase46_merchant_d_isolation_probe",
-    "other_operator_api_key": "sk_k-cYSsf7Rv7HXvaq_Nm0bOXq9SiN1TnB8vCbV4U2pYA",
+    "other_operator_api_key": "sk_kRIZgT_LeYfBR828INw10lXNGW4EnQilAtpztcE7Nkg",
     "config_sections_set": [
       "cancellations",
       "currency",
@@ -39,7 +39,7 @@
   },
   "normal_workload": {
     "orders_ingested": 5,
-    "inventory_reservations": 9,
+    "inventory_reservations": 8,
     "refunds_requested": 1,
     "refunds_completed": 1,
     "payment_observations": 5,
@@ -51,7 +51,7 @@
     "goods_receipts": 1,
     "support_conversations_handled": 7,
     "catalogue": {
-      "draft_id": "pdr_a668d5edd4bb47aab9586b3797166b91",
+      "draft_id": "pdr_c65e24f3ab974aec9b93065ba64afa3b",
       "draft_state_after_ingest": "NEEDS_APPROVAL",
       "draft_state_after_approval": "READY",
       "publish_outcome": "published",
@@ -59,76 +59,76 @@
     },
     "support_actions": [
       {
-        "action_id": "csa_f3248798132e4e939ccd589a4cfba3cf",
+        "action_id": "csa_47b5893e06e340f196329b54eaf03b13",
         "intent": "order_status",
         "handling_mode": "AUTOMATIC",
         "status": "executed"
       },
       {
-        "action_id": "csa_4776a08c7da247ccbf15c18bd48a8305",
+        "action_id": "csa_3f1749a501de4889bd14b18f0ff95dd3",
         "intent": "shipment_status",
         "handling_mode": "AUTOMATIC",
         "status": "executed"
       },
       {
-        "action_id": "csa_544883c4d53442a2ad1a888d50f331ce",
+        "action_id": "csa_c4023b74f69b44268cd9b1666d6c1854",
         "intent": "cancellation_request",
         "handling_mode": "APPROVAL-GATED",
         "status": "requested"
       },
       {
-        "action_id": "csa_0cac8f9ec39143cc93d0a97e002480d6",
+        "action_id": "csa_d020366189004ff9aa02fb79ca5963e4",
         "intent": "return_request",
         "handling_mode": "APPROVAL-GATED",
         "status": "requested"
       },
       {
-        "action_id": "csa_2c528a91158d45e4bfba620268ca56e2",
+        "action_id": "csa_d07bcbbccaec4b77933a8379fa73cfd3",
         "intent": "refund_request",
         "handling_mode": "APPROVAL-GATED",
         "status": "requested"
       },
       {
-        "action_id": "csa_8a4fcd03e23c4d7a99a893895a630464",
+        "action_id": "csa_1ad11d86e12248dc9e5bddae2aafaea3",
         "intent": "availability_question",
         "handling_mode": "AUTOMATIC",
         "status": "executed"
       },
       {
-        "action_id": "csa_9f98fdec504d4bfb88cd97701cdd209b",
+        "action_id": "csa_6e22c4ade4344b5c979b3b5ab224a14e",
         "intent": "unknown",
         "handling_mode": "EXCEPTION-ONLY",
         "status": "escalated"
       }
     ],
     "order_ids": [
-      "ord_d209de458d7a46fdb76adbab874dd295",
-      "ord_0b672022abd147d3955b150ac270a0a3",
-      "ord_77b9844704a5416d8f761d73a8ca567c",
-      "ord_bdb9606a921246269d303d69691e7ffd",
-      "ord_15f92cff88e445438fd9673f779a32d7"
+      "ord_8de2c83f65a246fb9f5142531bcda8fb",
+      "ord_e10ddb89a09c4fb29a247f0fc70047e6",
+      "ord_0b82d4d4c9be4476b0e758427a8197b1",
+      "ord_568654ce2d5e426c84ae40864aacf915",
+      "ord_a9fe19b3f44d4281b7bdeb5e5a6649b1"
     ],
     "order_numbers": {
-      "ord_d209de458d7a46fdb76adbab874dd295": "MC-0",
-      "ord_0b672022abd147d3955b150ac270a0a3": "MC-1",
-      "ord_77b9844704a5416d8f761d73a8ca567c": "MC-2",
-      "ord_bdb9606a921246269d303d69691e7ffd": "MC-3",
-      "ord_15f92cff88e445438fd9673f779a32d7": "MC-4"
+      "ord_8de2c83f65a246fb9f5142531bcda8fb": "MC-0",
+      "ord_e10ddb89a09c4fb29a247f0fc70047e6": "MC-1",
+      "ord_0b82d4d4c9be4476b0e758427a8197b1": "MC-2",
+      "ord_568654ce2d5e426c84ae40864aacf915": "MC-3",
+      "ord_a9fe19b3f44d4281b7bdeb5e5a6649b1": "MC-4"
     },
-    "shipment_ref": "simship-a368809d2bd5",
-    "refund_id": "ref_413968cffea7449c90dca04538f92d6d",
-    "refund_order_id": "ord_0b672022abd147d3955b150ac270a0a3",
+    "shipment_ref": "simship-812ab0bfa7c2",
+    "refund_id": "ref_1e55c795d15d422d907835275d65800c",
+    "refund_order_id": "ord_e10ddb89a09c4fb29a247f0fc70047e6",
     "refund_settlement_matched_with_real_reference": true,
     "final_inventory_position_sku2": {
-      "id": "inv_955cab94e6894b34aa060fb039f25809",
+      "id": "inv_0afb8f7b099642daa3c02dd24004570d",
       "merchant_id": "phase46_merchant_c",
       "external_refs": [],
       "source_of_truth": "unknown",
       "sync": {
         "source_version": null,
         "source_updated_at": null,
-        "observed_at": "2026-09-10T09:21:07.679256Z",
-        "updated_at": "2026-09-10T09:21:11.898483Z",
+        "observed_at": "2026-09-16T03:48:49.895100Z",
+        "updated_at": "2026-09-16T03:48:49.895115Z",
         "event_sequence": null,
         "raw_payload_ref": null
       },
@@ -136,12 +136,12 @@
       "sku": "MC-SKU-2",
       "location_ref": "default",
       "quantity": 63,
-      "reserved": 3,
+      "reserved": 2,
       "status": "observed",
-      "available": 60,
+      "available": 61,
       "committed": 0,
       "confirmed_inbound": 0,
-      "observed_at": "2026-09-10T09:21:07.679266Z"
+      "observed_at": "2026-09-16T03:48:49.895111Z"
     },
     "settlement_match_rate_formula": "6 matched / 6 reconciliation_results = 1.0",
     "refund_completion_rate_formula": "1 completed / 1 requested = 1.0",
@@ -176,7 +176,7 @@
     },
     "po_idempotency_lost_response_retry": {
       "after_lost_response_status": "SUBMITTED",
-      "after_retry_external_ref": "simpo-05d64a294e7d",
+      "after_retry_external_ref": "simpo-7ffad3d3173a",
       "correct": true
     },
     "financial_discrepancy_visible": {
@@ -206,8 +206,8 @@
       "correct": true
     },
     "support_answer_reflects_current_truth": {
-      "first_action_id": "csa_7c161dc892574c5696e393558c950188",
-      "second_action_id": "csa_5f3a4874bd134906b24c80899c75233c",
+      "first_action_id": "csa_6577e97f3a5e451d887257a6e48d8b4d",
+      "second_action_id": "csa_730f14cc3ee74a74b5e1a3397c11a6ce",
       "answers_are_distinct_actions": true,
       "correct": true
     },
@@ -261,7 +261,7 @@
     },
     "duplicate_payment_refund_po_mutation": {
       "status": "PASS",
-      "evidence": "PO submission with lost response then explicit HTTP retry: {'after_lost_response_status': 'SUBMITTED', 'after_retry_external_ref': 'simpo-05d64a294e7d', 'correct': True}"
+      "evidence": "PO submission with lost response then explicit HTTP retry: {'after_lost_response_status': 'SUBMITTED', 'after_retry_external_ref': 'simpo-7ffad3d3173a', 'correct': True}"
     },
     "cross_tenant_access_or_mutation": {
       "status": "PASS",
@@ -363,6 +363,6 @@
       "status": "deferred, tracked"
     }
   ],
-  "runtime_seconds": 44.9479,
+  "runtime_seconds": 48.6881,
   "verdict": "PASS"
 }

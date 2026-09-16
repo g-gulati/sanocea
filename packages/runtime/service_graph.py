@@ -3,7 +3,14 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+from sanocea.connectors.amazon import AmazonConnector
+from sanocea.connectors.amazon.auth import merchant_lwa_auth
+from sanocea.connectors.bigcommerce import BigCommerceConnector
 from sanocea.connectors.chatwoot import ChatwootConnector
+from sanocea.connectors.flipkart import FlipkartConnector
+from sanocea.connectors.flipkart.auth import merchant_authorization_code_auth
+from sanocea.connectors.meesho import MeeshoConnector
+from sanocea.connectors.meesho.auth import StaticSupplierCredentialsAuth
 from sanocea.connectors.logistics.simulated import SimulatedLogisticsConnector
 from sanocea.connectors.payments.simulated import SimulatedPaymentConnector
 from sanocea.connectors.shopify import ShopifyConnector
@@ -24,11 +31,12 @@ from sanocea.workers.workflow import FakeTemporalEngine, OrderOrchestrator, Supp
 can be built identically by both the FastAPI app and any out-of-process runner. Multi-platform
 connector hardening: this is now the ONE place storefront connectors are chosen per merchant - built
 around a StorefrontConnectorRegistry (merchant + channel -> connector), not a single global connector.
-"shopify", "woocommerce", and "shopify_live" are registered by default. "shopify" is the in-memory
-fault-injection simulator (its own zero-tolerance suite); "woocommerce" and "shopify_live" both do real
-HTTP against a real platform (WooCommerce: a real local wp-env instance; shopify_live: a real Shopify
-development store, once credentials exist - see
-docs/architecture/shopify-dev-store-certification-preparation.md). All three are lazy per-merchant - a
+"shopify", "woocommerce", "shopify_live", and "bigcommerce" are registered by default. "shopify" is the
+in-memory fault-injection simulator (its own zero-tolerance suite); "woocommerce", "shopify_live", and
+"bigcommerce" all do real HTTP against a real platform (WooCommerce: a real local wp-env instance;
+shopify_live: a real Shopify development store; bigcommerce: a real BigCommerce sandbox store, once
+credentials exist for each - see docs/architecture/shopify-dev-store-certification-preparation.md and
+docs/architecture/bigcommerce-sandbox-certification-preparation.md). All four are lazy per-merchant - a
 factory is only invoked, and its config/credentials only required, for a merchant actually onboarded
 onto that channel type. `extra_storefront_factories` registers any further platform without touching
 this function's own logic or any domain service - "connector registration/configuration", never
@@ -110,6 +118,74 @@ def _shopify_live_factory(store, workflow, merchant_id: str) -> ShopifyLiveConne
     )
 
 
+def _bigcommerce_factory(store, workflow, merchant_id: str) -> BigCommerceConnector:
+    # BigCommerce sandbox certification preparation: registered by default under its own channel type
+    # "bigcommerce", lazy per-merchant - never invoked, no config/credentials required, until a merchant
+    # is actually onboarded onto this channel. See
+    # docs/architecture/bigcommerce-sandbox-certification-preparation.md.
+    config = store.get_config(merchant_id).get("bigcommerce", {})
+    store_hash = config.get("store_hash")
+    if not store_hash:
+        raise ValueError(f"merchant {merchant_id} has a bigcommerce channel but no config.bigcommerce.store_hash")
+    access_token = store.get_credential_ref(merchant_id, "bigcommerce_access_token")
+    webhook_verification_secret = store.get_credential_ref(merchant_id, "bigcommerce_webhook_verification_secret")
+    return BigCommerceConnector(
+        store, workflow, store_hash=store_hash, access_token=access_token,
+        webhook_verification_secret=webhook_verification_secret,
+        webhook_delivery_base_url=config.get("webhook_delivery_base_url"),
+    )
+
+
+def _flipkart_factory(store, workflow, merchant_id: str) -> FlipkartConnector:
+    # Step 9Q.2: registered by default under its own channel type "flipkart", lazy per-merchant - never
+    # invoked, no config/credentials required, until a merchant is actually onboarded onto this channel.
+    # Sanocea's production auth mode is the multi-tenant Authorization Code + refresh-token flow (see
+    # connectors/flipkart/auth.py's docstring for why, not the single-seller self-issued client-
+    # credentials flow) - client_id/client_secret here are SANOCEA'S OWN Flipkart API Partner
+    # credentials (one pair, shared across every merchant), while refresh_token is per-merchant (issued
+    # the one time that merchant completes the OAuth consent redirect during onboarding - a UI-driven
+    # step, not this factory's concern). See docs/connectors/flipkart-certification.md.
+    config = store.get_config(merchant_id).get("flipkart", {})
+    client_id = store.get_credential_ref(merchant_id, "flipkart_partner_client_id")
+    client_secret = store.get_credential_ref(merchant_id, "flipkart_partner_client_secret")
+    refresh_token = store.get_credential_ref(merchant_id, "flipkart_merchant_refresh_token")
+    auth = merchant_authorization_code_auth(client_id=client_id, client_secret=client_secret, refresh_token=refresh_token)
+    return FlipkartConnector(store, workflow, auth=auth)
+
+
+def _amazon_factory(store, workflow, merchant_id: str) -> AmazonConnector:
+    # Step 9Q.3: registered by default under channel type "amazon", lazy per-merchant. client_id/secret
+    # are SANOCEA'S OWN LWA application credentials (one pair, one-time registration); refresh_token is
+    # per-merchant, issued the one time that merchant completes Amazon's Seller Central authorization
+    # workflow. seller_id is the merchant's own Amazon Merchant/Seller identifier. See
+    # docs/connectors/amazon-certification.md.
+    config = store.get_config(merchant_id).get("amazon", {})
+    seller_id = config.get("seller_id")
+    if not seller_id:
+        raise ValueError(f"merchant {merchant_id} has an amazon channel but no config.amazon.seller_id")
+    client_id = store.get_credential_ref(merchant_id, "amazon_lwa_client_id")
+    client_secret = store.get_credential_ref(merchant_id, "amazon_lwa_client_secret")
+    refresh_token = store.get_credential_ref(merchant_id, "amazon_merchant_refresh_token")
+    auth = merchant_lwa_auth(client_id=client_id, client_secret=client_secret, refresh_token=refresh_token)
+    return AmazonConnector(store, workflow, auth=auth, seller_id=seller_id, marketplace_ids=config.get("marketplace_ids"))
+
+
+def _meesho_factory(store, workflow, merchant_id: str) -> MeeshoConnector:
+    # Step 9Q.4: registered under channel type "meesho", lazy per-merchant. Credentials are STATIC,
+    # per-supplier-location values issued directly by Meesho via email onboarding (no OAuth/token
+    # exchange - see connectors/meesho/auth.py). Almost every business capability is UNCONFIRMED (no
+    # primary schema evidence found) - see docs/connectors/meesho-certification.md.
+    config = store.get_config(merchant_id).get("meesho", {})
+    client_id = store.get_credential_ref(merchant_id, "meesho_client_id")
+    security = store.get_credential_ref(merchant_id, "meesho_security")
+    supplier_identifier = store.get_credential_ref(merchant_id, "meesho_supplier_identifier")
+    auth = StaticSupplierCredentialsAuth(client_id=client_id, security=security, supplier_identifier=supplier_identifier)
+    from sanocea.connectors.meesho.connector import PRODUCTION_BASE_URL, SANDBOX_BASE_URL
+
+    base_url = SANDBOX_BASE_URL if config.get("sandbox") else PRODUCTION_BASE_URL
+    return MeeshoConnector(store, workflow, auth=auth, base_url=base_url)
+
+
 def build_service_graph(store, *, extra_storefront_factories: dict[str, ConnectorFactory] | None = None) -> ServiceGraph:
     logistics = SimulatedLogisticsConnector(store)
     payments = SimulatedPaymentConnector(store)
@@ -122,6 +198,10 @@ def build_service_graph(store, *, extra_storefront_factories: dict[str, Connecto
     storefronts.register("shopify", _shopify_factory)
     storefronts.register("woocommerce", _woocommerce_factory)
     storefronts.register("shopify_live", _shopify_live_factory)
+    storefronts.register("bigcommerce", _bigcommerce_factory)
+    storefronts.register("flipkart", _flipkart_factory)
+    storefronts.register("amazon", _amazon_factory)
+    storefronts.register("meesho", _meesho_factory)
     for channel_type, factory in (extra_storefront_factories or {}).items():
         storefronts.register(channel_type, factory)
 

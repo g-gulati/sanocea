@@ -1,0 +1,113 @@
+{
+  "certification_stage": "REFERENCE_MERCHANT_DEMO_TENANT",
+  "tenant_id": "ref_anchal_heritage",
+  "tenant_display_name": "Anchal Heritage Organics (Reference D2C Tenant)",
+  "target_store": "sanocea-commerce-os-dev.myshopify.com",
+  "verdict": "PASS",
+  "passed_checkpoints": 11,
+  "total_checkpoints": 11,
+  "checkpoints": {
+    "1_deterministic_reset_tenancy": {
+      "status": "PASS",
+      "merchant_id": "ref_anchal_heritage",
+      "locations": [
+        "loc_delhi_hub",
+        "loc_mumbai_hub",
+        "loc_bengaluru_hub"
+      ],
+      "baseline_inventory_count": 12,
+      "tenant_isolation_verified": true
+    },
+    "2_adversarial_ingestion_ballast_quarantine": {
+      "status": "PASS",
+      "quarantined_files": [
+        ".DS_Store",
+        "ballast_corrupt.bin"
+      ],
+      "drafts_extracted": 6
+    },
+    "3_honest_formulas_and_hidden_sheet": {
+      "status": "PASS",
+      "formula_text": "=130*1.20",
+      "cached_value": 156.0,
+      "variants_count": 3,
+      "hidden_sheet_quarantined": true
+    },
+    "4_multi_product_pdf_extraction": {
+      "status": "PASS",
+      "ghee_page": 1,
+      "ghee_hsn": "04059020",
+      "honey_page": 2,
+      "honey_hsn": "04090000"
+    },
+    "5_conflict_detection_fail_closed": {
+      "status": "PASS",
+      "draft_state": "CONFLICTED",
+      "conflicts": [],
+      "publication_policy_outcome": "EXCEPTION",
+      "reasons": [
+        "draft_state:CONFLICTED",
+        "conflicting_product_evidence:price",
+        "unresolved_commercial_fact_conflicts"
+      ]
+    },
+    "6_human_disambiguation_approval": {
+      "status": "PASS",
+      "resolved_state": "READY",
+      "price_classification": "HUMAN_APPROVED",
+      "approved_for_publication": true,
+      "approver": "operator_prospect_demo"
+    },
+    "7_live_shopify_publication": {
+      "status": "PASS",
+      "external_product_id": "gid://shopify/Product/9077451915343",
+      "outcome": "VERIFIED"
+    },
+    "8_live_shopify_read_back": {
+      "status": "PASS",
+      "shopify_id": "gid://shopify/Product/9077451915343",
+      "shopify_title": "Anchal Cold-Pressed Kachi Ghani Mustard Oil",
+      "shopify_status": "ACTIVE",
+      "shopify_options": [
+        {
+          "name": "Title",
+          "values": [
+            "Default Title"
+          ]
+        }
+      ]
+    },
+    "9_multi_location_inventory_allocation": {
+      "status": "PASS",
+      "allocated_location": "loc_delhi_hub",
+      "initial_available": 150,
+      "reserved_quantity": 5,
+      "remaining_available": 145,
+      "replay_idempotent": true
+    },
+    "10_return_restock_and_refund_controls": {
+      "status": "PASS",
+      "return_id": "ret_e0f5a194862548958f21dcc99454161e",
+      "inventory_restocked_available": 150,
+      "within_limit_status": "permitted",
+      "above_limit_status": "approval_required",
+      "approval_id_generated": "app_a4d8fe3871354685b81598ae1f951919"
+    },
+    "11_tamper_proof_audit_ledger": {
+      "status": "PASS",
+      "audit_events_recorded": 16,
+      "actions_present": [
+        "file_quarantined",
+        "inventory_restocked",
+        "listing_verified",
+        "location_allocation_decision",
+        "order_fulfilment_consumed",
+        "order_inventory_reserved",
+        "product_draft_created",
+        "publish_product",
+        "return_inspection_passed"
+      ],
+      "database_trigger_enforced": true
+    }
+  }
+}

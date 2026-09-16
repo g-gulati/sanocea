@@ -1,0 +1,1061 @@
+{
+  "observed_at_utc": "2026-09-16T07:42:20+00:00",
+  "url": "https://ajantasoya.com/wp-json/wc/store/products?per_page=100",
+  "product_count": 9,
+  "products": [
+    {
+      "id": 31662,
+      "name": "Sunflower Oil Offer",
+      "type": "simple",
+      "sku": "NRSO-1-2",
+      "permalink": "https://ajantasoya.com/product/buy-one-sunflower-oil-get-1l-free/",
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Sunflower Oil Offer&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=31662",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "prices": {
+        "price": "0",
+        "regular_price": "0",
+        "sale_price": "0",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 56,
+              "name": "Refined Sunflower Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A &amp; D, Free from Argemone oil",
+              "slug": "refined-sunflower-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "categories": [
+        {
+          "id": 115,
+          "name": "Anchal Refined Sunflower Oil",
+          "slug": "anchal-refined-sunflower-oil",
+          "link": "https://ajantasoya.com/product-category/anchal-refined-sunflower-oil/"
+        }
+      ],
+      "images": [
+        {
+          "id": 27881,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg",
+          "name": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E.",
+          "alt": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E."
+        }
+      ]
+    },
+    {
+      "id": 31555,
+      "name": "Buy 5L Mustard Oil Jar, Get 1L Soyabean Oil Bottle Free",
+      "type": "simple",
+      "sku": "NRSO-704",
+      "permalink": "https://ajantasoya.com/product/buy-5l-mustard-oil-jar-get-1l-soyabean-oil-bottle-free/",
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Buy 5L Mustard Oil Jar, Get 1L Soyabean Oil Bottle Free&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=31555",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "prices": {
+        "price": "100000",
+        "regular_price": "150000",
+        "sale_price": "100000",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "attributes": [
+        {
+          "id": 0,
+          "name": "Weight",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "5L Jar – 4550 g\n1L Bottle – 910 g",
+              "slug": "5L Jar – 4550 g\n1L Bottle – 910 g"
+            }
+          ]
+        },
+        {
+          "id": 0,
+          "name": "Dimensions",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)",
+              "slug": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 55,
+              "name": "Mustard Oil Fortified with vitamin A, D &amp; E",
+              "slug": "mustard-oil-fortified-with-vitamin-a-d-e"
+            },
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "categories": [
+        {
+          "id": 99,
+          "name": "Combo Offer",
+          "slug": "combo-offer",
+          "link": "https://ajantasoya.com/product-category/combo-offer/"
+        }
+      ],
+      "images": [
+        {
+          "id": 31791,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/06/Buy-5L-Mustard-Oil-Jar-Get-1L-Soyabean-Oil-Bottle-Free.jpg",
+          "name": "Buy 5L Mustard Oil Jar, Get 1L Soyabean Oil Bottle Free",
+          "alt": ""
+        },
+        {
+          "id": 24210,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-Jar.jpg",
+          "name": "Anchal cold-pressed mustard oil is the most trusted brand among consumers. It is healthy and perfect for everyday cooking.",
+          "alt": "Anchal cold-pressed mustard oil is the most trusted brand among consumers. It is healthy and perfect for everyday cooking."
+        },
+        {
+          "id": 27703,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg",
+          "name": "Anchal Sunflower oil is rich in omega-6 and is lightweight.",
+          "alt": "Anchal Sunflower oil is rich in omega-6 and is lightweight."
+        },
+        {
+          "id": 21178,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/6.jpg",
+          "name": "6",
+          "alt": ""
+        },
+        {
+          "id": 27706,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil.jpg",
+          "name": "Anchal Cooking Oil",
+          "alt": ""
+        },
+        {
+          "id": 31638,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/06/Mustard-5L-Jar.webp",
+          "name": "Mustard 5L Jar",
+          "alt": ""
+        },
+        {
+          "id": 27707,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle.jpg",
+          "name": "Anchal Cooking Oil 1L bottle",
+          "alt": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly"
+        }
+      ]
+    },
+    {
+      "id": 31520,
+      "name": "Buy 5L Soyabean Oil Jar, Get 1L Sunflower Oil Bottle Free",
+      "type": "simple",
+      "sku": "NRSO-703",
+      "permalink": "https://ajantasoya.com/product/buy-5l-soyabean-oil-jar-get-1l-sunflower-oil-bottle-free/",
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Buy 5L Soyabean Oil Jar, Get 1L Sunflower Oil Bottle Free&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=31520",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "prices": {
+        "price": "99600",
+        "regular_price": "144000",
+        "sale_price": "99600",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "attributes": [
+        {
+          "id": 0,
+          "name": "Weight",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "5L Jar – 4550 g\n1L Bottle – 910 g",
+              "slug": "5L Jar – 4550 g\n1L Bottle – 910 g"
+            }
+          ]
+        },
+        {
+          "id": 0,
+          "name": "Dimensions",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)",
+              "slug": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            },
+            {
+              "id": 56,
+              "name": "Refined Sunflower Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A &amp; D, Free from Argemone oil",
+              "slug": "refined-sunflower-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "categories": [
+        {
+          "id": 99,
+          "name": "Combo Offer",
+          "slug": "combo-offer",
+          "link": "https://ajantasoya.com/product-category/combo-offer/"
+        }
+      ],
+      "images": [
+        {
+          "id": 31793,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Sunflower-Oil-Bottle-Free.jpg",
+          "name": "5L Soyabean Oil Jar with 1L Sunflower Oil Bottle Free",
+          "alt": ""
+        },
+        {
+          "id": 27881,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg",
+          "name": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E.",
+          "alt": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E."
+        },
+        {
+          "id": 21263,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil.jpg",
+          "name": "Buy Anchal 5L soybean oil",
+          "alt": ""
+        },
+        {
+          "id": 27883,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle.jpg",
+          "name": "Anchal Sunflower Oil is ideal for frying, sautéing and baking.",
+          "alt": "Anchal Sunflower Oil is ideal for frying, sautéing and baking."
+        },
+        {
+          "id": 21257,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil.jpg",
+          "name": "Anchal 5L soybean oil",
+          "alt": ""
+        },
+        {
+          "id": 27882,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free.jpg",
+          "name": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly.",
+          "alt": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly."
+        }
+      ]
+    },
+    {
+      "id": 31463,
+      "name": "Buy 5L Soyabean Oil Jar, Get 1L Mustard Oil Bottle Free",
+      "type": "simple",
+      "sku": "NRSO-702",
+      "permalink": "https://ajantasoya.com/product/buy-5l-soyabean-oil-jar-get-1l-mustard-oil-bottle-free/",
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Buy 5L Soyabean Oil Jar, Get 1L Mustard Oil Bottle Free&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=31463",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "prices": {
+        "price": "97200",
+        "regular_price": "145000",
+        "sale_price": "97200",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "attributes": [
+        {
+          "id": 0,
+          "name": "Weight",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "5L Jar – 4550 g\n1L Bottle – 910 g",
+              "slug": "5L Jar – 4550 g\n1L Bottle – 910 g"
+            }
+          ]
+        },
+        {
+          "id": 0,
+          "name": "Dimensions",
+          "taxonomy": null,
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 0,
+              "name": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)",
+              "slug": "27 × 22 × 32 cm (5L Jar)\n11 × 9 × 31 cm (1L Bottle)"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 55,
+              "name": "Mustard Oil Fortified with vitamin A, D &amp; E",
+              "slug": "mustard-oil-fortified-with-vitamin-a-d-e"
+            },
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "categories": [
+        {
+          "id": 99,
+          "name": "Combo Offer",
+          "slug": "combo-offer",
+          "link": "https://ajantasoya.com/product-category/combo-offer/"
+        }
+      ],
+      "images": [
+        {
+          "id": 31794,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/06/5L-Soyabean-Oil-Jar-with-1L-Mustard-Oil-Bottle-Free.jpeg",
+          "name": "5L Soyabean Oil Jar with 1L Mustard Oil Bottle Free",
+          "alt": ""
+        },
+        {
+          "id": 27693,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle.jpg",
+          "name": "Premium Mustard Oil 1 ltr Bottle",
+          "alt": "Anchal Kachi Ghani mustard oil is suitable for Indian cooking. It is healthy and easy to digest."
+        },
+        {
+          "id": 21263,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Anchal-5L-soybean-oil.jpg",
+          "name": "Buy Anchal 5L soybean oil",
+          "alt": ""
+        },
+        {
+          "id": 27690,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle.jpg",
+          "name": "Byu Mustard Oil 1L Bottle",
+          "alt": ""
+        },
+        {
+          "id": 21257,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-5L-soybean-oil.jpg",
+          "name": "Anchal 5L soybean oil",
+          "alt": ""
+        },
+        {
+          "id": 27694,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr.jpg",
+          "name": "Unrefined Mustard Oil 1 ltr",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "id": 24222,
+      "name": "Soyaben Oil Offer",
+      "type": "simple",
+      "sku": "NRSO-1-1",
+      "permalink": "https://ajantasoya.com/product/buy-one-get-1l-free/",
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Soyaben Oil Offer&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=24222",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "prices": {
+        "price": "0",
+        "regular_price": "0",
+        "sale_price": "0",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "categories": [
+        {
+          "id": 33,
+          "name": "Refined Soyabean Oil",
+          "slug": "refined-soyabean-oil",
+          "link": "https://ajantasoya.com/product-category/refined-soyabean-oil/"
+        }
+      ],
+      "images": [
+        {
+          "id": 27703,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg",
+          "name": "Anchal Sunflower oil is rich in omega-6 and is lightweight.",
+          "alt": "Anchal Sunflower oil is rich in omega-6 and is lightweight."
+        }
+      ]
+    },
+    {
+      "id": 24220,
+      "name": "Mustard Oil Offer",
+      "type": "simple",
+      "sku": "PKGMO-1-1",
+      "permalink": "https://ajantasoya.com/product/buy-and-get-1l-free/",
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Mustard Oil Offer&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=24220",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "prices": {
+        "price": "0",
+        "regular_price": "0",
+        "sale_price": "0",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 57,
+              "name": "Mustard Oil, Fortified with vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "mustard-oil-fortified-with-vitamin-a-d-e-free-from-argemone-oil-2"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "categories": [],
+      "images": [
+        {
+          "id": 27692,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil.jpg",
+          "name": "Indian Cooking Mustard Oil",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "id": 30455,
+      "name": "Anchal Refined Sunflower Oil",
+      "type": "simple",
+      "sku": "NRSO-4",
+      "permalink": "https://ajantasoya.com/product/anchal-refined-sunflower-oil/",
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "add_to_cart": {
+        "text": "Add to cart",
+        "description": "Add to cart: &ldquo;Anchal Refined Sunflower Oil&rdquo;",
+        "url": "/wp-json/wc/store/products?per_page=100&#038;add-to-cart=30455",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "prices": {
+        "price": "19600",
+        "regular_price": "24000",
+        "sale_price": "19600",
+        "price_range": null,
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 56,
+              "name": "Refined Sunflower Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A &amp; D, Free from Argemone oil",
+              "slug": "refined-sunflower-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [],
+      "categories": [
+        {
+          "id": 115,
+          "name": "Anchal Refined Sunflower Oil",
+          "slug": "anchal-refined-sunflower-oil",
+          "link": "https://ajantasoya.com/product-category/anchal-refined-sunflower-oil/"
+        }
+      ],
+      "images": [
+        {
+          "id": 31636,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/08/Anchal-Refined-Sunflower-Oil.jpeg",
+          "name": "Anchal Refined Sunflower Oil",
+          "alt": ""
+        },
+        {
+          "id": 27884,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Best-Oil.jpg",
+          "name": "Anchal Sunflower oil is light, neutral, and has a mild aroma.",
+          "alt": "Anchal Sunflower oil is light, neutral, and has a mild aroma."
+        },
+        {
+          "id": 27881,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Refined-Sunflower-Oil.jpg",
+          "name": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E.",
+          "alt": "Anchal Sunflower oil is heart-friendly and rich in Vitamin E."
+        },
+        {
+          "id": 27883,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-1L-Bottle.jpg",
+          "name": "Anchal Sunflower Oil is ideal for frying, sautéing and baking.",
+          "alt": "Anchal Sunflower Oil is ideal for frying, sautéing and baking."
+        },
+        {
+          "id": 27882,
+          "src": "https://ajantasoya.com/wp-content/uploads/2026/01/Anchal-Refined-Sunflower-Oil-Byu-3-Get-1-Free.jpg",
+          "name": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly.",
+          "alt": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly."
+        }
+      ]
+    },
+    {
+      "id": 20946,
+      "name": "Anchal Kachi Ghani Mustard Oil",
+      "type": "variable",
+      "sku": "PKGMO-3",
+      "permalink": "https://ajantasoya.com/product/anchal-kachi-ghani-mustard-oil/",
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "add_to_cart": {
+        "text": "Select options",
+        "description": "Select options for &ldquo;Anchal Kachi Ghani Mustard Oil&rdquo;",
+        "url": "https://ajantasoya.com/product/anchal-kachi-ghani-mustard-oil/",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "prices": {
+        "price": "23600",
+        "regular_price": "25000",
+        "sale_price": "23600",
+        "price_range": {
+          "min_amount": "23600",
+          "max_amount": "100500"
+        },
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": true
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 57,
+              "name": "Mustard Oil, Fortified with vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "mustard-oil-fortified-with-vitamin-a-d-e-free-from-argemone-oil-2"
+            }
+          ]
+        }
+      ],
+      "variations": [
+        {
+          "id": 27952,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": null
+            }
+          ]
+        },
+        {
+          "id": 20948,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "5l-jar"
+            }
+          ]
+        },
+        {
+          "id": 20949,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "1l-bottle"
+            }
+          ]
+        }
+      ],
+      "categories": [
+        {
+          "id": 96,
+          "name": "Anchal Cooking Oil",
+          "slug": "anchal-cooking-oil",
+          "link": "https://ajantasoya.com/product-category/anchal-cooking-oil/"
+        }
+      ],
+      "images": [
+        {
+          "id": 31634,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Anchal-Kachi-Ghani-Mustard-Oil-buy-3-get-1-free.jpeg",
+          "name": "Anchal Kachi Ghani Mustard Oil buy 3 get 1 free",
+          "alt": "Buy Anchal Kachi Ghani Mustard Oil buy 3 get 1 free"
+        },
+        {
+          "id": 27691,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Chemical-Free-Mustard-Oil-1-Ltr.jpg",
+          "name": "Chemical Free Mustard Oil 1 Ltr",
+          "alt": ""
+        },
+        {
+          "id": 27693,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Premium-Mustard-Oil-1-ltr-Bottle.jpg",
+          "name": "Premium Mustard Oil 1 ltr Bottle",
+          "alt": "Anchal Kachi Ghani mustard oil is suitable for Indian cooking. It is healthy and easy to digest."
+        },
+        {
+          "id": 27692,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Indian-Cooking-Mustard-Oil.jpg",
+          "name": "Indian Cooking Mustard Oil",
+          "alt": ""
+        },
+        {
+          "id": 27690,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Byu-Mustard-Oil-1L-Bottle.jpg",
+          "name": "Byu Mustard Oil 1L Bottle",
+          "alt": ""
+        },
+        {
+          "id": 27694,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/06/Unrefined-Mustard-Oil-1-ltr.jpg",
+          "name": "Unrefined Mustard Oil 1 ltr",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "id": 20283,
+      "name": "Anchal Refined Soyabean Oil",
+      "type": "variable",
+      "sku": "NRSO-2",
+      "permalink": "https://ajantasoya.com/product/anchal-refined-soyabean-oil/",
+      "is_purchasable": true,
+      "is_in_stock": true,
+      "add_to_cart": {
+        "text": "Select options",
+        "description": "Select options for &ldquo;Anchal Refined Soyabean Oil&rdquo;",
+        "url": "https://ajantasoya.com/product/anchal-refined-soyabean-oil/",
+        "single_text": "Add to cart",
+        "minimum": 1,
+        "maximum": 10,
+        "multiple_of": 1
+      },
+      "prices": {
+        "price": "13600",
+        "regular_price": "15000",
+        "sale_price": "13600",
+        "price_range": {
+          "min_amount": "13600",
+          "max_amount": "96800"
+        },
+        "currency_code": "INR",
+        "currency_symbol": "₹",
+        "currency_minor_unit": 2,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "₹",
+        "currency_suffix": ""
+      },
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Size",
+          "taxonomy": "pa_size",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 24,
+              "name": "1L Bottle",
+              "slug": "1l-bottle",
+              "default": false
+            },
+            {
+              "id": 29,
+              "name": "5L Jar",
+              "slug": "5l-jar",
+              "default": false
+            },
+            {
+              "id": 95,
+              "name": "700gm Value Pack",
+              "slug": "700gm-value-pack",
+              "default": true
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Ingredients",
+          "taxonomy": "pa_ingredients",
+          "has_variations": false,
+          "terms": [
+            {
+              "id": 59,
+              "name": "Refined Soyabean Oil, Permitted Anti - Oxidant (TBHQ), Fortified with Vitamin A, D &amp; E, Free from Argemone oil",
+              "slug": "refined-soyabean-oil-permitted-anti-oxidant-tbhq-fortified-with-vitamin-a-d-e-free-from-argemone-oil"
+            }
+          ]
+        }
+      ],
+      "variations": [
+        {
+          "id": 20284,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "700gm-value-pack"
+            }
+          ]
+        },
+        {
+          "id": 20285,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "1l-bottle"
+            }
+          ]
+        },
+        {
+          "id": 20286,
+          "attributes": [
+            {
+              "name": "Size",
+              "value": "5l-jar"
+            }
+          ]
+        }
+      ],
+      "categories": [
+        {
+          "id": 96,
+          "name": "Anchal Cooking Oil",
+          "slug": "anchal-cooking-oil",
+          "link": "https://ajantasoya.com/product-category/anchal-cooking-oil/"
+        }
+      ],
+      "images": [
+        {
+          "id": 31630,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil-1L-bottle-buy-3-get-1-free.jpeg",
+          "name": "Anchal Refined Soyabean Oil- 1L bottle buy 3 get 1 free",
+          "alt": ""
+        },
+        {
+          "id": 27705,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Refined-Soyabean-Oil.jpg",
+          "name": "Anchal Refined Soyabean Oil",
+          "alt": ""
+        },
+        {
+          "id": 27703,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Cholesterol-Free-Oil.jpg",
+          "name": "Anchal Sunflower oil is rich in omega-6 and is lightweight.",
+          "alt": "Anchal Sunflower oil is rich in omega-6 and is lightweight."
+        },
+        {
+          "id": 27704,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Buy-Soyabean-Oil-Online.jpg",
+          "name": "Buy Soyabean Oil Online",
+          "alt": ""
+        },
+        {
+          "id": 27706,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil.jpg",
+          "name": "Anchal Cooking Oil",
+          "alt": ""
+        },
+        {
+          "id": 27707,
+          "src": "https://ajantasoya.com/wp-content/uploads/2025/05/Anchal-Cooking-Oil-1L-bottle.jpg",
+          "name": "Anchal Cooking Oil 1L bottle",
+          "alt": "Anchal sunflower oil is low in saturated fat, rich in vitamin E and is heart-friendly"
+        }
+      ]
+    }
+  ]
+}

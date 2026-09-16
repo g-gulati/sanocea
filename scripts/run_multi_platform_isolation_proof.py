@@ -128,7 +128,7 @@ def main() -> None:
             "woocommerce_consumer_secret": WC_CONSUMER_SECRET,
             "woocommerce_webhook_secret": WC_WEBHOOK_SECRET,
         },
-        "channels": [{"type": "woocommerce", "name": "WooCommerce", "credential_ref": "woocommerce_consumer_key"}],
+        "channels": [{"type": "woocommerce", "name": "WordPress/WooCommerce", "credential_ref": "woocommerce_consumer_key"}],
     })
     assert status == 200, (status, result_b)
     token_b = result_b["operator_api_key"]
@@ -255,7 +255,7 @@ def main() -> None:
         "merchant_id": merchant_c, "display_name": "Broken WooCommerce Merchant",
         "config": {"currency": "INR", "publication": {"require_approval": False}, "woocommerce": {"base_url": "http://localhost:1"}},
         "credentials": {"woocommerce_consumer_key": "ck_bogus", "woocommerce_consumer_secret": "cs_bogus", "woocommerce_webhook_secret": "bogus"},
-        "channels": [{"type": "woocommerce", "name": "WooCommerce", "credential_ref": "woocommerce_consumer_key"}],
+        "channels": [{"type": "woocommerce", "name": "WordPress/WooCommerce", "credential_ref": "woocommerce_consumer_key"}],
     })
     assert status_c_onboard == 200, (status_c_onboard, result_c_onboard)
     token_c = result_c_onboard["operator_api_key"]

@@ -5,3 +5,20 @@
 __pycache__/
 .pytest_cache/
 
+# VPS migration backups (large, contains a nested .git working-tree copy)
+migration-backups/
+
+# n8n POC local runtime database, not source
+.n8n_poc_data/
+
+# Unrelated stray research project, not part of this repo
+the premiumbasket/
+
+# Website source archive/copy (its own separate repo + node_modules)
+sanocea-site-v1/
+sanocea-site-v1.zip
+
+# Non-deterministic per-run test artifacts
+**/generated/temporal_state/
+sanocea/tests/fixtures/phase11_merchant/generated/integration_phase1/
+

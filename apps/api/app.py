@@ -6,10 +6,13 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from sanocea.packages.audit.context import reset_correlation_id, set_correlation_id
 from sanocea.packages.authn import AuthContext, require_operator, require_service
+from sanocea.packages.domain_contract.credentials import build_production_credential_provider
 from sanocea.packages.domain_contract.postgres_store import PostgresStore
 from sanocea.packages.domain_contract.store import Phase0Store
 from sanocea.packages.object_storage import S3ObjectStorage
@@ -42,7 +45,14 @@ def _build_store() -> Phase0Store | PostgresStore:
     dsn = os.environ.get("SANOCEA_PG_DSN")
     if not dsn:
         raise RuntimeError("SANOCEA_PG_DSN is required. Set SANOCEA_USE_IN_MEMORY_STORE=1 only for unit harnesses.")
-    store = PostgresStore(dsn)
+    # Step P0.1 - the real (non-in-memory) path ALWAYS uses durable, encrypted-at-rest credential
+    # storage; there is no configuration flag to opt back into the development EnvCredentialProvider
+    # here. This raises MissingMasterKeyError immediately, before the process ever accepts a request, if
+    # SANOCEA_CRED_MASTER_KEY_CURRENT/SANOCEA_CRED_MASTER_KEY_<VERSION> are not configured - a silent
+    # fallback to non-durable, unencrypted credential storage in production is exactly what this must
+    # never do.
+    credential_provider = build_production_credential_provider(dsn)
+    store = PostgresStore(dsn, credential_provider=credential_provider)
     store.migrate()
     return store
 
@@ -270,6 +280,22 @@ def create_app(
     def list_exceptions(merchant_id: str, ctx: AuthContext = Depends(require_operator)) -> list[dict]:
         return [e.model_dump(mode="json") for e in queries.list_open_exceptions(store, merchant_id)]
 
+    @app.get("/merchants/{merchant_id}/audit")
+    def list_audit_events(merchant_id: str, correlation_id: str | None = None, ctx: AuthContext = Depends(require_operator)) -> list[dict]:
+        return [e.model_dump(mode="json") for e in queries.get_audit_trail(store, merchant_id, correlation_id=correlation_id)]
+
+    @app.get("/merchants/{merchant_id}/profile")
+    def get_merchant_profile(merchant_id: str, ctx: AuthContext = Depends(require_operator)) -> dict:
+        from sanocea.packages.domain_contract.models import Merchant
+        merchant = store.get(Merchant, merchant_id, merchant_id)
+        config = store.get_config(merchant_id)
+        return {
+            "id": merchant.id if merchant else merchant_id,
+            "legal_name": merchant.legal_name if merchant else None,
+            "display_name": merchant.display_name if merchant else merchant_id,
+            "config": config,
+        }
+
     @app.get("/merchants/{merchant_id}/connector-commands/uncertain")
     def list_uncertain_commands(merchant_id: str, ctx: AuthContext = Depends(require_operator)) -> list[dict]:
         return [c.model_dump(mode="json") for c in queries.list_uncertain_connector_commands(store, merchant_id)]
@@ -295,6 +321,10 @@ def create_app(
     def execute_refund(merchant_id: str, refund_id: str, payload: dict = Body(default={}), ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
         return commands.execute_refund(services, merchant_id, refund_id, reason=payload.get("reason", "customer_refund"), simulate=payload.get("simulate")).model_dump(mode="json")
 
+    @app.post("/merchants/{merchant_id}/refunds/{refund_id}/recover")
+    def recover_refund_mutation(merchant_id: str, refund_id: str, ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
+        return commands.recover_refund_mutation(services, merchant_id, refund_id).model_dump(mode="json")
+
     @app.post("/merchants/{merchant_id}/returns")
     def request_return(merchant_id: str, payload: dict = Body(...), ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
         return commands.request_return(services, merchant_id, payload["order_id"], payload["reason"]).model_dump(mode="json")
@@ -315,9 +345,21 @@ def create_app(
     def request_cancellation(merchant_id: str, payload: dict = Body(...), ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
         return commands.request_cancellation(services, merchant_id, payload["order_id"]).model_dump(mode="json")
 
+    @app.post("/merchants/{merchant_id}/cancellations/{cancellation_id}/approve")
+    def approve_cancellation(merchant_id: str, cancellation_id: str, ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
+        return commands.approve_cancellation(services, merchant_id, cancellation_id, ctx.principal_id).model_dump(mode="json")
+
+    @app.post("/merchants/{merchant_id}/cancellations/{cancellation_id}/reject")
+    def reject_cancellation(merchant_id: str, cancellation_id: str, payload: dict = Body(default={}), ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
+        return commands.reject_cancellation(services, merchant_id, cancellation_id, ctx.principal_id, reason=payload.get("reason")).model_dump(mode="json")
+
     @app.post("/merchants/{merchant_id}/cancellations/{cancellation_id}/execute")
     def execute_cancellation(merchant_id: str, cancellation_id: str, payload: dict = Body(default={}), ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
         return commands.execute_cancellation(services, merchant_id, cancellation_id, simulate=payload.get("simulate")).model_dump(mode="json")
+
+    @app.post("/merchants/{merchant_id}/cancellations/{cancellation_id}/recover")
+    def recover_cancellation_mutation(merchant_id: str, cancellation_id: str, ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
+        return commands.recover_cancellation_mutation(services, merchant_id, cancellation_id).model_dump(mode="json")
 
     @app.post("/merchants/{merchant_id}/orders/{order_id}/fulfilment/monitor")
     def monitor_fulfilment(merchant_id: str, order_id: str, payload: dict = Body(...), ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
@@ -396,6 +438,21 @@ def create_app(
             tmp_path.unlink(missing_ok=True)
         return [d.model_dump(mode="json") for d in drafts]
 
+    @app.post("/merchants/{merchant_id}/catalogue/ingest-package")
+    def ingest_catalogue_package(merchant_id: str, files: list[UploadFile] = File(...), ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> list[dict]:
+        tmp_paths: list[Path] = []
+        try:
+            for f in files:
+                suffix = Path(f.filename or "upload.tmp").suffix or ".tmp"
+                with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+                    tmp.write(f.file.read())
+                    tmp_paths.append(Path(tmp.name))
+            drafts = commands.ingest_product_package(services, merchant_id, tmp_paths)
+        finally:
+            for p in tmp_paths:
+                p.unlink(missing_ok=True)
+        return [d.model_dump(mode="json") for d in drafts]
+
     @app.get("/merchants/{merchant_id}/catalogue/drafts")
     def list_catalogue_drafts(merchant_id: str, ctx: AuthContext = Depends(require_operator)) -> list[dict]:
         return [d.model_dump(mode="json") for d in queries.list_product_drafts(store, merchant_id)]
@@ -403,6 +460,20 @@ def create_app(
     @app.get("/merchants/{merchant_id}/catalogue/drafts/{draft_id}")
     def get_catalogue_draft(merchant_id: str, draft_id: str, ctx: AuthContext = Depends(require_operator)) -> dict:
         return queries.get_product_draft(store, merchant_id, draft_id).model_dump(mode="json")
+
+    @app.post("/merchants/{merchant_id}/catalogue/drafts/{draft_id}/conflicts/resolve")
+    def resolve_catalogue_conflict(merchant_id: str, draft_id: str, payload: dict = Body(...), ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
+        draft = commands.resolve_draft_conflict(
+            services,
+            merchant_id=merchant_id,
+            draft_id=draft_id,
+            fact_name=payload["fact_name"],
+            chosen_value=payload["chosen_value"],
+            chosen_source=payload["chosen_source"],
+            actor=ctx.principal_id,
+            note=payload.get("note"),
+        )
+        return draft.model_dump(mode="json")
 
     @app.post("/merchants/{merchant_id}/catalogue/drafts/{draft_id}/approve-facts")
     def approve_catalogue_facts(merchant_id: str, draft_id: str, ctx: AuthContext = Depends(require_operator), services: Services = Depends(get_services)) -> dict:
@@ -437,6 +508,25 @@ def create_app(
     @app.get("/merchants/{merchant_id}/support/actions")
     def list_support_actions_route(merchant_id: str, ctx: AuthContext = Depends(require_operator)) -> list[dict]:
         return [a.model_dump(mode="json") for a in queries.list_support_actions(store, merchant_id)]
+
+    # ================================================================================================
+    # Operations Command Center (Phase 4.7 Demo Presentation Layer)
+    # ================================================================================================
+    ui_dir = Path(__file__).resolve().parent.parent / "command_center"
+    if ui_dir.exists():
+        app.mount("/static", StaticFiles(directory=str(ui_dir)), name="static")
+
+        @app.get("/ui", include_in_schema=False)
+        @app.get("/ui/{full_path:path}", include_in_schema=False)
+        def serve_ui(full_path: str = ""):
+            index_file = ui_dir / "index.html"
+            if index_file.exists():
+                return FileResponse(str(index_file))
+            return {"error": "UI index.html not found"}
+
+        @app.get("/", include_in_schema=False)
+        def root_redirect():
+            return RedirectResponse(url="/ui")
 
     return app
 

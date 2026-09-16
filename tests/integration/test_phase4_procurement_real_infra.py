@@ -99,6 +99,10 @@ def test_concurrent_po_submission_yields_exactly_one_external_po():
 
 
 def test_duplicate_and_stale_acknowledgement_against_real_postgres():
+    """Step 7A.1 correction: staleness is now exact-sequence-reuse, not "any lower sequence than the
+    highest already applied" (see atomic_apply_acknowledgement's docstring). The "stale" case below
+    resends sequence=5 again (a different external_ref) rather than a genuinely new, never-before-seen
+    lower sequence - a genuinely new lower sequence is legitimate and must apply."""
     suffix = uuid4().hex[:8]
     merchant_id, store, connector, service, supplier = _setup(suffix)
     po = service.create_purchase_order(merchant_id, supplier.id, [{"sku": "SKU-1", "quantity_ordered": 10}])
@@ -108,7 +112,7 @@ def test_duplicate_and_stale_acknowledgement_against_real_postgres():
     duplicate = service.record_supplier_acknowledgement(merchant_id, po.id, external_ref="ack-full", sequence=5, lines=[{"sku": "SKU-1", "quantity_confirmed": 10, "unit_cost": 500}], status="confirmed")
     assert first.id == duplicate.id
 
-    stale = service.record_supplier_acknowledgement(merchant_id, po.id, external_ref="ack-stale", sequence=1, lines=[{"sku": "SKU-1", "quantity_confirmed": 3, "unit_cost": 500}], status="partially_confirmed")
+    stale = service.record_supplier_acknowledgement(merchant_id, po.id, external_ref="ack-stale", sequence=5, lines=[{"sku": "SKU-1", "quantity_confirmed": 3, "unit_cost": 500}], status="partially_confirmed")
     assert stale.applied is False
 
     acks = [a for a in store.list(SupplierAcknowledgement, merchant_id) if a.purchase_order_id == po.id]
