@@ -230,6 +230,7 @@ function Header() {
           <a href="#intercept" onClick={() => setOpen(false)}>Workflow</a>
           <a href="#coverage" onClick={() => setOpen(false)}>Platforms</a>
           <a href="#cockpit" onClick={() => setOpen(false)}>Cockpit</a>
+          <a href="/demo.html" target="_blank" rel="noopener" onClick={() => setOpen(false)}>Live demo</a>
           <a className="nav-cta" href="#diagnostic" onClick={() => setOpen(false)}>Diagnose flow</a>
         </nav>
         <button className="menu" type="button" aria-label="Toggle menu" onClick={() => setOpen(!open)}>

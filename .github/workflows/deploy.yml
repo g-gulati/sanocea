@@ -17,6 +17,12 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # The website now lives at website/ within the consolidated Sanocea monorepo (previously this
+    # workflow's own repo root was the website) - every build step below runs from there so its
+    # commands (npm ci/install/build) are otherwise unchanged from before the consolidation.
+    defaults:
+      run:
+        working-directory: website
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,7 +40,7 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: website/dist
 
   deploy:
     environment:
