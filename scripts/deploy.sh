@@ -19,12 +19,28 @@ set -euo pipefail
 SANOCEA_ROOT="${SANOCEA_ROOT:-/opt/sanocea}"
 ENV_FILE="${SANOCEA_ROOT}/shared/env/sanocea.env"
 RELEASES_DIR="${SANOCEA_ROOT}/releases"
+VENVS_DIR="${SANOCEA_ROOT}/shared/venvs"
 SOURCE_REPO="${SANOCEA_DEPLOY_SOURCE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+# Floor for the EARLY guard below - deliberately well above GPE Order Flow's own CRITICAL threshold
+# (12% free / ~17.4GB on this host's 145GB root disk - see /opt/gpe-vnext/of_engine/config.py) plus
+# headroom for a worst-case fresh venv build (~6.7GB) on a dependency-set cache miss, so a Sanocea
+# deploy can never itself be what pushes the shared host disk toward GPE's thresholds.
+MIN_FREE_MB="${SANOCEA_DEPLOY_MIN_FREE_MB:-20480}"
+# How many most-recent releases to keep after a successful deploy (current + this many older ones).
+KEEP_RELEASES="${SANOCEA_DEPLOY_KEEP_RELEASES:-2}"
 
 fail() {
     echo "DEPLOY FAILED: $1" >&2
     exit 1
 }
+
+echo "== Step 0: disk guard (before touching anything) =="
+# Runs BEFORE any release/venv is created - preflight_check.py's own disk_space check (500MB floor)
+# only runs AFTER the candidate release+venv already exist, which is too late to prevent exactly the
+# kind of transient disk pressure that pushed GPE Order Flow into STORAGE_PRESSURE/CRITICAL earlier.
+FREE_MB="$(df --output=avail -m "${SANOCEA_ROOT}" | tail -1 | tr -d ' ')"
+[ "${FREE_MB}" -ge "${MIN_FREE_MB}" ] || fail "only ${FREE_MB}MB free (need >= ${MIN_FREE_MB}MB before deploying - see GPE Order Flow's own storage thresholds); free space or override SANOCEA_DEPLOY_MIN_FREE_MB only if you have verified why this is safe"
+echo "  ${FREE_MB}MB free, above the ${MIN_FREE_MB}MB floor."
 
 echo "== Step 1: host prerequisites =="
 # P0.3 finding: do not hardcode `python3.11` - pyproject.toml's actual constraint is >=3.11, and
@@ -55,7 +71,7 @@ ENV_PERMS="$(stat -c '%a' "${ENV_FILE}")"
 [ "${ENV_PERMS}" = "600" ] || fail "${ENV_FILE} must be mode 600, found ${ENV_PERMS}"
 echo "  ${ENV_FILE} exists and is mode 600."
 
-echo "== Step 3: create release, install dependencies =="
+echo "== Step 3: create release, install dependencies (shared, content-addressed venv store) =="
 RELEASE_ID="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 RELEASE_DIR="${RELEASES_DIR}/${RELEASE_ID}"
 mkdir -p "${RELEASE_DIR}"
@@ -63,16 +79,10 @@ mkdir -p "${RELEASE_DIR}"
 # tool binaries and stale local Postgres data dirs observed during this step, together >150MB) that must
 # never ship in a release.
 rsync -a --exclude='.git' --exclude='.venv' --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.local' "${SOURCE_REPO}/" "${RELEASE_DIR}/sanocea/"
-"${PYTHON_BIN}" -m venv "${RELEASE_DIR}/.venv"
-"${RELEASE_DIR}/.venv/bin/pip" install --quiet --upgrade pip
-# NOT `pip install -e .` - verified directly (Part R) that this repository's pyproject.toml has no
-# [build-system]/packages configuration and setuptools refuses to build it ("Multiple top-level packages
-# discovered in a flat-layout: ['apps', 'infra', 'sanocea', 'workers', 'packages', 'connectors']"). This
-# repository has never been an installable Python package - `sanocea.*` only resolves via the checked-
-# out `sanocea/` directory sitting under WorkingDirectory (see production-deployment.md Part F/Part A;
-# CLAUDE.md's own convention: run as `python -m sanocea.scripts.X` from the PARENT directory). Only the
-# third-party dependencies declared in pyproject.toml's [project.dependencies] need installing here.
-"${RELEASE_DIR}/.venv/bin/python" - "${RELEASE_DIR}/sanocea/pyproject.toml" <<'PYEOF' > "${RELEASE_DIR}/dependencies.txt"
+
+# Dependency LIST extraction is pure text (tomllib against pyproject.toml) - doesn't need a venv, so this
+# runs with the system interpreter, before any venv (shared or fresh) is chosen/built.
+"${PYTHON_BIN}" - "${RELEASE_DIR}/sanocea/pyproject.toml" <<'PYEOF' > "${RELEASE_DIR}/dependencies.txt"
 import sys
 if sys.version_info >= (3, 11):
     import tomllib
@@ -83,8 +93,42 @@ with open(sys.argv[1], "rb") as f:
 for dep in data["project"]["dependencies"]:
     print(dep)
 PYEOF
-"${RELEASE_DIR}/.venv/bin/pip" install --quiet -r "${RELEASE_DIR}/dependencies.txt"
-echo "  release ${RELEASE_ID} staged at ${RELEASE_DIR}."
+
+# Content-addressed by the dependency LIST only (not the whole pyproject.toml, which also carries
+# unrelated metadata/formatting that changes far more often than actual dependencies do) - this is what
+# makes "new release, same dependencies" a no-op here instead of a fresh ~6.7GB install every time.
+# Each distinct hash gets its own venv, built ONCE and never mutated afterward - old releases keep
+# pointing at the exact byte-identical environment they were tested against (see rollback.sh, which
+# only requires `<release>/.venv` to exist as a directory - a symlink to one still satisfies that).
+DEP_HASH="$(sha256sum "${RELEASE_DIR}/dependencies.txt" | cut -d' ' -f1)"
+VENV_TARGET="${VENVS_DIR}/${DEP_HASH}"
+mkdir -p "${VENVS_DIR}"
+
+if [ -f "${VENV_TARGET}/.complete" ]; then
+    echo "  dependency set ${DEP_HASH:0:12}... unchanged - reusing existing shared venv, no install needed."
+else
+    echo "  dependency set ${DEP_HASH:0:12}... not cached - building a fresh shared venv (this is the ~6.7GB path, only on genuine dependency changes)."
+    BUILD_DIR="${VENV_TARGET}.building.$$"
+    # flock guards against two concurrent deploys racing to build the SAME missing hash; released
+    # automatically when this subshell/fd closes (process exit or explicit close).
+    (
+        flock -x -w 900 200 || fail "timed out waiting for another deploy's venv build lock on ${DEP_HASH:0:12}"
+        if [ -f "${VENV_TARGET}/.complete" ]; then
+            echo "  another deploy finished building this dependency set while we waited - reusing it."
+        else
+            rm -rf "${BUILD_DIR}"
+            "${PYTHON_BIN}" -m venv "${BUILD_DIR}"
+            "${BUILD_DIR}/bin/pip" install --quiet --upgrade pip
+            "${BUILD_DIR}/bin/pip" install --quiet -r "${RELEASE_DIR}/dependencies.txt"
+            rm -rf "${VENV_TARGET}"
+            mv -T "${BUILD_DIR}" "${VENV_TARGET}"
+            date -u +%Y-%m-%dT%H-%M-%SZ > "${VENV_TARGET}/.complete"
+        fi
+    ) 200>"${VENVS_DIR}/.${DEP_HASH}.lock"
+fi
+
+ln -s "${VENV_TARGET}" "${RELEASE_DIR}/.venv"
+echo "  release ${RELEASE_ID} staged at ${RELEASE_DIR} (.venv -> ${VENV_TARGET})."
 
 echo "== Step 4: pre-flight validation (BEFORE touching the active release) =="
 set -a
@@ -127,6 +171,37 @@ if ! "${RELEASE_DIR}/.venv/bin/python" "${RELEASE_DIR}/sanocea/scripts/health_ch
     echo "  The active release now points at ${RELEASE_ID}, which is unhealthy." >&2
     echo "  Recover with: scripts/rollback.sh" >&2
     exit 1
+fi
+
+echo "== Step 8: retention (keep current + ${KEEP_RELEASES} previous release(s); GC unreferenced shared venvs) =="
+# Only runs after a CONFIRMED-healthy deploy - never prunes anything if step 7 failed and exited above.
+mapfile -t ALL_RELEASES < <(find "${RELEASES_DIR}" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+KEEP_COUNT=$((KEEP_RELEASES + 1))
+if [ "${#ALL_RELEASES[@]}" -gt "${KEEP_COUNT}" ]; then
+    PRUNE_COUNT=$((${#ALL_RELEASES[@]} - KEEP_COUNT))
+    for old_id in "${ALL_RELEASES[@]:0:${PRUNE_COUNT}}"; do
+        echo "  removing old release ${old_id}"
+        rm -rf "${RELEASES_DIR:?}/${old_id}"
+    done
+fi
+# GC: a shared venv is kept iff SOME remaining release directory's .venv symlink still points at it -
+# scans every remaining release (not just current+previous), so a release someone keeps around outside
+# this policy is never left with a dangling .venv.
+if [ -d "${VENVS_DIR}" ]; then
+    declare -A REFERENCED_HASHES
+    for release_dir in "${RELEASES_DIR}"/*/; do
+        venv_link="${release_dir}.venv"
+        [ -L "${venv_link}" ] || continue
+        REFERENCED_HASHES["$(basename "$(readlink -f "${venv_link}")")"]=1
+    done
+    for venv_dir in "${VENVS_DIR}"/*/; do
+        [ -d "${venv_dir}" ] || continue
+        hash_name="$(basename "${venv_dir}")"
+        if [ -z "${REFERENCED_HASHES[${hash_name}]:-}" ]; then
+            echo "  removing unreferenced shared venv ${hash_name:0:12}..."
+            rm -rf "${venv_dir}"
+        fi
+    done
 fi
 
 echo "DEPLOY PASSED: release ${RELEASE_ID} is active and healthy."
