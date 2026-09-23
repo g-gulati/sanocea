@@ -1,0 +1,279 @@
+{
+  "name": "SANOCEA Reference Merchant - Supplier Dropzone Ingestion Bridge",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node_trigger",
+      "name": "Supplier Dropzone Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "tests/fixtures/reference_merchant/conflicting_feed.csv",
+        "options": {}
+      },
+      "id": "node_read_dropzone",
+      "name": "Retrieve Raw Dropzone Binary",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/merchants/ref_anchal_heritage/catalogue/ingest",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer sk_P-c6ePpAub8VuoTRlewECwZPzFtkJ9HvjKKhCqMOmRk"
+            },
+            {
+              "name": "x-correlation-id",
+              "value": "=n8n_dropzone_{{ $execution.id }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node_sanocea_ingest",
+      "name": "POST to SANOCEA Ingestion API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8080/merchants/ref_anchal_heritage/exceptions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer sk_P-c6ePpAub8VuoTRlewECwZPzFtkJ9HvjKKhCqMOmRk"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node_sanocea_read_exceptions",
+      "name": "Read SANOCEA Exceptions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond_has_exceptions",
+              "leftValue": "={{ $input.all().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node_check_exceptions",
+      "name": "Has Commercial Exceptions?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign_merchant",
+              "name": "merchant_id",
+              "value": "ref_anchal_heritage",
+              "type": "string"
+            },
+            {
+              "id": "assign_alert_title",
+              "name": "alert_title",
+              "value": "Commercial Fact Exception Detected in Supplier Feed",
+              "type": "string"
+            },
+            {
+              "id": "assign_exception_count",
+              "name": "exception_count",
+              "value": "={{ $('Read SANOCEA Exceptions').all().length }}",
+              "type": "number"
+            },
+            {
+              "id": "assign_first_exception_msg",
+              "name": "summary_message",
+              "value": "={{ $json.message || $('Read SANOCEA Exceptions').first().json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "assign_review_url",
+              "name": "review_url",
+              "value": "http://127.0.0.1:8080/merchants/ref_anchal_heritage/catalogue/drafts",
+              "type": "string"
+            },
+            {
+              "id": "assign_notice",
+              "name": "governance_notice",
+              "value": "n8n has zero business authority. Review and approval must occur in SANOCEA.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node_format_notification",
+      "name": "Format Exception Notification",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1320,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8085/notify",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "node_dispatch_notification",
+      "name": "Dispatch Notification Sink",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Supplier Dropzone Trigger": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Raw Dropzone Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Raw Dropzone Binary": {
+      "main": [
+        [
+          {
+            "node": "POST to SANOCEA Ingestion API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST to SANOCEA Ingestion API": {
+      "main": [
+        [
+          {
+            "node": "Read SANOCEA Exceptions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read SANOCEA Exceptions": {
+      "main": [
+        [
+          {
+            "node": "Has Commercial Exceptions?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Commercial Exceptions?": {
+      "main": [
+        [
+          {
+            "node": "Format Exception Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Format Exception Notification": {
+      "main": [
+        [
+          {
+            "node": "Dispatch Notification Sink",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "stage": "P0_STAGE3_PROVENANCE_INGESTION",
+  "timestamp": "2026-09-16T04:44:43Z",
+  "overall_status": "PASS",
+  "total_checks": 14,
+  "passed_checks": 14,
+  "failed_checks": 0,
+  "target_store": "sanocea-commerce-os-dev.myshopify.com",
+  "merchant_id": "stage3_provenance_cert_merchant",
+  "checks": {
+    "1_fact_contract_normalization": {
+      "status": "PASS",
+      "price_cents": 14999,
+      "weight_grams": 650.0,
+      "dimensions": {
+        "length": 10.0,
+        "width": 20.0,
+        "height": 30.0,
+        "unit": "cm"
+      },
+      "hsn_normalized": "620410"
+    },
+    "2_backward_compatibility": {
+      "status": "PASS",
+      "extracted_attributes_synced": true,
+      "mirrored_fields": [
+        "weight",
+        "hsn",
+        "material"
+      ]
+    },
+    "3_zero_invention_policy": {
+      "status": "PASS",
+      "protected_facts_tested": 6,
+      "protected_facts_blocked": 6
+    },
+    "4_ai_enrichment_boundaries": {
+      "status": "PASS",
+      "description_enriched": true,
+      "classification": "AI_ENRICHED",
+      "price_enrichment_blocked": true
+    },
+    "5_messy_pack_ingestion": {
+      "status": "PASS",
+      "files_ingested": [
+        "cert_catalog_1789533874.csv",
+        "cert_spec_1789533874.pdf",
+        "SKU-CLEAN-1789533874-main.png"
+      ],
+      "drafts_created_or_updated": 4
+    },
+    "6_clean_product_invariants": {
+      "status": "PASS",
+      "sku": "SKU-CLEAN-1789533874",
+      "price_cents": 14999,
+      "hsn": "6204",
+      "weight": "350 g",
+      "image_dimensions": "300x300",
+      "state": "NEEDS_APPROVAL"
+    },
+    "7_missing_facts_zero_invention": {
+      "status": "PASS",
+      "sku": "SKU-MISSING-1789533874",
+      "hsn_classification": "MISSING",
+      "state": "INCOMPLETE",
+      "validation_errors": [
+        "missing_required_attribute:hsn",
+        "missing_required_attribute:material"
+      ]
+    },
+    "8_conflict_detection": {
+      "status": "PASS",
+      "sku": "SKU-CONFLICT-1789533874",
+      "state": "CONFLICTED",
+      "conflicts": [
+        "conflicting_product_evidence:weight"
+      ],
+      "conflict_locators": [
+        {
+          "row": 4,
+          "sheet": null,
+          "column": "weight"
+        },
+        {
+          "page": 1,
+          "line": 8,
+          "extractor": "pdf_text_layer"
+        }
+      ]
+    },
+    "9_invalid_price_detection": {
+      "status": "PASS",
+      "sku": "SKU-INVALID-1789533874",
+      "state": "INVALID",
+      "validation_errors": [
+        "invalid_price",
+        "missing_required_attribute:price"
+      ]
+    },
+    "10_publication_gate_fail_closed": {
+      "status": "PASS",
+      "missing_outcome": "blocked",
+      "conflict_outcome": "blocked",
+      "invalid_outcome": "blocked"
+    },
+    "11_conflict_resolution": {
+      "status": "PASS",
+      "sku": "SKU-CONFLICT-1789533874",
+      "resolved_value": "650 g",
+      "classification": "HUMAN_APPROVED",
+      "approved_by": "lead_merchandiser_gagan",
+      "resolution_note": "Confirmed heavy winter weave specification directly with mill manager",
+      "state_after_resolution": "NEEDS_APPROVAL"
+    },
+    "12_shopify_live_publication": {
+      "status": "PASS",
+      "shop_domain": "sanocea-commerce-os-dev.myshopify.com",
+      "external_product_id": "gid://shopify/Product/9076678525007",
+      "verification_outcome": "VERIFIED"
+    },
+    "13_shopify_readback_verification": {
+      "status": "PASS",
+      "live_title": "Stage3 Silk Kurti",
+      "live_status": "ACTIVE",
+      "live_sku": "SKU-CLEAN-1789533874",
+      "live_price": "149.99"
+    },
+    "14_audit_ledger_lineage": {
+      "status": "PASS",
+      "events_count": 17,
+      "actions_recorded": [
+        "product_draft_created",
+        "product_draft_created",
+        "product_draft_created",
+        "product_draft_created",
+        "product_draft_created",
+        "media_transformed",
+        "product_draft_created",
+        "exception_created",
+        "exception_created",
+        "exception_created",
+        "exception_created",
+        "exception_created",
+        "exception_created",
+        "conflict_resolved",
+        "product_facts_approved",
+        "publish_product",
+        "listing_verified"
+      ],
+      "zero_secret_leaks": true
+    }
+  }
+}

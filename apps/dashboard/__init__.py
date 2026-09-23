@@ -1,0 +1,2 @@
+"""Minimal operator dashboard shell."""
+

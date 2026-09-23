@@ -1,0 +1,95 @@
+{
+  "certification_stage": "P0_STAGE4_ADVERSARIAL_INGESTION_IDENTITY",
+  "verdict": "PASS",
+  "passed_checkpoints": 14,
+  "total_checkpoints": 14,
+  "target_store": "sanocea-commerce-os-dev.myshopify.com",
+  "merchant_id": "stage4_adversarial_cert_merchant",
+  "checkpoints": {
+    "1_ballast_quarantine": {
+      "status": "PASS",
+      "quarantined_files": [
+        ".DS_Store",
+        "ballast_corrupt.bin"
+      ],
+      "drafts_extracted": 10
+    },
+    "2_honest_formulas_merged_cells": {
+      "status": "PASS",
+      "formula_text": "=1200*1.18",
+      "cached_value": 1416.0,
+      "variants_count": 3
+    },
+    "3_hidden_sheet_isolation": {
+      "status": "PASS",
+      "hidden_variants_leaked": 0
+    },
+    "4_barcode_collision_detection": {
+      "status": "PASS",
+      "identity_status": "CONFLICT",
+      "conflict_reason": "Barcode collision: barcode '8909999999999' is already associated with distinct style 'STYLE-SHIRT-501' (draft pdr_e68ed8c630244291a390df68975a05c7)"
+    },
+    "5_non_fuzzy_identity_boundary": {
+      "status": "PASS",
+      "identity_status": "UNRESOLVED",
+      "candidates_count": 0
+    },
+    "6_orthogonal_publication_gate": {
+      "status": "PASS",
+      "pants_publication_outcome": "EXCEPTION",
+      "title_publication_outcome": "EXCEPTION"
+    },
+    "7_durable_identity_decisions": {
+      "status": "PASS",
+      "tenant_isolation_verified": true
+    },
+    "8_variant_lifecycle_transitions": {
+      "status": "PASS",
+      "variant_s_status": "ACTIVE",
+      "variant_m_sku": "KFTN-SLK-BLU-M-V2",
+      "variant_l_status": "STALE",
+      "variant_xl_status": "ACTIVE"
+    },
+    "9_number_unit_normalization": {
+      "status": "PASS",
+      "price_indian_cents": 14999900,
+      "price_european_cents": 149900,
+      "dim_unit_missing_detected": true
+    },
+    "10_multi_product_pdf": {
+      "status": "PASS",
+      "pdf_drafts_count": 2
+    },
+    "11_shopify_multi_variant_publication": {
+      "status": "PASS",
+      "external_product_id": "gid://shopify/Product/9077345189967",
+      "verification_outcome": "VERIFIED"
+    },
+    "12_shopify_read_back": {
+      "status": "PASS",
+      "shopify_title": "Embroidered Silk Kaftan",
+      "shopify_options": [
+        {
+          "name": "Title",
+          "values": [
+            "Default Title"
+          ]
+        }
+      ]
+    },
+    "13_append_only_audit_lineage": {
+      "status": "PASS",
+      "total_audit_events": 17,
+      "actions_recorded": [
+        "file_quarantined",
+        "listing_verified",
+        "product_draft_created",
+        "publish_product"
+      ]
+    },
+    "14_identity_stability_idempotency": {
+      "status": "PASS",
+      "canonical_id_preserved": true
+    }
+  }
+}

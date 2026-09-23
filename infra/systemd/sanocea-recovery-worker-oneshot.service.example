@@ -1,0 +1,15 @@
+# Phase 4.6 example unit - NOT installed/activated by this repo. Paired with the .timer above. Same
+# entrypoint as the always-on service, just --once instead of a loop - a single bounded pass, which is
+# exactly what a systemd timer (or plain cron, if preferred over the timer) expects to trigger.
+
+[Unit]
+Description=Sanocea Commerce OS - reconciliation/recovery worker (single pass)
+After=network-online.target postgresql.service
+
+[Service]
+Type=oneshot
+User=sanocea
+WorkingDirectory=/opt/sanocea
+Environment=SANOCEA_PG_DSN=postgresql://sanocea@127.0.0.1:5432/sanocea
+Environment=SANOCEA_LOG_LEVEL=INFO
+ExecStart=/opt/sanocea/.venv/bin/python -m sanocea.scripts.run_recovery_worker --once

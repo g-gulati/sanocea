@@ -1,0 +1,77 @@
+{
+  "observed_at_utc": "2026-09-16T07:42:20+00:00",
+  "pages": [
+    {
+      "url": "https://ajantasoya.com/",
+      "status_code": 200,
+      "final_url": "https://ajantasoya.com/",
+      "file": "html__ajantasoya_com__root.html",
+      "title": "Ajanta Soya: Leading Cooking Oil, Vanaspati &amp; Specialty Fats",
+      "contains_add_to_cart": true,
+      "contains_free": true
+    },
+    {
+      "url": "https://ajantasoya.com/anchal-cooking-oil/",
+      "status_code": 200,
+      "final_url": "https://ajantasoya.com/anchal-cooking-oil/",
+      "file": "html__ajantasoya_com__anchal-cooking-oil.html",
+      "title": "Ajanta Soya Shop | Buy Cooking Oils, Vanaspati Ghee &amp; Specialty Fats",
+      "contains_add_to_cart": true,
+      "contains_free": true
+    },
+    {
+      "url": "https://ajantasoya.com/product/anchal-kachi-ghani-mustard-oil/",
+      "status_code": 200,
+      "final_url": "https://ajantasoya.com/product/anchal-kachi-ghani-mustard-oil/",
+      "file": "html__ajantasoya_com__product__anchal-kachi-ghani-mustard-oil.html",
+      "title": "Anchal Kachi Ghani Mustard Oil | Mustard Oil",
+      "contains_add_to_cart": true,
+      "contains_free": true
+    },
+    {
+      "url": "https://ajantasoya.com/product/anchal-refined-soyabean-oil/",
+      "status_code": 200,
+      "final_url": "https://ajantasoya.com/product/anchal-refined-soyabean-oil/",
+      "file": "html__ajantasoya_com__product__anchal-refined-soyabean-oil.html",
+      "title": "Anchal Refined Soyabean Oil | AjantaSoya",
+      "contains_add_to_cart": true,
+      "contains_free": true
+    },
+    {
+      "url": "https://ajantasoya.com/product/anchal-refined-sunflower-oil/",
+      "status_code": 200,
+      "final_url": "https://ajantasoya.com/product/anchal-refined-sunflower-oil/",
+      "file": "html__ajantasoya_com__product__anchal-refined-sunflower-oil.html",
+      "title": "anchal refined sunflower oil | Oil For Healthy Heart",
+      "contains_add_to_cart": true,
+      "contains_free": true
+    },
+    {
+      "url": "https://ajantasoya.com/product/mustard-oil-offer/",
+      "status_code": 200,
+      "final_url": "https://ajantasoya.com/",
+      "file": "html__ajantasoya_com__product__mustard-oil-offer.html",
+      "title": "Ajanta Soya: Leading Cooking Oil, Vanaspati &amp; Specialty Fats",
+      "contains_add_to_cart": true,
+      "contains_free": true
+    },
+    {
+      "url": "https://ajantasoya.com/product/soyaben-oil-offer/",
+      "status_code": 200,
+      "final_url": "https://ajantasoya.com/",
+      "file": "html__ajantasoya_com__product__soyaben-oil-offer.html",
+      "title": "Ajanta Soya: Leading Cooking Oil, Vanaspati &amp; Specialty Fats",
+      "contains_add_to_cart": true,
+      "contains_free": true
+    },
+    {
+      "url": "https://ajantasoya.com/product/buy-one-sunflower-oil-get-1l-free/",
+      "status_code": 200,
+      "final_url": "https://ajantasoya.com/product/buy-one-sunflower-oil-get-1l-free/",
+      "file": "html__ajantasoya_com__product__buy-one-sunflower-oil-get-1l-free.html",
+      "title": "Sunflower Oil Offer - Ajanta Soya",
+      "contains_add_to_cart": true,
+      "contains_free": true
+    }
+  ]
+}

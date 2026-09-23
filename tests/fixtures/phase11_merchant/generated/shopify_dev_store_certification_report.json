@@ -1,0 +1,148 @@
+{
+  "phase": "SHOPIFY REAL DEVELOPMENT-STORE CERTIFICATION - STAGE 2",
+  "classification": "REAL EXTERNAL PLATFORM - DEVELOPMENT STORE",
+  "executed": true,
+  "blocked_reason": null,
+  "journey": {
+    "webhook_registration": {
+      "webhook_ids": [
+        "gid://shopify/WebhookSubscription/1567637471311",
+        "gid://shopify/WebhookSubscription/1567637536847",
+        "gid://shopify/WebhookSubscription/1567637602383"
+      ],
+      "delivery_url": "https://would-hughes-designers-custody.trycloudflare.com/webhooks/shopify_live/shopify_live_cert_merchant"
+    },
+    "shop_metadata": {
+      "name": "Sanocea Commerce OS Dev",
+      "currencyCode": "USD",
+      "primaryDomain": {
+        "host": "sanocea-commerce-os-dev.myshopify.com"
+      },
+      "myshopifyDomain": "sanocea-commerce-os-dev.myshopify.com"
+    },
+    "default_location_gid": "gid://shopify/Location/83781845071",
+    "catalogue_ingest_status": 200,
+    "draft_state_after_approval": "READY",
+    "publish_outcome": "published",
+    "external_product_gid": "gid://shopify/Product/9076601094223",
+    "shopify_readback": {
+      "title": "Shopify Dev Store Cert Shirt",
+      "status": "ACTIVE",
+      "variants": {
+        "nodes": [
+          {
+            "sku": "SHOPIFY-LIVE-CERT-1789532876",
+            "price": "499.00"
+          }
+        ]
+      }
+    },
+    "inventory_mutation_result": {
+      "inventoryLevel": {
+        "id": "gid://shopify/InventoryLevel/120334221391?inventory_item_id=48897463550031"
+      },
+      "userErrors": []
+    },
+    "inventory_readback": {
+      "sku": "SHOPIFY-LIVE-CERT-1789532876",
+      "available": 15,
+      "raw": {
+        "inventory_item_id": "gid://shopify/InventoryItem/48897463550031"
+      }
+    },
+    "shopify_order_gid": "gid://shopify/Order/7105358463055",
+    "sanocea_order": {
+      "id": "ord_c60f0f674bce477c90bade89019a0a79",
+      "merchant_id": "shopify_live_cert_merchant",
+      "external_refs": [
+        {
+          "system": "shopify_live",
+          "external_id": "7105358463055",
+          "entity_type": "order",
+          "channel_id": "shopify_live",
+          "version": null
+        }
+      ],
+      "source_of_truth": "channel",
+      "sync": {
+        "source_version": null,
+        "source_updated_at": "2026-09-16T00:28:08-04:00",
+        "observed_at": "2026-09-16T04:28:09.851930Z",
+        "updated_at": "2026-09-16T04:28:09.851961Z",
+        "event_sequence": null,
+        "raw_payload_ref": "raw_5cb24d91c4f6454c8b0546502a796113"
+      },
+      "idempotency": {
+        "key": "shopify_live:7105358463055",
+        "scope": "shopify_live_order_webhook",
+        "first_seen_at": "2026-09-16T04:28:09.851885Z"
+      },
+      "channel_id": "shopify_live",
+      "customer_id": "cus_252bb8ad53d448dc9e561019e8f5646d",
+      "order_number": "1016",
+      "status": "PAID",
+      "payment_status": "paid",
+      "fulfillment_status": null,
+      "total_amount": 49900,
+      "currency": "USD",
+      "placed_at": null
+    }
+  },
+  "semantic_findings": [],
+  "zero_tolerance": {
+    "1_authentication_and_store_discovery": {
+      "status": "PASS",
+      "evidence": "Shop: 'Sanocea Commerce OS Dev', currency: USD, primaryDomain: sanocea-commerce-os-dev.myshopify.com, location: gid://shopify/Location/83781845071"
+    },
+    "2_product_creation": {
+      "status": "PASS",
+      "evidence": "publish status=200 outcome=published external_product_gid=gid://shopify/Product/9076601094223 sku=SHOPIFY-LIVE-CERT-1789532876"
+    },
+    "3_product_read_back": {
+      "status": "PASS",
+      "evidence": "direct GraphQL read-back: title='Shopify Dev Store Cert Shirt' sku='SHOPIFY-LIVE-CERT-1789532876' price='499.00' status='ACTIVE'"
+    },
+    "4_publication_verification": {
+      "status": "PASS",
+      "evidence": "Shopify status='ACTIVE', Sanocea verification outcome=VERIFIED mismatches=[]"
+    },
+    "5_duplicate_replay_protection": {
+      "status": "PASS",
+      "evidence": "Publication replay returned same gid=gid://shopify/Product/9076601094223; variant count on Shopify for sku=SHOPIFY-LIVE-CERT-1789532876 is 1 (must be 1); mutation replay returned same ref=gid://shopify/Product/9076601094223"
+    },
+    "6_timeout_after_mutation_recovery": {
+      "status": "PASS",
+      "evidence": "Authoritative read-back resolved mutation state: recovered_gid=gid://shopify/Product/9076601094223 (matched original gid://shopify/Product/9076601094223), recovered_price=599.00 (599.00), zero duplicate mutations created."
+    },
+    "7_inventory_write_read_back": {
+      "status": "PASS",
+      "evidence": "inventorySetQuantities -> read-back available=15 (must be 15) at location gid://shopify/Location/83781845071"
+    },
+    "8_webhook_ingress_verification": {
+      "status": "PASS",
+      "evidence": "Webhook delivered over tunnel from Shopify cloud; HMAC verified; dedup statuses=[200, 200] count_after=5 (expected 5)"
+    },
+    "9_order_ingestion": {
+      "status": "PASS",
+      "evidence": "Canonical order id=ord_c60f0f674bce477c90bade89019a0a79 status=PAID total_amount_cents=49900 currency=USD"
+    },
+    "10_fulfilment_cancellation_refund": {
+      "status": "PASS",
+      "evidence": "Fulfilment id=gid://shopify/Fulfillment/5906119065679 status=SUCCESS; Cancellation job=gid://shopify/Job/741dc1d3-4471-4b08-acd7-d0c287a4fec5; Refund id=gid://shopify/Refund/960521830479"
+    },
+    "11_merchant_isolation": {
+      "status": "PASS",
+      "evidence": "Cross-tenant access refused: orders HTTP 403, drafts HTTP 403, publish HTTP 403; merchant B credentials count=0"
+    },
+    "12_process_restart_recovery": {
+      "status": "PASS",
+      "evidence": "Recovered from Postgres: mapping sanocea_id=ord_c60f0f674bce477c90bade89019a0a79; fresh connector fetched Shopify order name='#1016' with zero state drift"
+    },
+    "13_audit_trail_and_secret_redaction": {
+      "status": "PASS",
+      "evidence": "Audit events recorded: 96 across 18 distinct actions; raw events: 30; Secret leak check: client_secret_in_audit=False, client_secret_in_raw=False, tokens_in_audit=False (ZERO secrets leaked)"
+    }
+  },
+  "runtime_seconds": 28.247,
+  "verdict": "PASS"
+}

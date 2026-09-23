@@ -1,0 +1,71 @@
+{
+  "observed_at_utc": "2026-09-16T07:42:20+00:00",
+  "url": "https://www.jiomart.com/product/anchal-refined-soyabean-oil-5-ltr-jar-with-1-ltr-bottle-combo-light-healthy-cooking-oil-for-everyday-meals-mj725u-50189181",
+  "status_code": 200,
+  "final_url": "https://www.jiomart.com/product/anchal-refined-soyabean-oil-5-ltr-jar-with-1-ltr-bottle-combo-light-healthy-cooking-oil-for-everyday-meals-mj725u-50189181",
+  "ld_json": [
+    {
+      "@context": "http://schema.org",
+      "@type": "Product",
+      "productID": "50189181",
+      "sku": "50189181",
+      "identifier": "anchal-refined-soyabean-oil-5-ltr-jar-with-1-ltr-bottle-combo-light-healthy-cooking-oil-for-everyday-meals-mj725u-50189181",
+      "name": "Anchal Refined Soyabean Oil 5 Ltr Jar with 1 Ltr Bottle Combo- Light &amp; Healthy Cooking Oil for Everyday Meals - ANCHAL",
+      "color": "",
+      "image": "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/jio-7.jpg.cf6a4eb5aa.jpg",
+      "logo": "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/jio-7.jpg.cf6a4eb5aa.jpg",
+      "brand": {
+        "@type": "Brand",
+        "name": "ANCHAL",
+        "image": "https://cdn1.jiomartjcp.com/v2/default_image.jpg",
+        "identifier": ""
+      },
+      "category": "Soyabean Oil",
+      "pattern": "Soyabean Oil",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "bestRating": "5",
+        "ratingValue": "0",
+        "ratingCount": "0"
+      },
+      "typeOfGood": "Soyabean Oil",
+      "offers": {
+        "@type": "Offer",
+        "availability": "https://schema.org/InStock",
+        "price": "",
+        "priceCurrency": "",
+        "priceSpecification": {
+          "@type": "DeliveryChargeSpecification",
+          "maxPrice": "",
+          "minPrice": "",
+          "price": "",
+          "priceCurrency": ""
+        }
+      }
+    },
+    {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": "Anchal Refined Soyabean Oil 5 Ltr Jar with 1 Ltr Bottle Combo- Light & Healthy Cooking Oil for Everyday Meals",
+      "description": "<div style=\"font-size: 14px;direction: ltr;\">Soybean oil contains no cholesterol, trans-fats and saturated fats. Diets lower in these are associated with improved heart health.<span>Â </span></div><div style=\"font-size: 14px;direction: ltr;\"><br><br><!--StartFragment--><img src=\"https://images.seller.jiomart.com/img/c/images/ojh57i/description/9fa3207b0104d_anchalrefinedsoyabeanoiljarfront.png.jvG5.999xx.png\" style=\"vertical-align: middle;font-size: 14px;\"><!--EndFragment--><br><br><img src=\"https://images.seller.jiomart.com/img/c/images/ojh57i/description/94aa91293a8bb_anchal1literrefinedsoyabeanoilfront2.png.2W3l.999xx.png\"></div><!--EndFragment--><p><br></p><p><br></p><p style=\"font-size: 14px;direction: ltr;\"><br></p><p style=\"font-size: 14px;direction: ltr;\">\\</p><p style=\"font-size: 14px;direction: ltr;\"><br><br><!--StartFragment--><img src=\"https://images.seller.jiomart.com/img/c/images/ojh57i/description/f92702da21714_anchal1literrefinedsoyabeanoilfront3.png.zlBO.999xx.png\" style=\"vertical-align: middle;font-size: 14px;\"><!--EndFragment--></p><p style=\"font-size: 14px;direction: ltr;\"><br><br><!--StartFragment--><img src=\"https://images.seller.jiomart.com/img/c/images/ojh57i/description/616f15c6e285a_anchalrefinedsoyabeanoiljarfront2.png.M5rn.999xx.png\" style=\"vertical-align: middle;font-size: 14px;\"><!--EndFragment--><br><br><br><img src=\"https://images.seller.jiomart.com/img/c/images/ojh57i/description/fabfdaf332d0f_anchalrefinedsoyabeanoiljarfront1.png.dmN2.999xx.png\" style=\"font-size: 1.4rem;\"></p><p style=\"font-size: 14px;direction: ltr;\"><b style=\"font-size: 17px;text-align: center;background-color: rgba(255, 255, 255, 0.7);\">What is the meaning of Zero Cholesterol Oil?Â </b></p><p style=\"font-size: 14px;direction: ltr;\"><span style=\"background-color: rgba(255, 255, 255, 0.7);color: black;font-size: 1.4rem;text-align: center;\">Soybean oil is a vegetable oil thatâs extracted from the seeds of the soybean plant. Soybean oil mostly consists of polyunsaturated fats, which are linked to lower cholesterol levels and a reduced risk of heart disease.</span></p><br><b>Disclaimer</b><br>Actual product packaging and materials may contain more and/or different information than that shown on our web site. We recommend that you do not solely rely on the information presented and that you always read labels, warnings, and directions before using or consuming a product.",
+      "image": [
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/jio-7.jpg.cf6a4eb5aa.jpg",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/jio-8.jpg.d6f2590a01.jpg",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.p/ng/anchalrefinedsoyabeanoiljarfront2.png.616f15c6e2.png",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.p/ng/anchal1literrefinedsoyabeanoilfront.png.572bb78f8e.png",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.p/ng/anchal1literrefinedsoyabeanoilfront3.png.f92702da21.png",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.p/ng/anchalrefinedsoyabeanoiljarback.png.b01a4bfff1.png",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.p/ng/anchalrefinedsoyabeanoiljarfront1.png.fabfdaf332.png",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.p/ng/anchal1literrefinedsoyabeanoilback.png.46ea073a93.png",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/jp/eg/whatsappimage2025-07-31at4.38.40pm.jpeg.c73290dcb7.jpeg"
+      ],
+      "brand": {
+        "@type": "Brand",
+        "name": "ANCHAL"
+      },
+      "url": "https://www.jiomart.com/product/anchal-refined-soyabean-oil-5-ltr-jar-with-1-ltr-bottle-combo-light-healthy-cooking-oil-for-everyday-meals-mj725u-50189181"
+    }
+  ],
+  "next_data_present": false,
+  "next_data": null
+}

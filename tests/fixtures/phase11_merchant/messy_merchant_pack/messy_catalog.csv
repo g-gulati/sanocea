@@ -1,0 +1,5 @@
+SKU,Item_Name,Retail_Price,Currency,Type,Fabric,Gross_Weight,HSN_Code,Origin_Country,Inventory_Quantity
+SKU-CLEAN-001,Silk Evening Kurti,149.99,USD,Apparel,100% Mulberry Silk,350 g,6204,India,50
+SKU-MISSING-002,Linen Summer Tunic,89.00,USD,Apparel,,,,India,25
+SKU-CONFLICT-003,Merino Wool Shawl,120.00,USD,Apparel,Merino Wool,450 g,6214,India,30
+SKU-INVALID-004,Defective Sample,N/A,USD,Apparel,Cotton,200 g,6204,India,10

@@ -1,0 +1,69 @@
+{
+  "observed_at_utc": "2026-09-16T07:42:20+00:00",
+  "url": "https://www.jiomart.com/product/anchal-refined-sunflower-oil-1-litre-bottle-pack-of-6-mki9yb-72247377",
+  "status_code": 200,
+  "final_url": "https://www.jiomart.com/product/anchal-refined-sunflower-oil-1-litre-bottle-pack-of-6-mki9yb-72247377",
+  "ld_json": [
+    {
+      "@context": "http://schema.org",
+      "@type": "Product",
+      "productID": "72247377",
+      "sku": "72247377",
+      "identifier": "anchal-refined-sunflower-oil-1-litre-bottle-pack-of-6-mki9yb-72247377",
+      "name": "Anchal Refined Sunflower Oil 1 Litre Bottle - Light &amp; Healthy Cooking Oil for Everyday Meals (Pack of 6) - ANCHAL",
+      "color": "",
+      "image": "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/31.jpg.447583af4b.jpg",
+      "logo": "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/31.jpg.447583af4b.jpg",
+      "brand": {
+        "@type": "Brand",
+        "name": "ANCHAL",
+        "image": "https://cdn1.jiomartjcp.com/v2/default_image.jpg",
+        "identifier": ""
+      },
+      "category": "Sunflower Oil",
+      "pattern": "Sunflower Oil",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "bestRating": "5",
+        "ratingValue": "0",
+        "ratingCount": "0"
+      },
+      "typeOfGood": "Sunflower Oil",
+      "offers": {
+        "@type": "Offer",
+        "availability": "https://schema.org/InStock",
+        "price": "",
+        "priceCurrency": "",
+        "priceSpecification": {
+          "@type": "DeliveryChargeSpecification",
+          "maxPrice": "",
+          "minPrice": "",
+          "price": "",
+          "priceCurrency": ""
+        }
+      }
+    },
+    {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": "Anchal Refined Sunflower Oil 1 Litre Bottle - Light & Healthy Cooking Oil for Everyday Meals (Pack of 6)",
+      "description": "<p style=\"font-size: 14px;direction: ltr;\">Discover the secret to feeling light and eating right with Anchal Sunflower Oil, crafted with care for your well-being. Packed with essential nutrients and low in saturated fats,Â  Anchal Sunflower Oil helps you stay energized and maintain a healthy lifestyle. Anchal Sunflower Oil is carefully extracted from the finest sunflower seeds, guaranteeing 100% purity in every drop.<img src=\"https://images.seller.jiomart.com/img/c/images/ojh57i/description/a0eb176e4e3e5_1102.jpg.clqh.999xx.jpg\"><img src=\"https://images.seller.jiomart.com/img/c/images/ojh57i/description/8e50a5b59bc88_1131.jpg.jWPc.999xx.jpg\" style=\"font-size: 1.4rem;\"><span style=\"font-size: 1.4rem;\">â</span><b style=\"text-align: center;font-size: 20px;\"><img alt=\"Ajanta Soya Ltd.\" src=\"https://m.media-amazon.com/images/S/aplus-media-library-service-media/12d89547-dfd4-487a-a15c-d5b6774a9a74.__CR0,0,970,600_PT0_SX970_V1___.jpg\" style=\"vertical-align: top;font-size: 14px;\"></b></p><div style=\"font-size: 14px;direction: ltr;text-align: center;\"><img src=\"https://images.seller.jiomart.com/img/c/images/ojh57i/description/623944fb34c78_anchallifestyleimages-800x80021.jpg.eePz.999xx.jpg\" style=\"vertical-align: middle;\"><b></b></div><p style=\"font-size: 14px;direction: ltr;\"><span style=\"font-size: 16px;text-align: justify;\">WHAT IS SUNFLOWER OIL ?</span></p><p style=\"font-size: 14px;direction: ltr;\"><span style=\"font-size: 16px;text-align: justify;\">Sunflower oil is a type of vegetable oil extracted from sunflower seeds. It's produced through a process of pressing the seeds to extract the oil or by solvent extraction. The oil is then refined to remove impurities and improve its shelf life.</span></p><br><b>Disclaimer</b><br>Actual product packaging and materials may contain more and/or different information than that shown on our web site. We recommend that you do not solely rely on the information presented and that you always read labels, warnings, and directions before using or consuming a product.",
+      "image": [
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/31.jpg.447583af4b.jpg",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/32.jpg.52215f8f92.jpg",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/1121.jpg.d1f6d9298a.jpg",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/1102.jpg.a0eb176e4e.jpg",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/1132.jpg.8e50a5b59b.jpg",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/.j/pg/anchallifestyleimages-800x80021.jpg.623944fb34.jpg",
+        "https://cdn1.jiomartjcp.com/v2/catalog-cloud/jiomar/original/images/othe/ojh57i/jp/eg/whatsappimage2025-07-31at4.38.40pm.jpeg.c73290dcb7.jpeg"
+      ],
+      "brand": {
+        "@type": "Brand",
+        "name": "ANCHAL"
+      },
+      "url": "https://www.jiomart.com/product/anchal-refined-sunflower-oil-1-litre-bottle-pack-of-6-mki9yb-72247377"
+    }
+  ],
+  "next_data_present": false,
+  "next_data": null
+}

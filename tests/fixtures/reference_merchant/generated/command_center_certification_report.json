@@ -1,0 +1,94 @@
+{
+  "suite": "OPERATIONS_COMMAND_CENTER_CERTIFICATION",
+  "merchant_id": "ref_anchal_heritage",
+  "verdict": "PASS",
+  "passed_checkpoints": 8,
+  "total_checkpoints": 8,
+  "checkpoints": {
+    "1_ui_static_serving": {
+      "status": "PASS",
+      "ui_route": "/ui",
+      "index_html_bytes": 4669,
+      "static_assets_verified": [
+        "styles.css",
+        "app.js"
+      ],
+      "frontend_embedded_credentials": "NONE"
+    },
+    "2_auth_and_profile": {
+      "status": "PASS",
+      "demo_token_endpoint_status": "404_NOT_FOUND (REMOVED)",
+      "unauthenticated_status": "401_UNAUTHORIZED",
+      "cross_tenant_status": "403_FORBIDDEN",
+      "merchant_legal_name": "Anchal Heritage Consumer Goods Pvt Ltd",
+      "merchant_gstin": "07AAAAA0000A1Z5"
+    },
+    "3_overview_and_exceptions": {
+      "status": "PASS",
+      "open_exceptions_count": 1,
+      "exception_category": "conflicting_product_evidence",
+      "needs_attention": true
+    },
+    "4_evidence_conflict_provenance": {
+      "status": "PASS",
+      "draft_id": "pdr_16ff731d57f84cf08e4c1696fa0264df",
+      "sku": "ANCHAL-KACHI-GHANI",
+      "draft_state": "CONFLICTED",
+      "unaltered_price": 15600,
+      "conflict_reasons": [
+        "conflicting_product_evidence:price"
+      ]
+    },
+    "5_operator_conflict_resolution": {
+      "status": "PASS",
+      "resolved_price": 15600,
+      "final_draft_state": "READY",
+      "operator_id": "reference-merchant-operator"
+    },
+    "6_shopify_publication_read_back": {
+      "status": "PASS",
+      "shopify_product_id": "gid://shopify/Product/9077451915343",
+      "publication_status": "published",
+      "independent_read_back_status": "VERIFIED",
+      "raw_shopify_verified": {
+        "id": "gid://shopify/Product/9077451915343",
+        "title": "Anchal Cold-Pressed Kachi Ghani Mustard Oil",
+        "status": "ACTIVE",
+        "sku": "ANCHAL-KACHI-GHANI",
+        "price": "156.00"
+      }
+    },
+    "7_inventory_and_refund_policy": {
+      "status": "PASS",
+      "warehouse_locations_count": 3,
+      "warehouse_locations": [
+        "loc_bengaluru_hub",
+        "loc_delhi_hub",
+        "loc_mumbai_hub"
+      ],
+      "inventory_records_count": 12,
+      "small_refund_outcome": "permitted",
+      "large_refund_outcome": "approval_required"
+    },
+    "8_audit_timeline_immutability": {
+      "status": "PASS",
+      "total_audit_events": 494,
+      "actions_present": [
+        "conflict_resolved",
+        "exception_created",
+        "exception_resolved",
+        "file_quarantined",
+        "inventory_restocked",
+        "listing_verified",
+        "location_allocation_decision",
+        "order_fulfilment_consumed",
+        "order_inventory_reserved",
+        "product_draft_created",
+        "product_facts_approved",
+        "publish_product",
+        "return_inspection_passed"
+      ],
+      "source": "PostgreSQL 16 audit_events table"
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "certification_stage": "N8N_REFERENCE_MERCHANT_POC",
+  "tenant_id": "ref_anchal_heritage",
+  "n8n_version": "1.98.2",
+  "official_nodes_used": [
+    "n8n-nodes-base.manualTrigger",
+    "n8n-nodes-base.readWriteFile",
+    "n8n-nodes-base.httpRequest",
+    "n8n-nodes-base.if",
+    "n8n-nodes-base.set"
+  ],
+  "arbitrary_community_nodes": 0,
+  "verdict": "PASS",
+  "passed_checkpoints": 8,
+  "total_checkpoints": 8,
+  "checkpoints": {
+    "1_end_to_end_dropzone_notification": {
+      "status": "PASS",
+      "workflow_id": "Mwymiyeo9Hw7ORD0",
+      "n8n_mode": "cli_execution",
+      "file_retrieved": "conflicting_feed.csv",
+      "sanocea_draft_id": "pdr_780da715e2bf4ed88ee980b260f5850c",
+      "sanocea_draft_sku": "ANCHAL-KACHI-GHANI",
+      "sanocea_draft_price_paise": 15600,
+      "notification_received_count": 1,
+      "notification_payload": {
+        "merchant_id": "ref_anchal_heritage",
+        "alert_title": "Commercial Fact Exception Detected in Supplier Feed",
+        "exception_count": 1,
+        "summary_message": "Product draft pdr_780da715e2bf4ed88ee980b260f5850c requires corrective work: CONFLICTED",
+        "review_url": "http://127.0.0.1:8080/merchants/ref_anchal_heritage/catalogue/drafts",
+        "governance_notice": "n8n has zero business authority. Review and approval must occur in SANOCEA."
+      },
+      "zero_approval_actions_in_notification": true
+    },
+    "2_ingestion_idempotency": {
+      "status": "PASS",
+      "draft_id_preserved": "pdr_780da715e2bf4ed88ee980b260f5850c",
+      "duplicate_drafts_created": 0,
+      "price_preserved": 15600
+    },
+    "3_process_interruption_resilience": {
+      "status": "PASS",
+      "client_interrupted_handled": true,
+      "database_integrity_verified": true
+    },
+    "4_sanocea_unavailability_handling": {
+      "status": "PASS",
+      "connection_refused_caught": true,
+      "source_dropzone_file_preserved": true,
+      "fake_success_prevented": true
+    },
+    "5_ballast_input_quarantine": {
+      "status": "PASS",
+      "ballast_filename": "ballast_corrupt.bin",
+      "drafts_created": 0,
+      "quarantine_audit_action_recorded": true
+    },
+    "6_notification_failure_isolation": {
+      "status": "PASS",
+      "sink_simulated_error": 500,
+      "erp_authoritative_state_unaffected": true
+    },
+    "7_credential_privilege_boundary": {
+      "status": "PASS",
+      "admin_endpoint_blocked": true,
+      "cross_tenant_endpoint_blocked": true,
+      "enforced_status_code": 403
+    },
+    "8_audit_ledger_immutability": {
+      "status": "PASS",
+      "n8n_executions_purged": true,
+      "sanocea_audit_events_count": 232,
+      "audit_immutability_verified": true
+    }
+  }
+}

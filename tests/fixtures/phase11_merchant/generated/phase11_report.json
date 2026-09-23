@@ -1,0 +1,293 @@
+{
+  "merchant": "Northstar Trail Outfitters",
+  "source_product_records": 200,
+  "variants": 250,
+  "images": 195,
+  "clean_products": 185,
+  "dirty_ambiguous_products": 15,
+  "fully_automatic_product_processing": 0,
+  "approval_only_products": 186,
+  "exception_products": 8,
+  "products_requiring_corrective_work": 14,
+  "invalid_products_prevented_from_publication": 14,
+  "publication_attempts": 186,
+  "verified_publications": 185,
+  "publication_mismatches": 2,
+  "duplicate_publications": 1,
+  "incorrect_product_facts_published": 0,
+  "total_orders": 50,
+  "automatically_monitored_orders": 47,
+  "order_exception_free": 47,
+  "delayed_failed_orders": 3,
+  "order_human_interventions": 3,
+  "duplicate_events_suppressed": 50,
+  "out_of_order_events_handled": 50,
+  "unresolved_order_failures": 0,
+  "total_conversations": 100,
+  "automatically_resolved_conversations": 48,
+  "approval_gated_conversations": 0,
+  "escalated_conversations": 52,
+  "unknown_intent": 3,
+  "incorrect_responses": 0,
+  "responses_without_verified_truth": 0,
+  "unsafe_actions_prevented": 0,
+  "total_approvals_requested": 186,
+  "total_exceptions": 69,
+  "connector_failures": 0,
+  "cross_tenant_violations": 0,
+  "unresolved_workflow_failures": 0,
+  "zero_tolerance_failures": {
+    "invented_product_fact_published": false,
+    "wrong_product_image_published": false,
+    "duplicate_business_mutation": false,
+    "unauthorized_refund": false,
+    "unauthorized_cancellation": false,
+    "cross_tenant_access": false,
+    "silent_publication_mismatch": false,
+    "stale_event_regressed_canonical_state": false,
+    "fabricated_customer_truth": false,
+    "exception_lost": false,
+    "workflow_failure_silently_swallowed": false
+  },
+  "injected_defects": {
+    "missing_sku": 3,
+    "invalid_price": 3,
+    "missing_currency": 3,
+    "missing_required_attribute": 3,
+    "duplicate_sku": 2,
+    "malformed_barcode": 3,
+    "colour_mismatch": 3,
+    "missing_image": 3,
+    "wrong_image_association": 3,
+    "suspicious_duplicate_description": 3,
+    "internal_only_field": 3
+  },
+  "formulas": {
+    "automation_rate": "(verified_publications + automatically_monitored_orders + automatically_resolved_conversations) / (products + orders + support)",
+    "approval_touch_rate": "(approval_only_products + approval_gated_conversations) / total_operations",
+    "corrective_intervention_rate": "(products_requiring_corrective_work + order_human_interventions + escalated_conversations) / total_operations",
+    "exception_rate": "total_exceptions / total_operations"
+  },
+  "automation_rate": 0.8,
+  "approval_touch_rate": 0.5314,
+  "corrective_intervention_rate": 0.1971,
+  "exception_rate": 0.1971,
+  "normal_automation_rate": 0.8,
+  "product_straight_through_rate": 0.925,
+  "product_approval_touch_rate": 0.93,
+  "product_corrective_intervention_rate": 0.07,
+  "invalid_product_containment_rate": 1.0,
+  "order_straight_through_rate": 0.94,
+  "support_deterministic_resolution_rate": 0.48,
+  "support_ai_assisted_resolution_rate": 0.0,
+  "support_unknown_intent_rate": 0.03,
+  "ai_dependency_rate": 0.0371,
+  "ai_calls": 13,
+  "deterministic_support_resolutions": 48,
+  "ai_assisted_support_resolutions": 0,
+  "exceptions_auto_remediated": 0,
+  "automation_opportunities": [
+    {
+      "pattern": "Clean product publication approval repeatedly accepted",
+      "frequency": 186,
+      "evidence": [
+        "ProductDraft READY",
+        "no validation errors",
+        "verified publication"
+      ],
+      "estimated_operations_affected": 186,
+      "suggested_rule": "auto_publish_verified_clean_products",
+      "safety_risk": "low if evidence, SKU, media, payload, and read-back checks remain mandatory",
+      "recommendation_status": "implemented"
+    },
+    {
+      "pattern": "Repeated unknown support messages",
+      "frequency": 3,
+      "evidence": [
+        "SupportIntent unknown",
+        "support escalation audit"
+      ],
+      "estimated_operations_affected": 3,
+      "suggested_rule": "expand narrow support taxonomy and deterministic phrase recognizers",
+      "safety_risk": "medium; only informational responses may be automated",
+      "recommendation_status": "implemented for repeated safe intents"
+    },
+    {
+      "pattern": "Publication read-back mismatch",
+      "frequency": 2,
+      "evidence": [
+        "ListingVerification MISMATCH"
+      ],
+      "estimated_operations_affected": 2,
+      "suggested_rule": "retry read-back once then correlate mismatch exceptions",
+      "safety_risk": "high if silently accepted",
+      "recommendation_status": "observe_only"
+    }
+  ],
+  "human_touch_breakdown": [
+    {
+      "reason": "publication_approval_policy_or_unverified_pdf_evidence",
+      "frequency": 186,
+      "current_handling_mode": "APPROVAL-GATED",
+      "deterministic_handling_possible": true,
+      "ai_required": false,
+      "human_approval_justified": "Only for untrusted/PDF-derived or threshold-limited products",
+      "proposed_change": "Auto-publish clean verified products from trusted structured suppliers"
+    },
+    {
+      "reason": "dirty_product_source_data",
+      "frequency": 14,
+      "current_handling_mode": "EXCEPTION-ONLY",
+      "deterministic_handling_possible": "Partially",
+      "ai_required": "Only for ambiguous mapping suggestions",
+      "human_approval_justified": true,
+      "proposed_change": "Keep as exceptions unless deterministic remediation can prove correctness"
+    },
+    {
+      "reason": "order_payment_or_fulfilment_exception",
+      "frequency": 3,
+      "current_handling_mode": "EXCEPTION-ONLY",
+      "deterministic_handling_possible": false,
+      "ai_required": false,
+      "human_approval_justified": true,
+      "proposed_change": "Continue surfacing intervention-worthy operational divergence"
+    },
+    {
+      "reason": "support_business_mutation_request",
+      "frequency": 0,
+      "current_handling_mode": "APPROVAL-GATED",
+      "deterministic_handling_possible": true,
+      "ai_required": false,
+      "human_approval_justified": true,
+      "proposed_change": "Keep mutation authorization deterministic and approval-gated initially"
+    },
+    {
+      "reason": "unsupported_or_ambiguous_support_request",
+      "frequency": 52,
+      "current_handling_mode": "EXCEPTION-ONLY",
+      "deterministic_handling_possible": "Partially",
+      "ai_required": "For vague language only",
+      "human_approval_justified": "Only when identity, order, or safe action is unresolved",
+      "proposed_change": "Add narrow repeated support intents and deterministic routing"
+    }
+  ],
+  "performance": {
+    "mode": "baseline",
+    "total_seconds": 17.334,
+    "stages": [
+      {
+        "stage": "database_migration_reset",
+        "elapsed_seconds": 0.3509,
+        "cumulative_seconds": 0.3533
+      },
+      {
+        "stage": "object_storage_client_setup",
+        "elapsed_seconds": 0.8058,
+        "cumulative_seconds": 1.1802
+      },
+      {
+        "stage": "supplier_a_xlsx_load",
+        "elapsed_seconds": 0.0089,
+        "cumulative_seconds": 1.231,
+        "file": "catalog.xlsx"
+      },
+      {
+        "stage": "supplier_a_xlsx_parse_normalize_persist",
+        "elapsed_seconds": 0.1963,
+        "cumulative_seconds": 1.4273,
+        "rows": 80
+      },
+      {
+        "stage": "supplier_c_csv_load",
+        "elapsed_seconds": 0.0057,
+        "cumulative_seconds": 1.4331,
+        "file": "catalog.csv"
+      },
+      {
+        "stage": "supplier_c_csv_parse_normalize_persist",
+        "elapsed_seconds": 0.145,
+        "cumulative_seconds": 1.5781,
+        "rows": 70
+      },
+      {
+        "stage": "supplier_b_pdf_load",
+        "elapsed_seconds": 0.0013,
+        "cumulative_seconds": 1.5795,
+        "file": "catalog.pdf"
+      },
+      {
+        "stage": "supplier_b_pdf_extract",
+        "elapsed_seconds": 0.0005,
+        "cumulative_seconds": 1.5801,
+        "bytes": 7641
+      },
+      {
+        "stage": "supplier_b_pdf_normalize_persist",
+        "elapsed_seconds": 1.4948,
+        "cumulative_seconds": 3.0749
+      },
+      {
+        "stage": "supplier_b_pdf_extract_summary",
+        "elapsed_seconds": 0.0,
+        "cumulative_seconds": 3.075,
+        "extractor": "pdf_text_layer",
+        "cached": false,
+        "elapsed_ms": 0,
+        "rows": 50
+      },
+      {
+        "stage": "image_discovery",
+        "elapsed_seconds": 0.0008,
+        "cumulative_seconds": 3.0757,
+        "images": 195
+      },
+      {
+        "stage": "product_validation_media_publication",
+        "elapsed_seconds": 12.4784,
+        "cumulative_seconds": 15.5534,
+        "products": 200,
+        "publication_attempts": 186
+      },
+      {
+        "stage": "order_processing",
+        "elapsed_seconds": 1.117,
+        "cumulative_seconds": 16.6704,
+        "orders": 50,
+        "duplicate_events": 50
+      },
+      {
+        "stage": "support_processing",
+        "elapsed_seconds": 0.6179,
+        "cumulative_seconds": 17.2884,
+        "conversations": 100,
+        "ai_calls": 13
+      },
+      {
+        "stage": "workload_total",
+        "elapsed_seconds": 17.334,
+        "cumulative_seconds": 17.334
+      }
+    ],
+    "object_storage": {
+      "put_count": 1,
+      "bytes_uploaded": 9946,
+      "average_put_latency_seconds": 0.0134,
+      "max_put_latency_seconds": 0.0134,
+      "total_storage_seconds": 0.0134,
+      "retries": 0,
+      "duplicate_uploads_avoided": 395,
+      "cache_entries": 399
+    },
+    "document_extraction": {
+      "supplier_b_extractor": "pdf_text_layer",
+      "supplier_b_cached": false,
+      "supplier_b_elapsed_ms": 0,
+      "docling_invocations": 0
+    },
+    "bytes_loaded": {
+      "supplier_a_xlsx": 9946,
+      "supplier_c_csv": 13000,
+      "supplier_b_pdf": 7641
+    }
+  }
+}

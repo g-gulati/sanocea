@@ -1,0 +1,21 @@
+sku,title,price,currency,product_type,category,material,brand
+SKU-1,Clean Product 1,101,INR,jewelry,jewelry,gold,Sanocea
+SKU-2,Clean Product 2,102,INR,jewelry,jewelry,gold,Sanocea
+SKU-3,Clean Product 3,103,INR,jewelry,jewelry,gold,Sanocea
+SKU-4,Clean Product 4,104,INR,jewelry,jewelry,gold,Sanocea
+SKU-5,Clean Product 5,105,INR,jewelry,jewelry,gold,Sanocea
+SKU-6,Clean Product 6,106,INR,jewelry,jewelry,gold,Sanocea
+SKU-7,Clean Product 7,107,INR,jewelry,jewelry,gold,Sanocea
+SKU-8,Clean Product 8,108,INR,jewelry,jewelry,gold,Sanocea
+SKU-9,Clean Product 9,109,INR,jewelry,jewelry,gold,Sanocea
+SKU-10,Clean Product 10,110,INR,jewelry,jewelry,gold,Sanocea
+SKU-11,Clean Product 11,111,INR,jewelry,jewelry,gold,Sanocea
+SKU-12,Clean Product 12,112,INR,jewelry,jewelry,gold,Sanocea
+SKU-13,Clean Product 13,113,INR,jewelry,jewelry,gold,Sanocea
+SKU-14,Clean Product 14,114,INR,jewelry,jewelry,gold,Sanocea
+SKU-15,Clean Product 15,115,INR,jewelry,jewelry,gold,Sanocea
+SKU-16,Incomplete Product 16,,INR,jewelry,jewelry,,
+SKU-17,Incomplete Product 17,,INR,jewelry,jewelry,,
+SKU-18,Incomplete Product 18,,INR,jewelry,jewelry,,
+SKU-19,Ambiguous Product 19,119,INR,jewelry,jewelry,,
+SKU-20,Ambiguous Product 20,120,INR,jewelry,jewelry,,

@@ -1,0 +1,17 @@
+# Phase 4.6 example unit - NOT installed/activated by this repo. Alternative to the always-on
+# .service above: pairs with sanocea-recovery-worker-oneshot.service.example (--once mode) for a
+# cron-timer-style deployment instead of a long-running process. The advisory lock in
+# scripts/run_recovery_worker.py (store.advisory_lock) means this is safe even if a run overruns its
+# interval and the timer fires again - the second invocation detects the lock and exits cleanly (exit
+# code 0), it does not race the first.
+
+[Unit]
+Description=Run the Sanocea recovery worker every 5 minutes
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=300
+Unit=sanocea-recovery-worker-oneshot.service
+
+[Install]
+WantedBy=timers.target

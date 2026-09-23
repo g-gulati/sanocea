@@ -1,0 +1,58 @@
+# Step P0.2 example unit - NOT installed/activated by this repo. Matches the layout and conventions
+# already established by infra/systemd/sanocea-recovery-worker.service.example (Phase 4.6): same
+# /opt/sanocea WorkingDirectory, same .venv location, same User=sanocea, same Restart=on-failure shape.
+# `scripts/deploy.sh` installs this file and manages its lifecycle - this .example copy is the
+# reference/documentation source of truth, not something systemd reads directly.
+#
+# WorkingDirectory=/opt/sanocea is REQUIRED, not stylistic: this repository's root package is literally
+# named `sanocea` (see CLAUDE.md/README) - `sanocea.apps.api.app` only resolves as a Python module when
+# the current working directory's own `sanocea/` subdirectory is on the import path, i.e. when running
+# from /opt/sanocea with /opt/sanocea/sanocea/ as the checkout. See production-deployment.md's release
+# layout for how /opt/sanocea/sanocea and /opt/sanocea/.venv are kept as release-symlinks enabling
+# atomic, rollback-safe switching without ever changing this unit file.
+#
+# Install (example only - scripts/deploy.sh performs this automatically):
+#   cp sanocea-api.service.example /etc/systemd/system/sanocea-api.service
+#   systemctl daemon-reload
+#   systemctl enable --now sanocea-api
+
+[Unit]
+Description=Sanocea Commerce OS - API process
+After=network-online.target postgresql.service
+Wants=network-online.target
+# Intentionally NOT `After=temporal.service` / `Requires=temporal.service` - no order, support,
+# finance, or procurement path routes through Temporal in this topology (see production-deployment.md
+# Part I). The API must be able to start and serve traffic whether or not a real Temporal server exists
+# anywhere in this deployment.
+
+[Service]
+Type=simple
+User=sanocea
+Group=sanocea
+WorkingDirectory=/opt/sanocea
+EnvironmentFile=/opt/sanocea/shared/env/sanocea.env
+# P0.3 finding: bind loopback-only, not 0.0.0.0. Verified directly on the real target host that its
+# firewall is inactive (bare iptables ACCEPT-all) - 0.0.0.0 would expose this API to the public Internet
+# with zero protection. Public exposure is P0.6's job (reverse proxy/TLS/rate limiting), not this step's;
+# until that exists, loopback-only is the only safe default. A future P0.6 reverse proxy still reaches
+# this fine via 127.0.0.1.
+ExecStart=/opt/sanocea/.venv/bin/python -m uvicorn sanocea.apps.api.app:app --host 127.0.0.1 --port 8010
+# Graceful shutdown: uvicorn's default SIGTERM handling drains in-flight requests before exiting.
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=5
+# Never restart in a fast crash loop against a permanently-broken config (e.g. an invalid master key) -
+# after 5 failures in 60 seconds systemd stops trying, surfacing the failure via `systemctl status`
+# instead of masking it with an eternal restart loop.
+StartLimitIntervalSec=60
+StartLimitBurst=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/sanocea/shared/data
+PrivateTmp=true
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
