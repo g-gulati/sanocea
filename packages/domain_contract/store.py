@@ -89,6 +89,7 @@ class Phase0Store:
         "InboundShipment": ("supplier_id", "external_shipment_ref"),
         "GoodsReceipt": ("external_receipt_ref",),
         "Publication": ("product_draft_id", "channel_id"),
+        "Location": ("code",),
     }
 
     def put(self, entity: CanonicalEntity) -> CanonicalEntity:
@@ -311,10 +312,10 @@ class Phase0Store:
             )
             reserve_qty = 0
             if inv is not None:
-                reserve_qty = max(min(inv.quantity - inv.reserved, quantity_requested), 0)
+                reserve_qty = max(min(inv.ats, quantity_requested), 0)
                 if reserve_qty > 0:
                     inv.reserved = max(inv.reserved + reserve_qty, 0)
-                    inv.available = max((inv.available if inv.available is not None else inv.quantity) - reserve_qty, 0)
+                    inv.available = inv.ats
                     self._entities["Inventory"][inv.id] = copy.deepcopy(inv)
             reservation = InventoryReservation(
                 merchant_id=merchant_id, sku=sku, location_ref=location_ref,
@@ -323,6 +324,51 @@ class Phase0Store:
             )
             self._entities["InventoryReservation"][reservation.id] = copy.deepcopy(reservation)
             return copy.deepcopy(reservation)
+
+    def quarantine_inventory_atomic(
+        self, merchant_id: str, sku: str, location_ref: str, *, quantity: int, reason: str = "inspection"
+    ):
+        """Atomically moves `quantity` from sellable stock to quarantine."""
+        from sanocea.packages.domain_contract.models import Inventory
+
+        with self._inventory_lock:
+            inv = next(
+                (e for e in self._entities["Inventory"].values() if e.merchant_id == merchant_id and e.sku == sku and e.location_ref == location_ref),
+                None,
+            )
+            if inv is None:
+                raise NotFoundError(f"Inventory({sku}@{location_ref})")
+            current_sellable = inv.sellable if inv.sellable is not None else max(inv.quantity - inv.quarantine - inv.in_transit, 0)
+            ats = max(current_sellable - inv.reserved, 0)
+            if ats < quantity:
+                raise ValueError(f"Insufficient available stock to quarantine: ats={ats}, requested={quantity}")
+            inv.sellable = max(current_sellable - quantity, 0)
+            inv.quarantine = inv.quarantine + quantity
+            inv.available = inv.ats
+            self._entities["Inventory"][inv.id] = copy.deepcopy(inv)
+            return copy.deepcopy(inv)
+
+    def release_quarantine_atomic(
+        self, merchant_id: str, sku: str, location_ref: str, *, quantity: int
+    ):
+        """Atomically releases `quantity` from quarantine back to sellable stock."""
+        from sanocea.packages.domain_contract.models import Inventory
+
+        with self._inventory_lock:
+            inv = next(
+                (e for e in self._entities["Inventory"].values() if e.merchant_id == merchant_id and e.sku == sku and e.location_ref == location_ref),
+                None,
+            )
+            if inv is None:
+                raise NotFoundError(f"Inventory({sku}@{location_ref})")
+            if inv.quarantine < quantity:
+                raise ValueError(f"Cannot release {quantity} from quarantine; current quarantine is {inv.quarantine}")
+            inv.quarantine = inv.quarantine - quantity
+            current_sellable = inv.sellable if inv.sellable is not None else max(inv.quantity - inv.quarantine - inv.in_transit, 0)
+            inv.sellable = current_sellable + quantity
+            inv.available = inv.ats
+            self._entities["Inventory"][inv.id] = copy.deepcopy(inv)
+            return copy.deepcopy(inv)
 
     def adjust_reservation_atomic(self, merchant_id: str, reservation_id: str, *, mode: str, amount: int):
         """In-memory equivalent of PostgresStore.adjust_reservation_atomic - see that method's docstring
@@ -349,9 +395,12 @@ class Phase0Store:
                 if inv is not None:
                     inv.reserved = max(inv.reserved - apply_amount, 0)
                     if mode == "release":
-                        inv.available = max((inv.available if inv.available is not None else 0) + apply_amount, 0)
+                        inv.available = inv.ats
                     else:
                         inv.quantity = max(inv.quantity - apply_amount, 0)
+                        if inv.sellable is not None:
+                            inv.sellable = max(inv.sellable - apply_amount, 0)
+                        inv.available = inv.ats
                     self._entities["Inventory"][inv.id] = copy.deepcopy(inv)
             return reservation
 
@@ -383,7 +432,7 @@ class Phase0Store:
             shortfalls = []
             for line in lines:
                 inv = _inv(line["sku"])
-                available = (inv.quantity - inv.reserved) if inv else 0
+                available = inv.ats if inv else 0
                 if available < line["quantity_requested"]:
                     shortfalls.append(line)
 
@@ -406,7 +455,7 @@ class Phase0Store:
                 self._entities["InventoryReservation"][reservation.id] = copy.deepcopy(reservation)
                 inv = _inv(line["sku"])
                 inv.reserved = max(inv.reserved + line["quantity_requested"], 0)
-                inv.available = max((inv.available if inv.available is not None else inv.quantity) - line["quantity_requested"], 0)
+                inv.available = inv.ats
                 self._entities["Inventory"][inv.id] = copy.deepcopy(inv)
             return {
                 "success": True, "conflict": False,
@@ -538,13 +587,19 @@ class Phase0Store:
     def list_approvals(self, merchant_id: str) -> list[Approval]:
         return self.list(Approval, merchant_id)
 
-    def create_api_key(self, *, merchant_id: str | None, role: str, label: str | None = None) -> tuple[str, str]:
+    def create_api_key(
+        self, *, merchant_id: str | None, role: str, label: str | None = None,
+        allowed_merchants: list[str] | None = None,
+    ) -> tuple[str, str]:
         """Returns (key_id, raw_key). Only the hash is ever persisted - the raw key is returned exactly
-        once, to the caller that requested it, and never again."""
+        once, to the caller that requested it, and never again. `allowed_merchants`, when given, mints an
+        internal-operator key scoped to that explicit set instead of a single merchant_id - see
+        PostgresStore.create_api_key's own docstring; kept at parity here for unit-test/dev-harness use."""
         raw_key = generate_api_key()
         key_id = f"key_{secrets.token_hex(12)}"
         self._api_keys[hash_api_key(raw_key)] = {
-            "id": key_id, "merchant_id": merchant_id, "role": role, "label": label, "revoked": False,
+            "id": key_id, "merchant_id": None if allowed_merchants else merchant_id, "role": role,
+            "label": label, "revoked": False, "allowed_merchants": list(allowed_merchants) if allowed_merchants else None,
         }
         return key_id, raw_key
 

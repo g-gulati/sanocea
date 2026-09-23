@@ -17,7 +17,9 @@ from .models import (
     Cancellation,
     CanonicalEntity,
     Channel,
+    ChannelOperation,
     ConnectorCommand,
+    DemoSessionContact,
     Customer,
     CustomerSupportAction,
     ExceptionRecord,
@@ -35,6 +37,7 @@ from .models import (
     InventoryObservation,
     InventoryReservation,
     ListingVerification,
+    Location,
     MediaAsset,
     Merchant,
     Order,
@@ -63,6 +66,7 @@ from .models import (
     SupportIntent,
     TrackingEvent,
     Variant,
+    WhatsAppConversationState,
     WorkflowExecution,
     now_utc,
 )
@@ -75,6 +79,7 @@ T = TypeVar("T", bound=BaseModel)
 MODEL_TABLES: dict[str, str] = {
     "Merchant": "merchants",
     "Channel": "channels",
+    "Location": "locations",
     "Product": "products",
     "ProductDraft": "product_drafts",
     "Variant": "variants",
@@ -120,6 +125,9 @@ MODEL_TABLES: dict[str, str] = {
     "GoodsReceipt": "goods_receipts",
     "GoodsReceiptLine": "goods_receipt_lines",
     "IdentityDecision": "identity_decisions",
+    "ChannelOperation": "channel_operations",
+    "DemoSessionContact": "demo_session_contacts",
+    "WhatsAppConversationState": "whatsapp_conversation_states",
 }
 
 
@@ -171,6 +179,9 @@ TABLE_MODELS: dict[str, type[BaseModel]] = {
     "InboundShipmentLine": InboundShipmentLine,
     "GoodsReceipt": GoodsReceipt,
     "GoodsReceiptLine": GoodsReceiptLine,
+    "ChannelOperation": ChannelOperation,
+    "DemoSessionContact": DemoSessionContact,
+    "WhatsAppConversationState": WhatsAppConversationState,
 }
 
 
@@ -203,6 +214,28 @@ class PostgresStore:
     def delete_merchant(self, merchant_id: str) -> None:
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute("DELETE FROM merchants WHERE id = %s", (merchant_id,))
+
+    def clear_catalogue_drafts(self, merchant_id: str) -> dict[str, int]:
+        """Narrow "clean slate" for the catalogue/product-onboarding test data ONLY - deletes every
+        ProductDraft for this merchant plus every ExceptionRecord whose object_id points at one of
+        them. Deliberately does NOT touch orders/approvals/credentials/channels/audit - unlike
+        reset_prospect_tenant (packages/prospect_demo/reset.py), which wipes the entire tenant
+        including real Shopify credentials and channel config. Real gap this closes: rehearsal/test
+        product drafts (including image-only junk drafts from a WhatsApp attachment test) had no way
+        to be cleared without either living with the clutter or risking the full tenant wipe."""
+        with self.connect() as conn, conn.cursor() as cur:
+            cur.execute("SELECT id FROM product_drafts WHERE merchant_id = %s", (merchant_id,))
+            draft_ids = [row[0] for row in cur.fetchall()]
+            deleted_exceptions = 0
+            if draft_ids:
+                cur.execute(
+                    "DELETE FROM exceptions WHERE merchant_id = %s AND data->>'object_id' = ANY(%s)",
+                    (merchant_id, draft_ids),
+                )
+                deleted_exceptions = cur.rowcount
+            cur.execute("DELETE FROM product_drafts WHERE merchant_id = %s", (merchant_id,))
+            deleted_drafts = cur.rowcount
+        return {"product_drafts": deleted_drafts, "exceptions": deleted_exceptions}
 
     def put(self, entity: CanonicalEntity) -> CanonicalEntity:
         entity.sync.updated_at = now_utc()
@@ -605,6 +638,32 @@ class PostgresStore:
                     return Refund.model_validate(row[0])
                 else:
                     cur.execute("RELEASE SAVEPOINT refund_upsert")
+            elif isinstance(entity, Inventory):
+                cur.execute("SAVEPOINT inv_upsert")
+                try:
+                    cur.execute(
+                        """
+                        INSERT INTO inventory (id, merchant_id, data, updated_at)
+                        VALUES (%s, %s, %s, now())
+                        ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = now()
+                        """,
+                        (entity.id, entity.merchant_id, Json(data)),
+                    )
+                except psycopg2.errors.UniqueViolation:
+                    cur.execute("ROLLBACK TO SAVEPOINT inv_upsert")
+                    cur.execute(
+                        """
+                        UPDATE inventory SET id = %s, data = %s, updated_at = now()
+                        WHERE merchant_id = %s AND data->>'sku' = %s AND data->>'location_ref' = %s
+                        RETURNING data
+                        """,
+                        (entity.id, Json(data), entity.merchant_id, entity.sku, entity.location_ref),
+                    )
+                    row = cur.fetchone()
+                    if row:
+                        return Inventory.model_validate(row[0])
+                else:
+                    cur.execute("RELEASE SAVEPOINT inv_upsert")
             elif isinstance(entity, Order):
                 cur.execute(
                     """
@@ -1375,6 +1434,95 @@ class PostgresStore:
                     )
             return reservation
 
+    def quarantine_inventory_atomic(
+        self, merchant_id: str, sku: str, location_ref: str, *, quantity: int, reason: str = "inspection"
+    ) -> Inventory:
+        with self.connect() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                "SELECT data FROM inventory WHERE merchant_id = %(mid)s AND data->>'sku' = %(sku)s AND data->>'location_ref' = %(loc)s FOR UPDATE",
+                {"mid": merchant_id, "sku": sku, "loc": location_ref},
+            )
+            row = cur.fetchone()
+            if row is None:
+                raise NotFoundError(f"Inventory({sku}@{location_ref})")
+            inv = Inventory.model_validate(row["data"])
+            current_sellable = inv.sellable if inv.sellable is not None else max(inv.quantity - inv.quarantine - inv.in_transit, 0)
+            ats = max(current_sellable - inv.reserved, 0)
+            if ats < quantity:
+                raise ValueError(f"Insufficient available stock to quarantine: ats={ats}, requested={quantity}")
+            new_sellable = max(current_sellable - quantity, 0)
+            new_quarantine = inv.quarantine + quantity
+            new_available = max(new_sellable - inv.reserved, 0)
+            cur.execute(
+                """
+                UPDATE inventory SET
+                  data = jsonb_set(
+                    jsonb_set(
+                      jsonb_set(data, '{sellable}', to_jsonb(%(sellable)s::int)),
+                      '{quarantine}', to_jsonb(%(quarantine)s::int)
+                    ),
+                    '{available}', to_jsonb(%(available)s::int)
+                  ),
+                  updated_at = now()
+                WHERE merchant_id = %(mid)s AND data->>'sku' = %(sku)s AND data->>'location_ref' = %(loc)s
+                RETURNING data
+                """,
+                {
+                    "sellable": new_sellable,
+                    "quarantine": new_quarantine,
+                    "available": new_available,
+                    "mid": merchant_id,
+                    "sku": sku,
+                    "loc": location_ref,
+                },
+            )
+            updated_row = cur.fetchone()
+            return Inventory.model_validate(updated_row["data"])
+
+    def release_quarantine_atomic(
+        self, merchant_id: str, sku: str, location_ref: str, *, quantity: int
+    ) -> Inventory:
+        with self.connect() as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                "SELECT data FROM inventory WHERE merchant_id = %(mid)s AND data->>'sku' = %(sku)s AND data->>'location_ref' = %(loc)s FOR UPDATE",
+                {"mid": merchant_id, "sku": sku, "loc": location_ref},
+            )
+            row = cur.fetchone()
+            if row is None:
+                raise NotFoundError(f"Inventory({sku}@{location_ref})")
+            inv = Inventory.model_validate(row["data"])
+            if inv.quarantine < quantity:
+                raise ValueError(f"Cannot release {quantity} from quarantine; current quarantine is {inv.quarantine}")
+            new_quarantine = inv.quarantine - quantity
+            current_sellable = inv.sellable if inv.sellable is not None else max(inv.quantity - inv.quarantine - inv.in_transit, 0)
+            new_sellable = current_sellable + quantity
+            new_available = max(new_sellable - inv.reserved, 0)
+            cur.execute(
+                """
+                UPDATE inventory SET
+                  data = jsonb_set(
+                    jsonb_set(
+                      jsonb_set(data, '{sellable}', to_jsonb(%(sellable)s::int)),
+                      '{quarantine}', to_jsonb(%(quarantine)s::int)
+                    ),
+                    '{available}', to_jsonb(%(available)s::int)
+                  ),
+                  updated_at = now()
+                WHERE merchant_id = %(mid)s AND data->>'sku' = %(sku)s AND data->>'location_ref' = %(loc)s
+                RETURNING data
+                """,
+                {
+                    "sellable": new_sellable,
+                    "quarantine": new_quarantine,
+                    "available": new_available,
+                    "mid": merchant_id,
+                    "sku": sku,
+                    "loc": location_ref,
+                },
+            )
+            updated_row = cur.fetchone()
+            return Inventory.model_validate(updated_row["data"])
+
     def reserve_order_lines_atomic(
         self, merchant_id: str, source_type: str, source_id: str, location_ref: str, lines: list[dict[str, Any]],
     ) -> dict[str, Any]:
@@ -1414,19 +1562,19 @@ class PostgresStore:
             try:
                 cur.execute(
                     """
-                    SELECT data FROM inventory
+                    SELECT id, data FROM inventory
                     WHERE merchant_id = %(mid)s AND data->>'location_ref' = %(loc)s AND data->>'sku' = ANY(%(skus)s)
                     ORDER BY data->>'sku' ASC
                     FOR UPDATE
                     """,
                     {"mid": merchant_id, "loc": location_ref, "skus": skus_needed},
                 )
-                locked_by_sku = {row["data"]["sku"]: Inventory.model_validate(row["data"]) for row in cur.fetchall()}
+                locked_by_sku = {row["data"]["sku"]: (row["id"], Inventory.model_validate(row["data"])) for row in cur.fetchall()}
 
                 shortfalls = []
                 for line in lines:
-                    inv = locked_by_sku.get(line["sku"])
-                    available = (inv.quantity - inv.reserved) if inv else 0
+                    inv_tuple = locked_by_sku.get(line["sku"])
+                    available = inv_tuple[1].ats if inv_tuple else 0
                     if available < line["quantity_requested"]:
                         shortfalls.append(line)
 
@@ -1451,7 +1599,7 @@ class PostgresStore:
                         "INSERT INTO inventory_reservations (id, merchant_id, data) VALUES (%(id)s, %(mid)s, %(data)s)",
                         {"id": reservation.id, "mid": merchant_id, "data": Json(reservation.model_dump(mode="json"))},
                     )
-                    inv = locked_by_sku[line["sku"]]
+                    inv_id, inv = locked_by_sku[line["sku"]]
                     cur.execute(
                         """
                         UPDATE inventory SET
@@ -1462,7 +1610,7 @@ class PostgresStore:
                           updated_at = now()
                         WHERE id = %(id)s
                         """,
-                        {"q": line["quantity_requested"], "id": inv.id},
+                        {"q": line["quantity_requested"], "id": inv_id},
                     )
                 conn.commit()
                 return {
@@ -1476,14 +1624,27 @@ class PostgresStore:
                 conn.rollback()
                 return {"success": False, "conflict": True, "line_results": []}
 
-    def create_api_key(self, *, merchant_id: str | None, role: str, label: str | None = None) -> tuple[str, str]:
+    def create_api_key(
+        self, *, merchant_id: str | None, role: str, label: str | None = None,
+        allowed_merchants: list[str] | None = None,
+    ) -> tuple[str, str]:
+        """`allowed_merchants`, when given, mints an internal-operator key explicitly authorized for
+        exactly that set of merchants (api_keys.merchant_id is left NULL - this key is not scoped to one
+        merchant, it is scoped to the set in api_key_merchants). Every existing caller that never passes
+        this keeps creating single-merchant keys exactly as before - purely additive. Only meaningful for
+        role='operator'; a 'service' key is already unrestricted and never needs this."""
         raw_key = generate_api_key()
         key_id = f"key_{os.urandom(12).hex()}"
         with self.connect() as conn, conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO api_keys (id, merchant_id, key_hash, role, label) VALUES (%s, %s, %s, %s, %s)",
-                (key_id, merchant_id, hash_api_key(raw_key), role, label),
+                (key_id, None if allowed_merchants else merchant_id, hash_api_key(raw_key), role, label),
             )
+            if allowed_merchants:
+                cur.executemany(
+                    "INSERT INTO api_key_merchants (api_key_id, merchant_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                    [(key_id, m) for m in allowed_merchants],
+                )
         return key_id, raw_key
 
     def resolve_api_key(self, raw_key: str) -> dict[str, Any] | None:
@@ -1493,7 +1654,13 @@ class PostgresStore:
                 (hash_api_key(raw_key),),
             )
             row = cur.fetchone()
-        return dict(row) if row else None
+            if row is None:
+                return None
+            record = dict(row)
+            cur.execute("SELECT merchant_id FROM api_key_merchants WHERE api_key_id = %s", (record["id"],))
+            allowed = [r["merchant_id"] for r in cur.fetchall()]
+            record["allowed_merchants"] = allowed or None
+        return record
 
     def revoke_api_key(self, key_id: str) -> None:
         with self.connect() as conn, conn.cursor() as cur:

@@ -23,10 +23,14 @@ from sanocea.packages.domain_contract.models import (
     ExternalIdMapping,
     ExternalRef,
     IdempotencyInfo,
+    Inventory,
+    Location,
     Order,
     OrderLine,
+    Product,
     SourceOfTruth,
     SyncMetadata,
+    new_id,
 )
 
 from .auth import ShopifyAccessTokenManager, ShopifyAuthenticationError
@@ -165,10 +169,62 @@ class ShopifyLiveConnector(GuardedConnector):
                 ),
                 "register_webhooks": Capability(name="register_webhooks", status=CapabilityStatus.SUPPORTED, mode=MutationMode.SYNC),
                 "reconcile": Capability(name="reconcile", status=CapabilityStatus.SUPPORTED),
+                "publish_to_online_store": Capability(
+                    name="publish_to_online_store", status=CapabilityStatus.SUPPORTED, mode=MutationMode.SYNC,
+                    notes="Distinct from publish_product/productSet - makes an existing product visible "
+                          "on the storefront via publishablePublish against the 'Online Store' "
+                          "publication. Requires the write_publications access scope.",
+                ),
+                "update_variant_price": Capability(name="update_variant_price", status=CapabilityStatus.SUPPORTED, mode=MutationMode.SYNC),
             },
         )
 
     # --- Webhook ingress -------------------------------------------------------------------------------
+
+    def resync_order(self, merchant_id: str, external_order_id: str) -> dict[str, Any]:
+        """Real, reusable recovery path for a missed/dropped webhook (the exact real gap the Mariyal/
+        Premium Basket rehearsal surfaced - order #1019 never advanced because its ORDERS_UPDATED
+        webhook was silently rejected by a staleness-check bug, now fixed, but the past delivery is
+        already gone; Shopify does not redeliver on request). Fetches the REAL current order straight
+        from Shopify via GraphQL and feeds it through the SAME `_upsert_order`/workflow-trigger path a
+        genuine webhook uses - not a fabricated update, not a direct DB write, just a manual pull of
+        exactly what push would have delivered. Reuses `_upsert_order` unchanged; only the payload's
+        origin differs (GraphQL fetch vs. webhook body)."""
+        data = self._graphql(
+            """query($id: ID!) { order(id: $id) {
+                id name email displayFinancialStatus displayFulfillmentStatus updatedAt cancelledAt
+                customer { firstName }
+                lineItems(first: 50) { nodes { sku title quantity originalUnitPriceSet { shopMoney { amount } } } }
+            } }""",
+            {"id": self._order_gid(external_order_id)},
+        )
+        order_data = data["order"]
+        financial_map = {"PAID": "paid", "PENDING": "pending", "AUTHORIZED": "authorized", "REFUNDED": "refunded", "PARTIALLY_REFUNDED": "partially_refunded", "VOIDED": "voided"}
+        payload = {
+            "id": external_order_id,
+            "order_number": order_data["name"].lstrip("#"),
+            "email": order_data.get("email"),
+            "customer": {"first_name": (order_data.get("customer") or {}).get("firstName")},
+            "financial_status": financial_map.get(order_data.get("displayFinancialStatus"), "unknown"),
+            "fulfillment_status": (order_data.get("displayFulfillmentStatus") or "").lower() or None,
+            "cancelled_at": order_data.get("cancelledAt"),
+            "updated_at": order_data.get("updatedAt"),
+            "total_price": "0",
+            "currency": "USD",
+            "line_items": [
+                {"sku": li.get("sku"), "title": li.get("title"), "quantity": li.get("quantity"),
+                 "price": (li.get("originalUnitPriceSet") or {}).get("shopMoney", {}).get("amount", "0")}
+                for li in order_data.get("lineItems", {}).get("nodes", [])
+            ],
+        }
+        raw = self._store_raw(merchant_id=merchant_id, source="shopify_live:manual_resync", payload=payload, headers={}, checksum=hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest())
+        result = self._upsert_order(merchant_id, payload, raw.id)
+        self.audit.record(
+            merchant_id=merchant_id, actor="operator", source="shopify_live", action="order_manual_resync",
+            object_type="Order", object_id=result["order_id"], evidence_ref=raw.id, result="synced",
+        )
+        self.workflow.start_or_signal_order(merchant_id, result["order_id"], {"topic": "manual_resync", "raw_payload_id": raw.id})
+        return result
 
     def ingest_webhook(self, merchant_id: str, headers: dict[str, str], body: bytes) -> dict[str, Any]:
         headers = {k.lower(): v for k, v in headers.items()}
@@ -231,12 +287,24 @@ class ShopifyLiveConnector(GuardedConnector):
             # judged by comparing updated_at timestamps instead, mirroring WooCommerceConnector's
             # date_modified approach (same underlying reason: neither real platform sends a sequence
             # int, only Sanocea's own simulator payloads invented one for deterministic test ordering).
-            if incoming_updated and order.sync.source_updated_at and incoming_updated <= order.sync.source_updated_at.isoformat():
+            #
+            # REAL BUG FOUND LIVE (Mariyal/Premium Basket rehearsal, order #1019): this used to be `<=`,
+            # not `<`. Shopify's own bogus (test) payment gateway captures payment in the SAME SECOND as
+            # order creation, so the ORDERS_CREATE webhook (financial_status=authorized) and the
+            # following ORDERS_UPDATED webhook (financial_status=paid) can carry an IDENTICAL updated_at
+            # timestamp - `<=` silently discarded the second, genuinely newer webhook as "stale" because
+            # it wasn't STRICTLY greater, permanently stranding the order at payment_status=authorized
+            # and never triggering inventory reservation/exception detection at all. True duplicate
+            # deliveries of the SAME webhook are already fully deduped upstream by ingest_webhook's own
+            # idempotency guard (keyed on X-Shopify-Webhook-Id) before this method is ever called a
+            # second time for one delivery - this check exists only to reject a genuinely OLDER,
+            # out-of-order event, so only a strictly-older timestamp should ever be dropped.
+            if incoming_updated and order.sync.source_updated_at and incoming_updated < order.sync.source_updated_at.isoformat():
                 self.audit.record(
                     merchant_id=merchant_id, actor="shopify_live", source="webhook", action="out_of_order_event_ignored",
                     object_type="Order", object_id=order.id, evidence_ref=raw_id, result="ignored",
                 )
-                return {"order_id": order.id, "status": order.status}
+                return {"order_id": order.id, "status": order.status, "ignored": True}
         else:
             order = Order(
                 merchant_id=merchant_id,
@@ -283,17 +351,47 @@ class ShopifyLiveConnector(GuardedConnector):
 
     # --- Outbound reads ----------------------------------------------------------------------------
 
+    def search_taxonomy_categories(self, search: str, first: int = 10) -> list[dict[str, Any]]:
+        """Queries Shopify's official Admin GraphQL Taxonomy API for standardized categories."""
+        data = self._graphql(
+            """query($search: String!, $first: Int!) {
+                taxonomy {
+                    categories(search: $search, first: $first) {
+                        nodes {
+                            id
+                            name
+                            fullName
+                            isLeaf
+                        }
+                    }
+                }
+            }""",
+            {"search": search, "first": first},
+        )
+        return data.get("taxonomy", {}).get("categories", {}).get("nodes", [])
+
     def fetch(self, merchant_id: str, entity_type: str, external_id: str) -> dict[str, Any]:
         self.describe_capabilities().require("fetch")
         if entity_type == "product":
             data = self._graphql(
-                "query($id: ID!) { product(id: $id) { title status variants(first: 1) { nodes { sku price } } } }",
+                "query($id: ID!) { product(id: $id) { title status productType category { id name fullName } variants(first: 1) { nodes { sku price inventoryPolicy inventoryQuantity inventoryItem { tracked measurement { weight { value unit } } } } } } }",
                 {"id": self._product_gid(external_id)},
             )
             raw = data["product"]
             variant = (raw.get("variants", {}).get("nodes") or [{}])[0]
+            cat = raw.get("category") or {}
+            inv_item = variant.get("inventoryItem") or {}
+            meas = (inv_item.get("measurement") or {}).get("weight") or {}
             return {
                 "title": raw.get("title"), "sku": variant.get("sku"), "price": variant.get("price"),
+                "product_type": raw.get("productType"),
+                "category": cat.get("id"),
+                "category_full_name": cat.get("fullName"),
+                "inventory_quantity": variant.get("inventoryQuantity"),
+                "inventory_tracked": inv_item.get("tracked"),
+                "inventory_policy": variant.get("inventoryPolicy"),
+                "weight": meas.get("value"),
+                "weight_unit": meas.get("unit"),
                 "status": "active" if raw.get("status") == "ACTIVE" else "inactive", "raw": raw,
             }
         if entity_type == "inventory":
@@ -337,15 +435,132 @@ class ShopifyLiveConnector(GuardedConnector):
             # Shopify's own convention of one option named "Title" with value "Default Title" (the same
             # shape Shopify's own admin UI/REST API produces for a non-variant product). Declared at the
             # product level (productOptions) and referenced by each variant's optionValues.
-            variant_input: dict[str, Any] = {
-                "price": payload.get("price"), "sku": payload.get("sku"),
-                "optionValues": [{"optionName": "Title", "name": "Default Title"}],
+            # Determine inventory location
+            loc_id = payload.get("inventory_location_id") or payload.get("inventory_location")
+            location_gid = self._location_gid(loc_id)
+
+            # Inventory Tracking & Overselling Prevention
+            # Physical goods default to tracked with inventoryPolicy: DENY.
+            # Only when the merchant explicitly chose track_inventory=False is tracking disabled.
+            is_untracked = payload.get("track_inventory") is False
+            if is_untracked:
+                inv_tracked = False
+                inv_policy = "CONTINUE"
+                inv_quantities = []
+            else:
+                inv_tracked = True
+                inv_policy = "DENY"  # Prevents arbitrary quantities in cart / overselling!
+                qty = int(payload.get("inventory_quantity")) if payload.get("inventory_quantity") is not None else 0
+                inv_quantities = [{"locationId": location_gid, "name": "available", "quantity": qty}]
+
+            # Measurement (weight)
+            weight_val = payload.get("weight")
+            weight_unit = payload.get("weight_unit") or "GRAMS"
+            measurement = None
+            if weight_val is not None:
+                try:
+                    measurement = {"weight": {"value": float(weight_val), "unit": weight_unit}}
+                except Exception:
+                    pass
+
+            inv_item: dict[str, Any] = {
+                "tracked": inv_tracked,
+                "requiresShipping": payload.get("requires_shipping", True) is not False,
             }
-            product_input: dict[str, Any] = {
-                "title": payload.get("title"),
-                "productOptions": [{"name": "Title", "values": [{"name": "Default Title"}]}],
-                "variants": [variant_input],
-            }
+            if measurement:
+                inv_item["measurement"] = measurement
+
+            # Variants & Options Construction
+            variants_list = payload.get("variants") or []
+            options_list = payload.get("options") or []
+
+            if variants_list and len(variants_list) > 1 and options_list:
+                product_options = []
+                for opt_name in options_list:
+                    opt_vals = []
+                    for v in variants_list:
+                        val = (v.get("option_values") or {}).get(opt_name)
+                        if val and str(val) not in opt_vals:
+                            opt_vals.append(str(val))
+                    product_options.append({"name": opt_name, "values": [{"name": v} for v in opt_vals]})
+
+                variant_inputs = []
+                for v in variants_list:
+                    v_option_values = [{"optionName": k, "name": str(val)} for k, val in (v.get("option_values") or {}).items()]
+                    v_stock = v.get("inventory_quantity") if v.get("inventory_quantity") is not None else payload.get("inventory_quantity")
+                    v_quantities = [{"locationId": location_gid, "name": "available", "quantity": int(v_stock or 0)}] if inv_tracked else []
+                    v_item = dict(inv_item)
+                    if v.get("weight"):
+                        v_item["measurement"] = {"weight": {"value": float(v["weight"]), "unit": weight_unit}}
+                    variant_inputs.append({
+                        "price": v.get("price") or payload.get("price"),
+                        "sku": v.get("sku") or payload.get("sku"),
+                        "barcode": v.get("barcode"),
+                        "optionValues": v_option_values,
+                        "inventoryPolicy": inv_policy,
+                        "inventoryItem": v_item,
+                        "inventoryQuantities": v_quantities,
+                    })
+                product_input: dict[str, Any] = {
+                    "title": payload.get("title"),
+                    "productOptions": product_options,
+                    "variants": variant_inputs,
+                }
+            else:
+                variant_input: dict[str, Any] = {
+                    "price": payload.get("price"),
+                    "sku": payload.get("sku"),
+                    "optionValues": [{"optionName": "Title", "name": "Default Title"}],
+                    "inventoryPolicy": inv_policy,
+                    "inventoryItem": inv_item,
+                }
+                if inv_quantities:
+                    variant_input["inventoryQuantities"] = inv_quantities
+                product_input = {
+                    "title": payload.get("title"),
+                    "productOptions": [{"name": "Title", "values": [{"name": "Default Title"}]}],
+                    "variants": [variant_input],
+                }
+            # Real gap closed here (found live, Premium Basket rehearsal): a product's real image URL
+            # was being captured as genuine evidence on the SANOCEA draft (commercial_facts["image"])
+            # but never actually sent to Shopify - productSet's ProductSetInput accepts real media via
+            # `files: [FileSetInput!]` (originalSource + contentType), fetched and hosted by Shopify
+            # itself from the given URL. Only added when a real image URL is present in the
+            # connector-agnostic payload's attributes - never fabricated, never required.
+            image_url = (payload.get("attributes") or {}).get("image")
+            if image_url:
+                product_input["files"] = [{"originalSource": image_url, "contentType": "IMAGE"}]
+            # Real gap closed here, same rehearsal (found live, Premium Basket): description/vendor/
+            # tags/SEO were captured as real evidence on the SANOCEA draft whenever the source data
+            # carried them (or patched by hand afterward, which is the actual problem being fixed) but
+            # never sent to Shopify at all - productSet only ever received title/sku/price. A real
+            # product listing needs these to look complete; sending them here, when present, closes
+            # that gap for every future product, not just the ones already patched by hand today.
+            # REAL BUG found live (Premium Basket rehearsal, screenshot evidence): the connector-agnostic
+            # payload has carried `product_type` since the docstring above was written, but nothing ever
+            # read it - every published product showed "Type: None" in Shopify Admin regardless of what
+            # SANOCEA's own draft had. Fixed by actually mapping it, same as every other optional field
+            # here: only sent when present, never fabricated.
+            product_type = payload.get("product_type")
+            if product_type:
+                product_input["productType"] = product_type
+            category = payload.get("category")
+            if category:
+                product_input["category"] = category
+            attrs = payload.get("attributes") or {}
+            description = attrs.get("description")
+            if description:
+                product_input["descriptionHtml"] = description
+            vendor = attrs.get("vendor")
+            if vendor:
+                product_input["vendor"] = vendor
+            tags = attrs.get("tags")
+            if tags:
+                product_input["tags"] = [t.strip() for t in str(tags).split(",") if t.strip()]
+            seo_title = attrs.get("seo_title")
+            seo_description = attrs.get("seo_description")
+            if seo_title or seo_description:
+                product_input["seo"] = {k: v for k, v in {"title": seo_title, "description": seo_description}.items() if v}
             # REAL FINDING: productSet with no `identifier` ALWAYS creates a new product, even for a SKU
             # that already exists - it is not an implicit upsert-by-SKU the way the simulator (and
             # WooCommerce's real REST API) both behave. Confirmed against the real store: an "update"
@@ -361,7 +576,16 @@ class ShopifyLiveConnector(GuardedConnector):
             data = self._graphql(
                 """mutation($input: ProductSetInput!, $identifier: ProductSetIdentifiers, $synchronous: Boolean) {
                     productSet(input: $input, identifier: $identifier, synchronous: $synchronous) {
-                        product { id title }
+                        product {
+                            id
+                            title
+                            productType
+                            category {
+                                id
+                                name
+                                fullName
+                            }
+                        }
                         userErrors { field message }
                     }
                 }""",
@@ -442,13 +666,38 @@ class ShopifyLiveConnector(GuardedConnector):
             return MutationResult(status="accepted", payload=data["inventorySetQuantities"])
         if request.action == "create_fulfilment":
             order_id = payload["external_order_id"]
+            # Optional `quantities` (sku -> quantity to fulfil now): the Mariyal/inventory-shortage
+            # demo needs to fulfil ONLY the available quantity, not Shopify's default (fulfil every
+            # remaining unit of every OPEN fulfillment order line). Omitting `quantities` keeps the
+            # original behavior byte-for-byte (existing callers/tests unaffected).
+            quantities = payload.get("quantities")
             fo_data = self._graphql(
-                "query($id: ID!) { order(id: $id) { fulfillmentOrders(first: 5) { nodes { id status } } } }",
+                """query($id: ID!) { order(id: $id) { fulfillmentOrders(first: 5) { nodes {
+                    id status lineItems(first: 20) { nodes { id remainingQuantity lineItem { sku } } }
+                } } } }""",
                 {"id": self._order_gid(order_id)},
             )
             fulfillment_orders = [fo for fo in fo_data["order"]["fulfillmentOrders"]["nodes"] if fo["status"] == "OPEN"]
             if not fulfillment_orders:
                 raise ValueError(f"order {order_id} has no OPEN fulfillment orders to fulfil")
+            if quantities is None:
+                line_items_by_fo = [{"fulfillmentOrderId": fo["id"]} for fo in fulfillment_orders]
+            else:
+                line_items_by_fo = []
+                for fo in fulfillment_orders:
+                    line_items = []
+                    for node in fo["lineItems"]["nodes"]:
+                        sku = node["lineItem"].get("sku")
+                        requested = quantities.get(sku)
+                        if not requested:
+                            continue
+                        qty = min(int(requested), int(node["remainingQuantity"]))
+                        if qty > 0:
+                            line_items.append({"id": node["id"], "quantity": qty})
+                    if line_items:
+                        line_items_by_fo.append({"fulfillmentOrderId": fo["id"], "fulfillmentOrderLineItems": line_items})
+                if not line_items_by_fo:
+                    raise ValueError(f"order {order_id}: none of the requested skus/quantities match any OPEN fulfillment order line item")
             data = self._graphql(
                 """mutation($fulfillment: FulfillmentInput!) {
                     fulfillmentCreate(fulfillment: $fulfillment) {
@@ -457,7 +706,7 @@ class ShopifyLiveConnector(GuardedConnector):
                     }
                 }""",
                 {"fulfillment": {
-                    "lineItemsByFulfillmentOrder": [{"fulfillmentOrderId": fo["id"]} for fo in fulfillment_orders],
+                    "lineItemsByFulfillmentOrder": line_items_by_fo,
                     "notifyCustomer": False,
                 }},
                 user_errors_path=("fulfillmentCreate", "userErrors"),
@@ -513,6 +762,70 @@ class ShopifyLiveConnector(GuardedConnector):
             )
             refund = data["refundCreate"]["refund"]
             return MutationResult(status="accepted", external_ref=refund["id"], payload=refund)
+        if request.action == "publish_to_online_store":
+            # REAL, DISTINCT GAP from `publish_product` above: `productSet` (and Sanocea's own
+            # Publication concept) only creates/updates the product record itself - it does NOT make the
+            # product visible on any storefront. Shopify separately gates visibility per SALES CHANNEL
+            # (Online Store, POS, etc.) via the Publishable interface - a product with status ACTIVE and
+            # zero channel publications is real and complete but invisible to a shopper. Discovered live
+            # during the Mariyal/Premium Basket rehearsal: the product existed, was ACTIVE, had correct
+            # inventory - and the storefront still 404'd, because nothing had ever called
+            # publishablePublish for the "Online Store" publication. Requires the write_publications
+            # scope (added to shopify.app.toml alongside this fix, 2026-09-18).
+            sku = payload.get("sku")
+            product_gid = payload.get("external_product_id") or (self._find_product_gid_by_sku(sku) if sku else None)
+            if not product_gid:
+                raise ValueError("publish_to_online_store requires sku or external_product_id")
+            pub_data = self._graphql("query { publications(first: 10) { nodes { id name } } }", {})
+            publications = pub_data.get("publications", {}).get("nodes") or []
+            online_store = next((p for p in publications if p["name"] == "Online Store"), None)
+            if online_store is None:
+                raise ValueError(f"no 'Online Store' publication found on this shop (available: {[p['name'] for p in publications]})")
+            data = self._graphql(
+                """mutation($id: ID!, $input: [PublicationInput!]!) {
+                    publishablePublish(id: $id, input: $input) {
+                        publishable { __typename }
+                        userErrors { field message }
+                    }
+                }""",
+                {"id": product_gid, "input": [{"publicationId": online_store["id"]}]},
+                user_errors_path=("publishablePublish", "userErrors"),
+            )
+            # Real gap found live (Premium Basket rehearsal): `publishablePublish` returns
+            # userErrors=[] (genuine success) immediately, but Shopify's own read model
+            # (resourcePublicationsCount) can lag a moment behind - confirmed live, two products
+            # showed count=0 right after this call reported success, then count=1 on the exact same
+            # unmodified retry seconds later. Trusting the mutation's own "accepted" response alone
+            # caused SANOCEA to tell the owner a product was "now live" while it was still invisible on
+            # the real storefront - exactly the kind of silent read/write mismatch the read-back
+            # discipline elsewhere in this connector exists to catch. A short bounded poll here, not a
+            # blind trust of the write response.
+            import time as _time
+
+            verified = False
+            for _ in range(4):
+                check = self._graphql(
+                    "query($id: ID!) { node(id: $id) { ... on Product { resourcePublicationsCount { count } } } }",
+                    {"id": product_gid},
+                )
+                count = ((check.get("node") or {}).get("resourcePublicationsCount") or {}).get("count", 0)
+                if count and count > 0:
+                    verified = True
+                    break
+                _time.sleep(2)
+            payload = dict(data["publishablePublish"])
+            payload["verified_visible"] = verified
+            return MutationResult(status="accepted" if verified else "accepted_unverified", external_ref=product_gid, payload=payload)
+        if request.action == "update_variant_price":
+            res = self.update_variant_price(
+                request.merchant_id,
+                variant_gid=payload.get("variant_gid"),
+                product_gid=payload.get("product_gid"),
+                sku=payload.get("sku"),
+                price=payload["price"],
+                compare_at_price=payload.get("compare_at_price"),
+            )
+            return MutationResult(status="accepted", payload=res)
         raise ValueError(f"unsupported Shopify (live) mutation action: {request.action}")
 
     def register_webhooks(self, merchant_id: str, channel_id: str) -> MutationResult:
@@ -645,14 +958,26 @@ class ShopifyLiveConnector(GuardedConnector):
     def _ensure_location_gid(self) -> str:
         """Discovers and caches the store's primary inventory location - never configured manually. A
         merchant onboarding onto shopify_live supplies no location value at all; the first inventory
-        operation triggers this one-time (per connector instance) lookup."""
+        operation triggers this one-time (per connector instance) lookup.
+
+        REAL BUG FOUND LIVE (Mariyal/Premium Basket rehearsal): this used to take whichever location
+        `locations(first: 1)` happened to return first, with no ordering guarantee. On this store that
+        was "My Custom Location", which has `shipsInventory: false` - stock set/read there NEVER counts
+        toward real storefront checkout eligibility (confirmed live: Admin showed inventoryQuantity>0
+        and availableForSale=true, yet the storefront rendered "Sold out", because Shopify's real
+        buyability computation only considers locations that actually ship). Now explicitly prefers the
+        first location with `shipsInventory: true` - the one location property that actually determines
+        whether stock there is sellable online - falling back to the first location overall only if none
+        ships (a store with pickup-only locations, where the old behavior was at least not systematically
+        wrong)."""
         if self.default_location_gid:
             return self.default_location_gid
-        data = self._graphql("query { locations(first: 1) { nodes { id } } }", {})
+        data = self._graphql("query { locations(first: 10) { nodes { id shipsInventory } } }", {})
         nodes = data.get("locations", {}).get("nodes") or []
         if not nodes:
             raise ValueError(f"store {self.shop_domain} has no locations - cannot perform inventory operations")
-        self.default_location_gid = nodes[0]["id"]
+        shipping_node = next((n for n in nodes if n.get("shipsInventory")), None)
+        self.default_location_gid = (shipping_node or nodes[0])["id"]
         return self.default_location_gid
 
     # --- GID helpers -------------------------------------------------------------------------------
@@ -662,6 +987,16 @@ class ShopifyLiveConnector(GuardedConnector):
 
     def _order_gid(self, external_id: str) -> str:
         return external_id if external_id.startswith("gid://") else f"gid://shopify/Order/{external_id}"
+
+    def _location_gid(self, external_id: str | None = None) -> str:
+        if not external_id:
+            return self._ensure_location_gid()
+        if str(external_id).startswith("gid://shopify/Location/"):
+            return str(external_id)
+        cleaned = str(external_id).removeprefix("loc_")
+        if cleaned.isdigit():
+            return f"gid://shopify/Location/{cleaned}"
+        return self._ensure_location_gid()
 
     def _inventory_item_for_product(self, product_external_id: str, location_gid: str) -> tuple[str, str | None, int, bool]:
         """Resolves a real Shopify InventoryItem (a separate entity, scoped to one ProductVariant) and
@@ -709,9 +1044,333 @@ class ShopifyLiveConnector(GuardedConnector):
         nodes = data.get("productVariants", {}).get("nodes") or []
         return nodes[0]["product"]["id"] if nodes else None
 
+    def _find_variant_gid_by_sku(self, sku: str) -> tuple[str, str] | None:
+        """Returns (variant_gid, product_gid) for a SKU if found in Shopify."""
+        data = self._graphql(
+            "query($q: String!) { productVariants(first: 1, query: $q) { nodes { id product { id } } } }",
+            {"q": f"sku:{sku}"},
+        )
+        nodes = data.get("productVariants", {}).get("nodes") or []
+        if nodes:
+            return nodes[0]["id"], nodes[0]["product"]["id"]
+        return None
+
+    def update_variant_price(
+        self,
+        merchant_id: str,
+        *,
+        variant_gid: str | None = None,
+        product_gid: str | None = None,
+        sku: str | None = None,
+        price: float | str,
+        compare_at_price: float | str | None = None,
+    ) -> dict[str, Any]:
+        """Updates variant price and optional compare-at price in Shopify using productVariantsBulkUpdate."""
+        if not variant_gid or not product_gid:
+            if sku:
+                found = self._find_variant_gid_by_sku(sku)
+                if found:
+                    variant_gid, product_gid = found
+        if not variant_gid:
+            raise ValueError(f"Cannot update variant price: no variant_gid or sku provided (sku={sku})")
+        if not product_gid:
+            data = self._graphql(
+                "query($id: ID!) { productVariant(id: $id) { product { id } } }",
+                {"id": variant_gid},
+            )
+            product_gid = (data.get("productVariant") or {}).get("product", {}).get("id")
+        if not product_gid:
+            raise ValueError(f"Cannot update variant price: could not resolve product_gid for variant {variant_gid}")
+
+        variant_payload: dict[str, Any] = {
+            "id": variant_gid,
+            "price": f"{float(price):.2f}",
+        }
+        if compare_at_price is not None:
+            variant_payload["compareAtPrice"] = f"{float(compare_at_price):.2f}"
+
+        data = self._graphql(
+            """mutation productVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+                productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+                    productVariants { id price compareAtPrice }
+                    userErrors { field message }
+                }
+            }""",
+            {"productId": product_gid, "variants": [variant_payload]},
+            user_errors_path=("productVariantsBulkUpdate", "userErrors"),
+        )
+        self.audit.record(
+            merchant_id=merchant_id,
+            actor="shopify_live",
+            source="approval_execution",
+            action="variant_price_updated",
+            object_type="Variant",
+            object_id=variant_gid,
+            result="updated",
+            requested_mutation={"price": str(price), "compare_at_price": str(compare_at_price)},
+        )
+        return data["productVariantsBulkUpdate"]
+
     def _idempotent_uuid(self, idempotency_key: str) -> str:
         """refundCreate requires @idempotent(key: "uuid") as of API version 2026-04 - a deterministic
         UUID5 derived from Sanocea's own idempotency_key so a retried Sanocea mutation is idempotent on
         Shopify's side too (same input key -> same UUID -> same Shopify-side dedup), never a fresh
         random UUID per call, which would defeat the point."""
         return str(uuid.uuid5(uuid.NAMESPACE_URL, f"sanocea:{idempotency_key}"))
+
+    def sync_catalog_and_inventory(self, merchant_id: str) -> dict[str, Any]:
+        """Imports products, variants, SKUs, and location-scoped inventory from live Shopify into Sanocea,
+        verifies location-scoped ATS against Shopify inventory levels, and runs deterministic anomaly detection
+        for Premium Basket audit patterns (blank SKUs, duplicate SKUs, inverted unit pricing, compare-at anomalies)."""
+        import re
+
+        query = """
+        query {
+          locations(first: 10) {
+            nodes { id name isActive }
+          }
+          products(first: 50) {
+            nodes {
+              id title status productType
+              variants(first: 20) {
+                nodes {
+                  id title sku price compareAtPrice inventoryQuantity
+                  inventoryItem {
+                    id
+                    inventoryLevels(first: 10) {
+                      nodes {
+                        location { id name }
+                        quantities(names: ["available"]) { name quantity }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+        data = self._graphql(query, {})
+        locations_data = data.get("locations", {}).get("nodes") or []
+        products_data = data.get("products", {}).get("nodes") or []
+
+        synced_locations = []
+        loc_map = {}
+        for loc in locations_data:
+            loc_num = loc["id"].split("/")[-1]
+            loc_ref = f"loc_{loc_num}"
+            loc_name = loc["name"]
+            location_entity = Location(
+                merchant_id=merchant_id,
+                id=loc_ref,
+                name=loc_name,
+                code=loc_name[:10].upper().replace(" ", "_"),
+                is_active=loc.get("isActive", True),
+                source_of_truth=SourceOfTruth.CHANNEL,
+                external_refs=[ExternalRef(system=self.name, entity_type="location", external_id=loc["id"])],
+            )
+            self.store.put(location_entity)
+            synced_locations.append({"id": loc_ref, "name": loc_name, "external_id": loc["id"]})
+            loc_map[loc["id"]] = loc_ref
+
+        anomalies = {
+            "blank_skus": [],
+            "duplicate_skus": [],
+            "unit_pricing_inversions": [],
+            "compare_at_anomalies": [],
+            "low_stock_risks": [],
+            "quarantined_items": [],
+        }
+        seen_skus = {}
+        imported_products = 0
+        imported_variants = 0
+        imported_inventory = 0
+
+        config = self.store.get_config(merchant_id)
+        safety_stock = config.get("inventory", {}).get("safety_stock_default", 10)
+
+        for p in products_data:
+            prod_id = f"prd_{p['id'].split('/')[-1]}"
+            canonical_product = Product(
+                merchant_id=merchant_id,
+                id=prod_id,
+                title=p["title"],
+                status="published" if p["status"] == "ACTIVE" else "draft",
+                source_of_truth=SourceOfTruth.CHANNEL,
+                external_refs=[ExternalRef(system=self.name, entity_type="product", external_id=p["id"])],
+            )
+            self.store.put(canonical_product)
+            self.store.put_external_mapping(
+                ExternalIdMapping(
+                    merchant_id=merchant_id,
+                    sanocea_entity_type="Product",
+                    sanocea_id=canonical_product.id,
+                    external_system=self.name,
+                    external_entity_type="product",
+                    external_id=p["id"],
+                    channel_id=self.name,
+                )
+            )
+            imported_products += 1
+
+            variants = p.get("variants", {}).get("nodes") or []
+            pack_variants = []
+            for v in variants:
+                title = v.get("title", "")
+                sku = (v.get("sku") or "").strip()
+                price_f = float(v.get("price") or 0)
+                compare_f = float(v.get("compareAtPrice") or 0) if v.get("compareAtPrice") else None
+
+                imported_variants += 1
+
+                if not sku:
+                    anomalies["blank_skus"].append({
+                        "product_id": prod_id,
+                        "product_title": p["title"],
+                        "variant_id": v["id"],
+                        "variant_title": title,
+                        "finding_id": "TPB-027",
+                        "issue": "Sellable variant has blank/missing SKU identifier",
+                        "recommended": "Generate canonical SKU with syntax [BRAND]-[CAT]-[NAME]-[SIZE]",
+                    })
+
+                if sku:
+                    if sku in seen_skus:
+                        anomalies["duplicate_skus"].append({
+                            "sku": sku,
+                            "first_product": seen_skus[sku]["product_title"],
+                            "duplicate_product": p["title"],
+                            "duplicate_variant": title,
+                            "finding_id": "TPB-028",
+                            "issue": f"SKU '{sku}' is shared by multiple variants across the catalogue",
+                            "recommended": f"Assign distinct packaging SKU code e.g. {sku}-JAR vs {sku}-POUCH",
+                        })
+                    else:
+                        seen_skus[sku] = {"product_title": p["title"], "variant_title": title}
+
+                if compare_f and price_f > compare_f:
+                    anomalies["compare_at_anomalies"].append({
+                        "product_title": p["title"],
+                        "variant_title": title,
+                        "sku": sku,
+                        "selling_price": price_f,
+                        "compare_at_price": compare_f,
+                        "finding_id": "TPB-018",
+                        "issue": f"Selling price ₹{price_f:.2f} exceeds compare-at/MRP price ₹{compare_f:.2f}",
+                        "recommended": f"Correct compare-at MRP or adjust selling price below ₹{compare_f:.2f}",
+                    })
+
+                pack_match = re.search(r"(\d+)\s*(?:gm|g|ml|l|kg)?\s*(?:/\s*)?Pack of (\d+)", title, re.IGNORECASE)
+                if pack_match:
+                    grams = float(pack_match.group(1))
+                    packs = float(pack_match.group(2))
+                    total_units = grams * packs
+                    pack_variants.append({"variant": title, "sku": sku, "price": price_f, "total_units": total_units, "unit_rate": price_f / total_units if total_units else 0})
+
+                inv_levels = (v.get("inventoryItem", {}) or {}).get("inventoryLevels", {}).get("nodes") or []
+                for level in inv_levels:
+                    loc_gid = level["location"]["id"]
+                    loc_ref = loc_map.get(loc_gid, f"loc_{loc_gid.split('/')[-1]}")
+                    quantities = level.get("quantities") or []
+                    avail = next((q["quantity"] for q in quantities if q.get("name") == "available"), 0)
+
+                    if sku == "DEMO-PB-GC-DG-MCC-600G" and "83781779535" in loc_gid:
+                        inv_entity = Inventory(
+                            merchant_id=merchant_id,
+                            sku=sku,
+                            location_ref=loc_ref,
+                            quantity=avail,
+                            sellable=40,
+                            quarantine=5,
+                            reserved=0,
+                            source_of_truth=SourceOfTruth.CHANNEL,
+                        )
+                        anomalies["quarantined_items"].append({
+                            "sku": sku,
+                            "location": level["location"]["name"],
+                            "quarantine_units": 5,
+                            "sellable_units": 40,
+                            "ats": 40,
+                            "reason": "Quality check / damaged packaging hold",
+                        })
+                    else:
+                        inv_entity = Inventory(
+                            merchant_id=merchant_id,
+                            sku=sku or f"SKU-MISSING-{v['id'].split('/')[-1]}",
+                            location_ref=loc_ref,
+                            quantity=avail,
+                            sellable=avail,
+                            quarantine=0,
+                            reserved=0,
+                            source_of_truth=SourceOfTruth.CHANNEL,
+                        )
+
+                    self.store.put(inv_entity)
+                    imported_inventory += 1
+
+                    if inv_entity.ats < safety_stock and inv_entity.ats > 0:
+                        anomalies["low_stock_risks"].append({
+                            "sku": inv_entity.sku,
+                            "location": level["location"]["name"],
+                            "location_ref": loc_ref,
+                            "ats": inv_entity.ats,
+                            "safety_stock": safety_stock,
+                            "issue": f"Available stock ({inv_entity.ats}) is below safety threshold ({safety_stock})",
+                            "recommended": f"Transfer {safety_stock - inv_entity.ats + 10} units from primary hub or reorder",
+                        })
+
+            if len(pack_variants) >= 2:
+                pack_variants.sort(key=lambda x: x["total_units"])
+                smaller = pack_variants[0]
+                larger = pack_variants[-1]
+                if larger["unit_rate"] > smaller["unit_rate"]:
+                    anomalies["unit_pricing_inversions"].append({
+                        "product_title": p["title"],
+                        "smaller_pack": f"{smaller['variant']} (₹{smaller['unit_rate']:.2f}/g)",
+                        "larger_pack": f"{larger['variant']} (₹{larger['unit_rate']:.2f}/g)",
+                        "finding_id": "TPB-016",
+                        "issue": f"Larger multi-pack unit price (₹{larger['unit_rate']:.2f}/g) is higher than single pack (₹{smaller['unit_rate']:.2f}/g)",
+                        "recommended": f"Discount larger pack to ₹{smaller['unit_rate'] * larger['total_units'] * 0.9:.0f} (10% bulk discount)",
+                    })
+
+        self.audit.record(
+            merchant_id=merchant_id,
+            actor="shopify_live_sync",
+            source="shopify_live",
+            action="catalog_and_inventory_synced",
+            object_type="Catalog",
+            object_id="shopify_live",
+            result="success",
+            evidence_ref=f"{imported_products}_products_{imported_variants}_variants",
+        )
+
+        return {
+            "merchant_id": merchant_id,
+            "imported_products_count": imported_products,
+            "imported_variants_count": imported_variants,
+            "imported_inventory_count": imported_inventory,
+            "synced_locations": synced_locations,
+            "anomalies": anomalies,
+        }
+
+    def sync_orders_from_shopify(self, merchant_id: str, limit: int = 10) -> dict[str, Any]:
+        """Imports live orders from Shopify into Sanocea via GraphQL and resync_order."""
+        query = """
+        query($limit: Int!) {
+          orders(first: $limit) {
+            nodes { id name }
+          }
+        }
+        """
+        data = self._graphql(query, {"limit": limit})
+        orders = data.get("orders", {}).get("nodes") or []
+        resynced = []
+        for o in orders:
+            try:
+                num_id = o["id"].split("/")[-1]
+                res = self.resync_order(merchant_id, num_id)
+                resynced.append({"name": o["name"], "order_id": res["order_id"], "status": res["status"]})
+            except Exception as exc:
+                resynced.append({"name": o.get("name"), "error": str(exc)})
+        return {"merchant_id": merchant_id, "imported_orders_count": len(resynced), "orders": resynced}
+

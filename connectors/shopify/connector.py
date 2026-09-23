@@ -36,8 +36,12 @@ class ShopifyConnector(GuardedConnector):
         super().__init__(store)
         self.workflow = workflow
         self.external_orders: dict[str, dict[str, Any]] = {}
-        self.external_products: dict[str, dict[str, Any]] = {}
-        self.external_products_by_sku: dict[str, str] = {}
+        if not hasattr(store, "_simulated_shopify_products"):
+            store._simulated_shopify_products = {}
+        if not hasattr(store, "_simulated_shopify_products_by_sku"):
+            store._simulated_shopify_products_by_sku = {}
+        self.external_products = store._simulated_shopify_products
+        self.external_products_by_sku = store._simulated_shopify_products_by_sku
 
     def describe_capabilities(self) -> ConnectorCapabilities:
         return ConnectorCapabilities(
@@ -208,11 +212,20 @@ class ShopifyConnector(GuardedConnector):
                 # string "ACTIVE" directly - Shopify-specific shape leaking into domain-adjacent code.
                 raw = self.external_products[external_id]
                 variant = (raw.get("variants") or [{}])[0]
+                inv_item = variant.get("inventoryItem") or {}
+                meas = (inv_item.get("measurement") or {}).get("weight") or {}
                 return {
                     "title": raw.get("title"),
                     "sku": variant.get("sku"),
                     "price": variant.get("price"),
+                    "product_type": raw.get("productType"),
+                    "category": raw.get("category"),
                     "status": "active" if raw.get("status") == "ACTIVE" else "inactive",
+                    "inventory_quantity": variant.get("inventoryQuantity"),
+                    "inventory_tracked": inv_item.get("tracked"),
+                    "inventory_policy": variant.get("inventoryPolicy"),
+                    "weight": meas.get("value"),
+                    "weight_unit": meas.get("unit"),
                     "raw": raw,
                 }
             if entity_type == "inventory":
@@ -244,14 +257,63 @@ class ShopifyConnector(GuardedConnector):
             sku = str(payload.get("sku"))
             existing_id = self.external_products_by_sku.get(sku)
             if existing_id:
-                return MutationResult(status="accepted", external_ref=existing_id, payload=self.external_products[existing_id])
+                product = self.external_products[existing_id]
+                if payload.get("title"):
+                    product["title"] = payload["title"]
+                if payload.get("product_type"):
+                    product["productType"] = payload["product_type"]
+                if payload.get("category"):
+                    product["category"] = payload["category"]
+                if product.get("variants"):
+                    v = product["variants"][0]
+                    if payload.get("price"):
+                        v["price"] = payload["price"]
+                    if payload.get("track_inventory") is not None:
+                        is_untracked = payload.get("track_inventory") is False
+                        v["inventoryPolicy"] = "CONTINUE" if is_untracked else "DENY"
+                        if "inventoryItem" not in v:
+                            v["inventoryItem"] = {}
+                        v["inventoryItem"]["tracked"] = not is_untracked
+                    if payload.get("inventory_quantity") is not None:
+                        v["inventoryQuantity"] = payload["inventory_quantity"]
+                    if payload.get("weight") is not None:
+                        if "inventoryItem" not in v:
+                            v["inventoryItem"] = {}
+                        v["inventoryItem"]["measurement"] = {
+                            "weight": {"value": float(payload["weight"]), "unit": payload.get("weight_unit", "GRAMS")}
+                        }
+                return MutationResult(status="accepted", external_ref=existing_id, payload=product)
             external_id = f"gid://shopify/Product/{hashlib.sha256(sku.encode()).hexdigest()[:12]}"
             attributes = payload.get("attributes") or {}
+            is_untracked = payload.get("track_inventory") is False
+            inv_tracked = not is_untracked
+            inv_policy = "CONTINUE" if is_untracked else "DENY"
+            inv_qty = payload.get("inventory_quantity")
+            weight_val = payload.get("weight")
+            weight_unit = payload.get("weight_unit") or "GRAMS"
+
+            variant_data: dict[str, Any] = {
+                "sku": sku,
+                "price": payload.get("price"),
+                "currency": payload.get("currency"),
+                "inventoryPolicy": inv_policy,
+                "inventoryQuantity": inv_qty,
+                "inventoryItem": {
+                    "tracked": inv_tracked,
+                    "requiresShipping": payload.get("requires_shipping", True),
+                },
+            }
+            if weight_val is not None:
+                variant_data["inventoryItem"]["measurement"] = {
+                    "weight": {"value": float(weight_val), "unit": weight_unit}
+                }
+
             product = {
                 "id": external_id,
                 "title": payload.get("title"),
                 "productType": payload.get("product_type"),
-                "variants": [{"sku": sku, "price": payload.get("price"), "currency": payload.get("currency")}],
+                "category": payload.get("category"),
+                "variants": [variant_data],
                 "metafields": [{"namespace": "sanocea", "key": k, "value": str(v)} for k, v in attributes.items()],
                 "media": payload.get("media", []),
                 "status": "ACTIVE",

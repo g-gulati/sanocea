@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Literal
 from uuid import uuid4
@@ -24,6 +24,100 @@ class SourceOfTruth(str, Enum):
     SUPPLIER = "supplier"
     DERIVED = "derived"
     UNKNOWN = "unknown"
+
+
+class InvalidStateTransitionError(ValueError):
+    def __init__(self, entity_type: str, from_state: str, to_state: str, allowed: set[str] | list[str]) -> None:
+        super().__init__(
+            f"Invalid state transition for {entity_type}: cannot transition from '{from_state}' to '{to_state}'. Allowed target states: {sorted(allowed)}"
+        )
+        self.entity_type = entity_type
+        self.from_state = from_state
+        self.to_state = to_state
+        self.allowed = allowed
+
+
+class OrderState(str, Enum):
+    DRAFT = "DRAFT"
+    PENDING = "PENDING"
+    CONFIRMED = "CONFIRMED"
+    PARTIALLY_FULFILLED = "PARTIALLY_FULFILLED"
+    FULFILLED = "FULFILLED"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+
+
+class ReturnState(str, Enum):
+    REQUESTED = "REQUESTED"
+    AUTHORIZED = "AUTHORIZED"
+    IN_TRANSIT = "IN_TRANSIT"
+    RECEIVED = "RECEIVED"
+    INSPECTED = "INSPECTED"
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
+    CLOSED = "CLOSED"
+
+
+class OperationalRefundState(str, Enum):
+    PERMITTED = "permitted"
+    APPROVAL_REQUIRED = "approval_required"
+    MUTATION_SUBMITTED = "mutation_submitted"
+    MUTATION_UNCERTAIN = "mutation_uncertain"
+    EXTERNAL_CONFIRMED = "external_confirmed"
+    RECONCILED = "reconciled"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class FinancialReconciliationState(str, Enum):
+    PENDING = "pending"
+    MATCHED = "matched"
+    DISCREPANCY = "discrepancy"
+
+
+class ApprovalState(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    DENIED = "denied"
+    EXPIRED = "expired"
+
+
+ORDER_TRANSITIONS: dict[str, set[str]] = {
+    OrderState.DRAFT.value: {OrderState.PENDING.value, OrderState.CONFIRMED.value, OrderState.CANCELLED.value},
+    OrderState.PENDING.value: {OrderState.CONFIRMED.value, OrderState.CANCELLED.value},
+    OrderState.CONFIRMED.value: {OrderState.PARTIALLY_FULFILLED.value, OrderState.FULFILLED.value, OrderState.CANCELLED.value},
+    OrderState.PARTIALLY_FULFILLED.value: {OrderState.FULFILLED.value, OrderState.CANCELLED.value},
+    OrderState.FULFILLED.value: {OrderState.COMPLETED.value, OrderState.CANCELLED.value},
+    OrderState.COMPLETED.value: set(),
+    OrderState.CANCELLED.value: set(),
+}
+
+RETURN_TRANSITIONS: dict[str, set[str]] = {
+    ReturnState.REQUESTED.value: {ReturnState.AUTHORIZED.value, ReturnState.REJECTED.value, ReturnState.CLOSED.value},
+    ReturnState.AUTHORIZED.value: {ReturnState.IN_TRANSIT.value, ReturnState.RECEIVED.value, ReturnState.CLOSED.value},
+    ReturnState.IN_TRANSIT.value: {ReturnState.RECEIVED.value, ReturnState.CLOSED.value},
+    ReturnState.RECEIVED.value: {ReturnState.INSPECTED.value, ReturnState.CLOSED.value},
+    ReturnState.INSPECTED.value: {ReturnState.ACCEPTED.value, ReturnState.REJECTED.value},
+    ReturnState.ACCEPTED.value: {ReturnState.CLOSED.value},
+    ReturnState.REJECTED.value: {ReturnState.CLOSED.value},
+    ReturnState.CLOSED.value: set(),
+}
+
+APPROVAL_TRANSITIONS: dict[str, set[str]] = {
+    ApprovalState.PENDING.value: {ApprovalState.APPROVED.value, ApprovalState.DENIED.value, ApprovalState.EXPIRED.value},
+    ApprovalState.APPROVED.value: set(),
+    ApprovalState.DENIED.value: set(),
+    ApprovalState.EXPIRED.value: set(),
+}
+
+
+def validate_state_transition(entity_type: str, from_state: str, to_state: str, transition_table: dict[str, set[str]]) -> None:
+    if from_state == to_state:
+        return
+    allowed = transition_table.get(from_state, set())
+    if to_state not in allowed:
+        raise InvalidStateTransitionError(entity_type, from_state, to_state, allowed)
+
 
 
 class SyncMetadata(BaseModel):
@@ -77,6 +171,18 @@ class Channel(CanonicalEntity):
     capabilities: dict[str, bool] = Field(default_factory=dict)
     credential_ref: str | None = None
     rate_limit_profile: str | None = None
+    source_of_truth: SourceOfTruth = SourceOfTruth.SANOCEA
+
+
+class Location(CanonicalEntity):
+    id: str = Field(default_factory=lambda: new_id("loc"))
+    name: str
+    code: str
+    address: dict[str, Any] = Field(default_factory=dict)
+    fulfillment_types: list[str] = Field(default_factory=lambda: ["standard"])  # "standard", "express", "dark_store", "pickup"
+    is_active: bool = True
+    priority: int = 0
+    metadata: dict[str, Any] = Field(default_factory=dict)
     source_of_truth: SourceOfTruth = SourceOfTruth.SANOCEA
 
 
@@ -229,16 +335,15 @@ class Inventory(CanonicalEntity):
     sku: str
     location_ref: str
     quantity: int
+    # Location-scoped stock state breakdown:
+    # `sellable`: physical stock available for sale before reservation deductions. If None, derived from quantity - quarantine - in_transit.
+    sellable: int | None = None
     reserved: int = 0
+    quarantine: int = 0  # damaged, returned, or uninspected stock
+    in_transit: int = 0  # stock transferring between locations or inbound
     status: str = "observed"
     # `available` is a STRICT DERIVED/CACHE value, never independently mutated - authoritative formula
-    # is always `quantity - reserved` (2026-09 reservation-lifecycle fix; see InventoryReservation).
-    # Kept as a real persisted field rather than a computed property for backward compatibility with
-    # every existing caller/fixture that constructs Inventory(..., available=X) directly - but every
-    # WRITE path this fix touches (reserve/release/consume/restock/observe_inventory) now derives it
-    # from quantity-reserved instead of applying an independent delta or overwrite, closing the exact
-    # bug this fix found: an external inventory sync used to reset `available` to the raw synced
-    # quantity, silently discarding whatever was currently reserved.
+    # is always `ats` (sellable - reserved). Kept as a real persisted field for backward compatibility.
     available: int | None = None
     committed: int = 0
     # Phase 4: quantity a supplier has CONFIRMED (via SupplierAcknowledgement) but that has not yet
@@ -247,6 +352,12 @@ class Inventory(CanonicalEntity):
     # added to sellable stock automatically. Only an explicit goods-receipt action moves it there.
     confirmed_inbound: int = 0
     observed_at: datetime = Field(default_factory=now_utc)
+
+    @property
+    def ats(self) -> int:
+        """Authoritative Available-To-Sell: sellable stock minus active reservations."""
+        base = self.sellable if self.sellable is not None else max(self.quantity - self.quarantine - self.in_transit, 0)
+        return max(base - self.reserved, 0)
 
 
 class InventoryReservation(CanonicalEntity):
@@ -307,6 +418,7 @@ class Order(CanonicalEntity):
     status: str
     payment_status: str | None = None
     fulfillment_status: str | None = None
+    financial_reconciliation_status: str = Field(default="UNRECONCILED")
     total_amount: int
     currency: str
     placed_at: datetime | None = None
@@ -567,6 +679,22 @@ class Approval(CanonicalEntity):
     requested_by: str
     decided_by: str | None = None
     decided_at: datetime | None = None
+    # Additive fields (Sept 2026, multi-channel live demo #2) - every existing approval flow (refund,
+    # cancellation, PO, product_facts, publication) leaves these at their defaults and is unaffected.
+    # Populated when an approval carries the "OWNER DECISION REQUIRED" narrative (issue/evidence/
+    # recommendation/alternative) an authorised human needs to actually decide something, and/or is
+    # delivered through a notification channel (WhatsApp/email) rather than only surfaced in-app.
+    reference: str | None = None  # short human-readable code shown in a WhatsApp/email message, e.g. "AJ-4821"
+    summary: str | None = None  # one-line plain-English issue statement
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    recommendation: str | None = None
+    alternative: str | None = None
+    risk_note: str | None = None
+    expires_at: datetime | None = None
+    notify_channels: list[str] = Field(default_factory=list)  # e.g. ["whatsapp", "email"]
+    notifications_sent: dict[str, Any] = Field(default_factory=dict)  # {"whatsapp": {"sent_at": ..., "to_masked": ...}, ...}
+    resolved_via: str | None = None  # "whatsapp" | "email" | "command_center" - which channel actually resolved it
+    demo_provenance: Literal["PUBLIC_VERIFIED", "PROSPECT_PROVIDED", "SYNTHETIC_DEMO"] | None = None
 
 
 class ExceptionRecord(CanonicalEntity):
@@ -634,6 +762,101 @@ class ListingVerification(CanonicalEntity):
     checked_fields: dict[str, Any] = Field(default_factory=dict)
     mismatches: list[str] = Field(default_factory=list)
     evidence_ref: str | None = None
+
+
+class ChannelOperation(CanonicalEntity):
+    """Sept 2026, multi-channel live demo #2. What happens to ONE product on ONE channel after it
+    passes validation - the missing link the Ajanta multi-channel audit identified between "product
+    ready inside Sanocea" and any real channel state. Deliberately separate from Publication/
+    PublicationAttempt/ListingVerification (Step 9Q.2's real, generic, connector-agnostic publish/verify
+    machinery, which this reuses for the 3 channels with a real connector contract) rather than a
+    replacement for it - see ChannelOperationService for how the two compose. JioMart and Blinkit have
+    no connector class (per the multi-channel audit's own finding: no confirmed JioMart contract exists;
+    Blinkit is a vendor-PO relationship, not a listing API) so their operations never reference a
+    Publication row at all - `publication_id` stays None for those two channels, always.
+    """
+
+    id: str = Field(default_factory=lambda: new_id("chop"))
+    run_id: str  # correlation id of the email-ingestion (or assurance-scan) run this belongs to
+    product_draft_id: str
+    product_title: str
+    sku: str | None = None
+    channel: str
+    publication_id: str | None = None  # set only for own_website/amazon_in/flipkart (real connector path)
+    external_ref: str | None = None
+    status: Literal[
+        "QUEUED", "PREPARING", "SUBMITTED", "ACCEPTED", "PROCESSING", "PUBLISHED",
+        "READBACK_PENDING", "VERIFIED", "REJECTED", "DISCREPANCY", "INVESTIGATING",
+        "CAUSE_IDENTIFIED", "CORRECTION_PENDING", "CORRECTING", "RESUBMITTING",
+        "APPROVAL_REQUIRED", "RESOLVED", "FAILED",
+        # Genuinely, honestly still pending - Amazon's real feed-submission contract is asynchronous
+        # (see docs/connectors/amazon-certification.md's "async operations" section: a submission being
+        # "accepted" is never the same as it being "applied"); this demo intentionally leaves ONE
+        # operation per run sitting here rather than resolving it, because forcing every channel to
+        # finish before the demo ends is exactly the "too perfect to be credible" failure mode a
+        # skeptical operations professional would immediately notice.
+        "AWAITING_CHANNEL_RESPONSE",
+    ] = "QUEUED"
+    # Ordered lifecycle log for the UI's vertical step diagram - one entry per real state transition,
+    # written by ChannelOperationService alongside (never instead of) the real AuditLedger record for
+    # that same transition. AuditLedger stays the compliance-grade global record; this field exists so
+    # the Command Center can render ONE operation's own timeline without re-deriving it from the
+    # merchant-wide audit feed.
+    history: list[dict[str, Any]] = Field(default_factory=list)
+    submitted_payload: dict[str, Any] = Field(default_factory=dict)
+    channel_response: dict[str, Any] = Field(default_factory=dict)
+    readback: dict[str, Any] = Field(default_factory=dict)
+    issue_category: str | None = None
+    issue_message: str | None = None
+    resolution_level: Literal["AUTO_L1", "AUTO_L2", "OWNER_L3"] | None = None
+    # Structured, inspectable "why" - populated at the moment a decision is made (auto-correct, a
+    # deliberate no-action classification, or an owner escalation), in the SAME shape regardless of
+    # which path was taken, so the Command Center can render one consistent "WHY?" panel. Keys used:
+    # approved_master, observed_channel_state, promotion_evidence, merchant_authority_rule, decision,
+    # result - never populated with vaguer text like "AI investigating".
+    decision_evidence: dict[str, Any] = Field(default_factory=dict)
+    approval_id: str | None = None
+    demo_provenance: Literal["SYNTHETIC_DEMO"] = "SYNTHETIC_DEMO"
+    started_at: datetime | None = None
+    submitted_at: datetime | None = None
+    verified_at: datetime | None = None
+    resolved_at: datetime | None = None
+
+
+class DemoSessionContact(CanonicalEntity):
+    """A prospect's phone number, entered by an operator (Manpreet) after live verbal consent during
+    ONE specific sales meeting - never permanent merchant master data (Section 11 of the multi-channel
+    live demo spec). Session-scoped and time-bound by design: `expires_at` is always set at creation
+    (a short window, hours not days), and `CLEAR DEMO CONTACT` (see notifications package) removes it
+    outright. The raw phone number is stored (approval resolution needs to match an inbound sender
+    against it) but the Command Center must never render it unmasked - see mask_phone()."""
+
+    id: str = Field(default_factory=lambda: new_id("dsc"))
+    session_label: str  # operator-provided, e.g. "2026-09-17 Ajanta meeting"
+    phone_e164: str
+    consented_at: datetime = Field(default_factory=now_utc)
+    expires_at: datetime
+    cleared_at: datetime | None = None
+
+
+class WhatsAppConversationState(CanonicalEntity):
+    """Server-side active conversation and decision queue state keyed by merchant and authorized WhatsApp sender.
+    Maintains durable active context, sequential queue state, contextual action menus, expiry, and audit history.
+    Survives service restarts.
+    """
+
+    id: str = Field(default_factory=lambda: new_id("wcs"))
+    phone_e164: str
+    active_context_type: str = "none"  # "none" | "main_menu" | "approval_decision" | "approval_disambiguation" | "product_onboarding"
+    active_approval_id: str | None = None
+    active_draft_id: str | None = None
+    active_onboarding_step: str | None = None  # "variant_structure" | "price" | "category" | "inventory" | "weight"
+    pending_disambiguation_ids: list[str] = Field(default_factory=list)
+    snoozed_until: datetime | None = None
+    last_interaction_at: datetime = Field(default_factory=now_utc)
+    expires_at: datetime = Field(default_factory=lambda: now_utc() + timedelta(hours=24))
+    history: list[dict[str, Any]] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class AuditEvent(BaseModel):

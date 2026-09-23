@@ -1,0 +1,128 @@
+{
+  "name": "SANOCEA Prospect Demo - Email Product Ingestion",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "mailbox": "INBOX",
+        "postProcessAction": "read",
+        "options": {
+          "forceReconnect": 60
+        }
+      },
+      "id": "node_imap_trigger",
+      "name": "Email Trigger (IMAP)",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "credentials": {
+        "imap": {
+          "name": "Gmail App Password (demo inbox)"
+        }
+      },
+      "notes": "Uses n8n's built-in generic IMAP trigger against Gmail (host imap.gmail.com, port 993, SSL) authenticated with a Gmail App Password - no Google Cloud Console OAuth app needed. Polls the inbox; a new message with a matching attachment fires this workflow."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deliberately does ZERO routing/authorization logic - SANOCEA itself decides which merchant an\n// email belongs to (packages/email_ingress/service.py::resolve_merchant_from_routing) and rejects\n// anything ambiguous. This node only reshapes the raw email + attachment into the JSON body SANOCEA's\n// intake endpoint expects - n8n is a transport, never an authority.\nconst item = $input.first();\nconst binaryKeys = Object.keys(item.binary || {});\nif (binaryKeys.length === 0) {\n  throw new Error('No attachment found on this email - nothing to forward to SANOCEA.');\n}\nconst binaryKey = binaryKeys[0];\nconst binary = item.binary[binaryKey];\nreturn [{\n  json: {\n    message_id: item.json.messageId || item.json['message-id'] || $execution.id,\n    sender: (item.json.from && item.json.from.value && item.json.from.value[0] && item.json.from.value[0].address) || item.json.from || '',\n    to_addresses: (item.json.to && item.json.to.value ? item.json.to.value.map(v => v.address) : [item.json.to]).filter(Boolean),\n    subject: item.json.subject || '',\n    filename: binary.fileName || 'attachment.xlsx',\n    content_base64: binary.data,\n  }\n}];"
+      },
+      "id": "node_shape_payload",
+      "name": "Shape SANOCEA Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8080/demo/email-ingest",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SANOCEA_SERVICE_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "node_call_sanocea",
+      "name": "POST /demo/email-ingest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 300],
+      "notes": "The ONLY place any authorization decision happens is inside SANOCEA itself. This node just delivers the raw payload with a service-role credential (packages/authn/deps.py::require_service) - the same role/mechanism already used for the background recovery worker."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": { "type": "number", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node_if_success",
+      "name": "Ingested OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {},
+      "id": "node_success_noop",
+      "name": "Done (visible in Command Center)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1180, 220],
+      "notes": "SANOCEA already recorded the full audit trail and, if routing/safety failed, refused the ingestion (fail closed) - this branch does nothing further by design. The Command Center's live-activity panel (apps/command_center/app.js) is what makes the result visible, not this workflow."
+    },
+    {
+      "parameters": {
+        "errorMessage": "=SANOCEA refused this email: {{ $json.body ? $json.body.detail : $json.message }}"
+      },
+      "id": "node_stop_and_error",
+      "name": "Stop And Error (routing/safety refused)",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [1180, 380],
+      "notes": "PHASE C/N fail-closed behavior surfaced INTO n8n's own execution log too - an unrecognized routing address, untrusted sender, or unsafe attachment shows here as a real, loud workflow failure, never a silent drop."
+    }
+  ],
+  "connections": {
+    "Email Trigger (IMAP)": {
+      "main": [[{ "node": "Shape SANOCEA Payload", "type": "main", "index": 0 }]]
+    },
+    "Shape SANOCEA Payload": {
+      "main": [[{ "node": "POST /demo/email-ingest", "type": "main", "index": 0 }]]
+    },
+    "POST /demo/email-ingest": {
+      "main": [[{ "node": "Ingested OK?", "type": "main", "index": 0 }]]
+    },
+    "Ingested OK?": {
+      "main": [
+        [{ "node": "Done (visible in Command Center)", "type": "main", "index": 0 }],
+        [{ "node": "Stop And Error (routing/safety refused)", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}

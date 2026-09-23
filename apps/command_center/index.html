@@ -22,16 +22,42 @@
     <div class="tenant-section">
       <div class="tenant-badge">
         <span class="tenant-dot"></span>
-        <span>Anchal Heritage Organics (<span class="code-inline">ref_anchal_heritage</span>)</span>
+        <select id="merchant-select" title="Switch demo merchant (operator only)" style="font: inherit; background: transparent; border: none; color: inherit; font-weight: 600; cursor: pointer;"></select>
+        <span class="code-inline" id="tenant-id-label">ref_anchal_heritage</span>
       </div>
       <div class="operator-badge" id="auth-status">
         <span>Authenticating...</span>
       </div>
+      <div class="operator-badge" id="live-connection-status" style="display:none;"></div>
+      <!-- Universal owner WhatsApp number control: one box, always visible regardless of tab, so the
+           operator can point ALL automatic owner-approval / missing-field WhatsApp traffic at whichever
+           number is live for a given session (e.g. own phone for rehearsal, prospect's phone on the
+           actual demo call) without hunting for a per-approval form. Calls the same, already-audited
+           POST /merchants/{id}/demo/whatsapp-contact endpoint the per-approval form uses - every
+           automatic send already resolves "the most recent non-expired DemoSessionContact for this
+           merchant" (see PostOrderOperations._auto_notify_whatsapp_if_no_queue), so setting it here
+           takes over for every automatic flow immediately, with no other wiring needed. -->
+      <div class="operator-badge" id="owner-whatsapp-control" title="WhatsApp number that receives owner approval requests and missing-field questions">
+        <span>Owner WhatsApp:</span>
+        <input type="tel" id="owner-whatsapp-input" placeholder="91XXXXXXXXXX" style="width:130px; font:inherit; background:transparent; border:1px solid var(--border-color); border-radius:4px; padding:2px 6px; color:inherit;">
+        <button class="btn btn-outline btn-sm" id="btn-update-owner-whatsapp">Update</button>
+        <span class="code-inline" id="owner-whatsapp-status">not set</span>
+      </div>
       <button class="btn btn-outline btn-sm" id="btn-refresh" title="Refresh state from authoritative APIs">
         <span>⟳ Refresh</span>
       </button>
+      <button class="btn btn-outline btn-sm" id="btn-reset-demo" title="Reset this demo tenant to a clean baseline for rehearsal" style="display:none;">
+        <span>↺ Reset Demo</span>
+      </button>
+      <button class="btn btn-primary btn-sm" id="btn-ingest-csv-demo" title="Ingest supplier product CSV (The Premium Basket 4 products with photos)" style="display:none; font-weight:600; background:var(--primary); color:#fff;">
+        <span>📥 Ingest Supplier CSV</span>
+      </button>
     </div>
   </header>
+
+  <!-- Demo disclosure banner: shown for prospect_demo tenants only, driven by the tenant's own
+       config.demo.disclosure (see packages/prospect_demo/reset.py) - never hardcoded per merchant. -->
+  <div class="demo-disclosure-banner" id="demo-disclosure-banner" style="display:none;"></div>
 
   <!-- Navigation Tabs (7 Commercial Operations Views) -->
   <nav class="tab-nav">
@@ -47,7 +73,7 @@
       <span class="tab-badge tab-badge-danger" id="badge-conflicts" style="display:none;">ACTION</span>
     </button>
     <button class="tab-btn" data-tab="publication">
-      <span>Publication & Verification</span>
+      <span>Publication & Channel Operations</span>
     </button>
     <button class="tab-btn" data-tab="inventory">
       <span>Orders & Inventory</span>
@@ -77,7 +103,7 @@
       <div class="modal-header">
         <h3>Operator Authentication</h3>
       </div>
-      <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">
+      <p id="auth-modal-prompt" style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">
         To connect to the SANOCEA Operations Command Center, provide the scoped operator API key for <code>ref_anchal_heritage</code>.
       </p>
       <div id="auth-modal-error" style="display:none; color:var(--danger); font-size:12px; margin-bottom:10px;"></div>

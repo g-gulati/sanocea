@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import os
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from uuid import uuid4
 
 from sanocea.packages.audit import AuditLedger
 from sanocea.packages.connector_sdk import MutationRequest
@@ -12,12 +14,14 @@ from sanocea.packages.domain_contract.models import (
     Approval,
     Cancellation,
     ConnectorCommand,
+    DemoSessionContact,
     Exchange,
     ExternalIdMapping,
     FulfilmentObservation,
     Inventory,
     InventoryObservation,
     InventoryReservation,
+    Merchant,
     Order,
     OrderLine,
     ReconciliationResult,
@@ -388,6 +392,223 @@ class PostOrderOperationsService:
 
     def _reservations_for_source(self, merchant_id: str, source_type: str, source_id: str) -> list[InventoryReservation]:
         return [r for r in self.store.list(InventoryReservation, merchant_id) if r.source_type == source_type and r.source_id == source_id]
+
+    def evaluate_inventory_shortage(self, merchant_id: str, order: Order, line_results: list[dict[str, Any]]) -> Approval | None:
+        """Mariyal demo - the bridge `reserve_inventory_for_order` never had: a shortfall used to stop
+        at 'an Exception was recorded' (see the ExceptionCategory.INVENTORY_CONFLICT calls above) with
+        no path to owner authority at all. This is that path - same PolicyEngine/Approval/audit
+        primitives the certified channel-ops flow already uses, not a second approval architecture.
+        Idempotent: a second call for an order that already has a pending or resolved shortage approval
+        returns the existing one rather than creating a duplicate.
+        """
+        shortfall_lines = [l for l in line_results if l.get("shortfall", 0) > 0]
+        if not shortfall_lines:
+            return None
+        existing = [
+            a for a in self.store.list(Approval, merchant_id)
+            if a.action == "resolve_inventory_shortage" and a.object_id == order.id
+        ]
+        if existing:
+            return existing[0]
+
+        config = self.store.get_config(merchant_id)
+        context = {
+            "total_requested": sum(l["requested"] for l in shortfall_lines),
+            "total_available": sum(l["reserved"] for l in shortfall_lines),
+        }
+        decision = self.policy.decide(config.get("policy", {}), "inventory_shortage", context)
+
+        observed = {l["sku"]: {"requested": l["requested"], "available": l["reserved"], "shortfall": l["shortfall"]} for l in shortfall_lines}
+        evidence = {
+            "order_number": order.order_number,
+            "shortage": observed,
+            "policy_decision": decision.value,
+        }
+
+        if decision != Decision.REQUIRE_APPROVAL:
+            # ALLOW or DENY under an explicitly configured policy - proceed automatically (or explicitly
+            # do nothing, for DENY) without interrupting the owner. No Approval is created either way;
+            # this is the demo's deliberate contrast case ("SANOCEA knows what it's allowed to do").
+            self.audit.record(
+                merchant_id=merchant_id, actor="post_order", source="inventory_shortage", action="inventory_shortage_auto_decision",
+                object_type="Order", object_id=order.id, result=decision.value, requested_mutation=evidence,
+            )
+            if decision == Decision.ALLOW:
+                self._fulfil_available_quantities(merchant_id, order, {sku: v["available"] for sku, v in observed.items()})
+            return None
+
+        shortage_lines_text = "; ".join(f"{sku}: requested {v['requested']}, only {v['available']} available" for sku, v in observed.items())
+        existing_refs = {a.reference for a in self.store.list(Approval, merchant_id) if a.reference}
+        reference = f"OR-{order.id[-4:]}".upper()
+        attempt = 0
+        while reference in existing_refs and attempt < 5:
+            attempt += 1
+            reference = f"OR-{uuid4().hex[-6:]}".upper()
+
+        approval = Approval(
+            merchant_id=merchant_id, action="resolve_inventory_shortage", object_id=order.id,
+            requested_by="post_order", reference=reference,
+            summary=f"Order {order.order_number} cannot be fully stocked: {shortage_lines_text}.",
+            evidence=evidence,
+            recommendation="Ship the available quantity now and backorder the remainder.",
+            alternative="Hold the entire order until fully restocked (no partial shipment).",
+            risk_note="Shipping less than the customer ordered without confirmation can create a support "
+                      "follow-up; holding the whole order delays a customer who could have received part of it today.",
+            notify_channels=[], demo_provenance="SYNTHETIC_DEMO", expires_at=now_utc() + timedelta(hours=24),
+        )
+        self.store.put(approval)
+        self.audit.record(
+            merchant_id=merchant_id, actor="post_order", source="inventory_shortage", action="inventory_shortage_approval_required",
+            object_type="Order", object_id=order.id, result="approval_required",
+            requested_mutation=evidence, evidence_ref=approval.id,
+        )
+        self._auto_notify_whatsapp_if_no_queue(merchant_id, approval, order.channel_id)
+        return approval
+
+    # Same action set ApprovalService.resolve()/DemoApprovalNotificationService._handle_inbound_once
+    # already dispatch on - kept as its own literal here rather than a shared import, matching how this
+    # set is already duplicated across the codebase (see those two files' own copies of this list).
+    _ORDER_FLOW_APPROVAL_ACTIONS = ("channel_operation_correction", "resolve_inventory_shortage", "cancel_order", "create_return", "refund")
+
+    def _auto_notify_whatsapp_if_no_queue(self, merchant_id: str, approval: Approval, channel: str) -> None:
+        """Sequential-delivery gate (explicit demo requirement): only auto-send THIS approval to
+        WhatsApp immediately if no OTHER order-flow approval for this merchant is already pending AND
+        already notified - i.e. no other message is currently awaiting the owner's reply. If one is,
+        this approval is deliberately left unnotified (notify_channels/notifications_sent stay empty) -
+        it still exists and is visible in Command Center - and ApprovalService.resolve() sends it,
+        via notify_next_pending_approval, the moment the currently-outstanding one is resolved. This is
+        what lets the owner reply a bare "APPROVE" every time instead of "APPROVE OR-XXXX": at most one
+        approval is ever actually awaiting a reply at once."""
+        outstanding = [
+            a for a in self.store.list(Approval, merchant_id)
+            if a.status == "pending" and a.action in self._ORDER_FLOW_APPROVAL_ACTIONS
+            and a.id != approval.id and a.notifications_sent
+        ]
+        if outstanding:
+            return
+        self._auto_notify_whatsapp(merchant_id, approval, channel)
+
+    def notify_next_pending_approval(self, merchant_id: str) -> None:
+        """Called by ApprovalService.resolve() right after any approval is resolved - sends the
+        OLDEST still-pending, not-yet-notified order-flow approval for this merchant, if any. Reads
+        Order.channel_id fresh (never trusts a passed-in value) since the queued approval may belong
+        to a different order than the one just resolved."""
+        pending_unnotified = sorted(
+            (
+                a for a in self.store.list(Approval, merchant_id)
+                if a.status == "pending" and a.action in self._ORDER_FLOW_APPROVAL_ACTIONS and not a.notifications_sent
+            ),
+            key=lambda a: a.sync.observed_at,
+        )
+        if not pending_unnotified:
+            return
+        next_approval = pending_unnotified[0]
+        if next_approval.action == "channel_operation_correction":
+            from sanocea.packages.domain_contract.models import ChannelOperation
+
+            channel = self.store.get(ChannelOperation, merchant_id, next_approval.object_id).channel
+        else:
+            channel = self.store.get(Order, merchant_id, next_approval.object_id).channel_id
+        self._auto_notify_whatsapp(merchant_id, next_approval, channel)
+
+    def _auto_notify_whatsapp(self, merchant_id: str, approval: Approval, channel: str) -> None:
+        """Closes the real gap found live in the Mariyal/Premium Basket rehearsal: the certified
+        WhatsApp transport (packages/notifications) only ever SENT when an operator clicked "Send
+        Approval to WhatsApp" in Command Center - the real order->exception->approval chain above was
+        fully automatic, but the human-in-the-loop notification step was not, contradicting Priority 4's
+        own requirement ("...requests owner approval...sends that approval to WhatsApp" as one
+        continuous automatic sequence, not an operator action in between). This reuses the most recent
+        non-expired DemoSessionContact already on file for this merchant (set once, earlier, via the
+        existing Command Center form/API - never fabricated or guessed here) - if none exists yet, this
+        is a no-op and the approval still appears in Command Center for a manual send, so first-time
+        setup is unaffected. Never allowed to fail the exception/approval creation itself - a WhatsApp
+        transport error must not prevent the real Approval from existing."""
+        try:
+            contacts = [c for c in self.store.list(DemoSessionContact, merchant_id) if c.cleared_at is None and c.expires_at > now_utc()]
+            if not contacts:
+                return
+            contact = max(contacts, key=lambda c: c.consented_at)
+            from sanocea.packages.notifications import DemoApprovalNotificationService
+            from sanocea.packages.notifications.transport import WhatsAppDemoTransport
+
+            transport = WhatsAppDemoTransport(
+                waha_base_url=os.environ.get("SANOCEA_WAHA_BASE_URL", "http://127.0.0.1:3000"),
+                api_key=os.environ.get("SANOCEA_WAHA_API_KEY"),
+            )
+            merchant = self.store.get(Merchant, merchant_id, merchant_id)
+            DemoApprovalNotificationService(self.store, transport).send_approval(
+                merchant_id, approval.id, contact, merchant.display_name, channel,
+            )
+        except Exception as exc:  # noqa: BLE001 - notification failure must never break approval creation
+            self.audit.record(
+                merchant_id=merchant_id, actor="post_order", source="inventory_shortage", action="auto_whatsapp_notify_failed",
+                object_type="Approval", object_id=approval.id, result="failed", error=str(exc),
+            )
+
+    def resume_inventory_shortage(self, merchant_id: str, approval: Approval) -> dict[str, Any]:
+        """Called by ApprovalService.resolve() once an inventory-shortage Approval is approved. Re-reads
+        CURRENT reservation state (never trusts the approval's own stored evidence as still-current truth
+        - the same 'revalidate against canonical state at execution time' discipline execute_cancellation
+        already uses) and fulfils exactly what is actually available right now, nothing more."""
+        order = self.store.get(Order, merchant_id, approval.object_id)
+        reservations = self._reservations_for_source(merchant_id, "order", order.id)
+        quantities = {r.sku: r.quantity_reserved for r in reservations if r.quantity_reserved > 0}
+        if not quantities:
+            self.exceptions.create(
+                merchant_id=merchant_id, category=ExceptionCategory.INVENTORY_CONFLICT,
+                message=f"Approved inventory-shortage resolution for order {order.order_number} but no reserved quantity remains to fulfil",
+                object_id=order.id,
+            )
+            return {"fulfilled": False, "reason": "no_reserved_quantity"}
+        return self._fulfil_available_quantities(merchant_id, order, quantities)
+
+    def _fulfil_available_quantities(self, merchant_id: str, order: Order, quantities: dict[str, int]) -> dict[str, Any]:
+        """The real external action + readback for a partial (or, for the auto-ALLOW path, full)
+        fulfilment: a real Shopify fulfillmentCreate for exactly the given per-sku quantities (never more
+        than what's actually reserved), then a real readback of the resulting fulfillment state - the
+        same 'external action -> read the external state back -> reconcile' shape every other certified
+        flow in this codebase uses."""
+        external_order_id = next((r.external_id for r in order.external_refs if r.entity_type == "order"), None)
+        if not external_order_id:
+            self.exceptions.create(
+                merchant_id=merchant_id, category=ExceptionCategory.EXTERNAL_MUTATION_UNCERTAIN,
+                message=f"Order {order.order_number} has no external order reference - cannot fulfil on the real channel",
+                object_id=order.id,
+            )
+            return {"fulfilled": False, "reason": "no_external_ref"}
+        connector = self.storefront(merchant_id)
+        idempotency_key = f"partial_fulfil:{order.id}:{'-'.join(sorted(quantities))}"
+        try:
+            result = connector.execute_mutation(MutationRequest(
+                merchant_id=merchant_id, action="create_fulfilment", object_type="Order",
+                payload={"external_order_id": external_order_id, "quantities": quantities},
+                idempotency_key=idempotency_key,
+            ))
+        except Exception as exc:  # noqa: BLE001 - a real, external connector failure must be recorded, never silently swallowed
+            self.exceptions.create(
+                merchant_id=merchant_id, category=ExceptionCategory.CONNECTOR_5XX,
+                message=f"Fulfilment mutation failed for order {order.order_number}: {exc}", object_id=order.id,
+            )
+            self.audit.record(
+                merchant_id=merchant_id, actor="post_order", source="inventory_shortage", action="inventory_shortage_fulfilment_failed",
+                object_type="Order", object_id=order.id, result="failed", error=str(exc),
+            )
+            return {"fulfilled": False, "reason": "connector_error", "error": str(exc)}
+        readback = connector.fetch(merchant_id, "order", external_order_id)
+        order_lines = [l for l in self.store.list(OrderLine, merchant_id) if l.order_id == order.id]
+        for line in order_lines:
+            if line.sku in quantities:
+                fully_covered = quantities[line.sku] >= line.quantity
+                line.fulfillment_state = "fulfilled" if fully_covered else "partial"
+                self.store.put(line)
+        order.fulfillment_status = "fulfilled" if all(l.fulfillment_state == "fulfilled" for l in order_lines) else "partial"
+        self.store.put(order)
+        self.audit.record(
+            merchant_id=merchant_id, actor="post_order", source="inventory_shortage", action="inventory_shortage_fulfilled",
+            object_type="Order", object_id=order.id, result="resolved",
+            requested_mutation={"quantities": quantities}, evidence_ref=str(readback),
+        )
+        return {"fulfilled": True, "quantities": quantities, "mutation_result": result.payload, "readback": readback}
 
     def observe_inventory(self, merchant_id: str, sku: str, canonical_qty: int, external_qty: int, location: str | None = None) -> str:
         # Step 2 Part A/E/G: resolved once, here - never a bare "default" literal. The lookup/update
@@ -856,6 +1077,24 @@ class PostOrderOperationsService:
         record = Return(merchant_id=merchant_id, order_id=order.id, status=status, reason=reason, eligibility="eligible" if eligible else "outside_window", approval_id=approval_id)
         self.store.put(record)
         return record
+
+    def approve_return(self, merchant_id: str, order_id: str, approver_id: str) -> Return | None:
+        """Real defect fixed here: evaluate_return creates an action="create_return" Approval when
+        authority is required, but nothing previously transitioned the linked Return out of
+        'approval_required' when that Approval was approved - it stayed stuck there indefinitely,
+        identically to the cancel_order gap approve_cancellation already closes. Mirrors that method's
+        shape (approval-is-pure-authorization, the Return's own status is what actually gates
+        progress_return next)."""
+        existing = self._existing_for_order(Return, merchant_id, order_id)
+        if existing is None or existing.status != "approval_required":
+            return existing
+        existing.status = "authorized"
+        self.store.put(existing)
+        self.audit.record(
+            merchant_id=merchant_id, actor=approver_id, source="post_order", action="return_approved",
+            object_type="Return", object_id=existing.id, result="authorized",
+        )
+        return existing
 
     def progress_return(self, merchant_id: str, return_id: str, event: str, restockable: bool = True) -> Return:
         record = self.store.get(Return, merchant_id, return_id)

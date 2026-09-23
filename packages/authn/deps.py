@@ -31,15 +31,31 @@ def _resolve(request: Request, authorization: str | None) -> dict:
 
 async def require_operator(request: Request, authorization: str | None = Header(default=None)) -> AuthContext:
     """A caller must never be able to choose another merchant_id and gain access merely by changing the
-    URL: this dependency reads the merchant_id from the AUTHENTICATED key record, and separately
-    verifies it matches the merchant_id in the URL path - both must agree, or access is denied. A
-    'service' key may act for any merchant (internal worker use only, e.g. the recovery worker)."""
+    URL: this dependency reads the merchant_id (or, for an internal-operator key, the explicit
+    allowed_merchants set) from the AUTHENTICATED key record, and separately verifies the URL path's
+    merchant_id is actually authorized - or access is denied. A 'service' key may act for any merchant
+    (internal worker use only, e.g. the recovery worker) - genuinely unrestricted, unlike
+    allowed_merchants below, which is always an explicit, finite set.
+
+    Internal-operator multi-merchant keys (Command Center demo-switching UX correction): a key minted
+    with `allowed_merchants` (api_keys.merchant_id is NULL for such a key - see
+    PostgresStore.create_api_key) is authorized ONLY for merchant_ids in that explicit set - never
+    derived from the request, the frontend dropdown, or any client-supplied value. A merchant_id absent
+    from the set (including one that doesn't exist at all) is rejected here, before any business logic
+    runs - fail closed. An ordinary single-merchant operator key (the overwhelming majority - every
+    existing key predating this change) has no allowed_merchants rows and behaves EXACTLY as before:
+    scoped to its own api_keys.merchant_id alone."""
     merchant_id_in_path = request.path_params.get("merchant_id")
     record = _resolve(request, authorization)
     if record["role"] not in {"operator", "service"}:
         raise HTTPException(status_code=403, detail="key does not grant operator access")
-    if record["role"] == "operator" and record["merchant_id"] != merchant_id_in_path:
-        raise HTTPException(status_code=403, detail="api key is not authorized for this merchant")
+    if record["role"] == "operator":
+        allowed_merchants = record.get("allowed_merchants")
+        if allowed_merchants:
+            if merchant_id_in_path not in allowed_merchants:
+                raise HTTPException(status_code=403, detail="api key is not authorized for this merchant")
+        elif record["merchant_id"] != merchant_id_in_path:
+            raise HTTPException(status_code=403, detail="api key is not authorized for this merchant")
     return AuthContext(principal_type=record["role"], principal_id=record["id"], merchant_id=merchant_id_in_path, role=record["role"])
 
 

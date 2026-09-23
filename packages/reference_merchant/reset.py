@@ -29,7 +29,8 @@ _REF_TABLES_TO_CLEAR = (
     "merchant_configurations", "customers", "inventory", "channels", "api_keys",
     "product_drafts", "publications", "publication_attempts", "listing_verifications",
     "support_conversations", "support_intents", "customer_support_actions",
-    "identity_decisions",
+    "identity_decisions", "audit_events", "channel_operations", "demo_session_contacts",
+    "whatsapp_conversation_states",
 )
 
 
@@ -54,6 +55,9 @@ def reset_reference_merchant(
     # 1. Direct SQL cleanup for ref_anchal_heritage
     wiped_counts: dict[str, int] = {}
     with psycopg2.connect(dsn) as conn, conn.cursor() as cur:
+        # See migration 0001_phase05.sql: this GUC is the one narrow, explicit exception to
+        # audit_events being append-only - scoped to this transaction, this reset call only.
+        cur.execute("SET LOCAL sanocea.allow_demo_audit_reset = 'on'")
         for table in _REF_TABLES_TO_CLEAR:
             cur.execute(f"DELETE FROM {table} WHERE merchant_id = %s", (REF_MERCHANT_ID,))
             wiped_counts[table] = cur.rowcount

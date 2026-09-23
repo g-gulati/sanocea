@@ -177,6 +177,10 @@ def resolve_draft_conflict(services: Services, merchant_id: str, draft_id: str, 
     return services.catalogue.resolve_conflict(merchant_id, draft_id, fact_name, chosen_value, chosen_source, actor, note=note)
 
 
+def provide_missing_draft_fact(services: Services, merchant_id: str, draft_id: str, fact_name: str, value: Any, actor: str, source: str = "owner_reply", note: str | None = None) -> ProductDraft:
+    return services.catalogue.provide_missing_fact(merchant_id, draft_id, fact_name, value, actor, source=source, note=note)
+
+
 def approve_product_facts(services: Services, merchant_id: str, draft_id: str, approver_id: str) -> ProductDraft:
     return services.catalogue.approve_product_facts(merchant_id, draft_id, approver_id)
 

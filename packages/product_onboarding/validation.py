@@ -65,6 +65,27 @@ class ProductCompletenessValidator:
                         draft.commercial_facts[field].classification = ProvenanceClassification.MISSING.value
                         draft.commercial_facts[field].value = None
 
+        # Physical product inventory publication requirements
+        is_physical = draft.attributes.get("requires_shipping", True) is not False and not draft.attributes.get("is_digital")
+        enforce_inv = product_rules.get("enforce_physical_inventory") or "inventory_quantity" in required or draft.merchant_id.startswith("prospect_")
+
+        if is_physical and enforce_inv:
+            # If merchant explicitly chose track_inventory=False, that is an allowed deliberate policy choice
+            if draft.attributes.get("track_inventory") is False:
+                draft.commercial_facts.pop("inventory_quantity", None)
+                draft.commercial_facts.pop("inventory_location", None)
+            elif draft.attributes.get("inventory_quantity") is not None and draft.attributes.get("inventory_location") is not None:
+                draft.attributes["inventory_confirmed"] = True
+            elif not draft.attributes.get("inventory_confirmed"):
+                if draft.attributes.get("inventory_quantity") is None:
+                    missing.append("inventory_quantity")
+                    if "inventory_quantity" not in draft.commercial_facts:
+                        draft.commercial_facts["inventory_quantity"] = ZeroInventionPolicy.create_missing_fact("inventory_quantity")
+                if not draft.attributes.get("inventory_location"):
+                    missing.append("inventory_location")
+                    if "inventory_location" not in draft.commercial_facts:
+                        draft.commercial_facts["inventory_location"] = ZeroInventionPolicy.create_missing_fact("inventory_location")
+
         # Enforce Zero-Invention Policy on protected commercial facts
         zero_invention_errors = []
         for name, fact in draft.commercial_facts.items():
@@ -128,6 +149,8 @@ class ProductCompletenessValidator:
                 if fact.classification in (ProvenanceClassification.AI_ENRICHED.value, ProvenanceClassification.AI_SUGGESTED.value):
                     exceptions.append(f"zero_invention_violation:{name}")
                 if fact.classification == ProvenanceClassification.MISSING.value:
+                    if name in ("inventory_quantity", "inventory_location") and draft.attributes.get("track_inventory") is False:
+                        continue
                     exceptions.append(f"missing_protected_fact:{name}")
         if not draft.sku:
             exceptions.append("missing_sku")
@@ -139,6 +162,13 @@ class ProductCompletenessValidator:
             exceptions.append("missing_currency")
         if "internal_only_field" in draft.attributes:
             exceptions.append("internal_only_field")
+
+        is_physical = draft.attributes.get("requires_shipping", True) is not False and not draft.attributes.get("is_digital")
+        product_rules = config.get("product_rules", {})
+        enforce_inv = product_rules.get("enforce_physical_inventory") or draft.merchant_id.startswith("prospect_")
+        if is_physical and enforce_inv and draft.attributes.get("track_inventory") is not False:
+            if not draft.attributes.get("inventory_confirmed") or draft.attributes.get("inventory_quantity") is None:
+                exceptions.append("unconfirmed_inventory_policy")
 
         if exceptions:
             return PublicationDecision("EXCEPTION", exceptions)

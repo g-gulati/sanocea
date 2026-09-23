@@ -15,6 +15,16 @@ CREATE TABLE IF NOT EXISTS channels (
 );
 CREATE INDEX IF NOT EXISTS idx_channels_merchant ON channels(merchant_id);
 
+CREATE TABLE IF NOT EXISTS locations (
+  id TEXT PRIMARY KEY,
+  merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  data JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_locations_merchant ON locations(merchant_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_locations_merchant_code ON locations(merchant_id, (data->>'code'));
+
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY,
   merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
@@ -451,6 +461,37 @@ CREATE TABLE IF NOT EXISTS exceptions (
 );
 CREATE INDEX IF NOT EXISTS idx_exceptions_merchant_status ON exceptions(merchant_id, (data->>'status'));
 
+-- Sept 2026, multi-channel live demo #2 - see ChannelOperation's own docstring in models.py.
+CREATE TABLE IF NOT EXISTS channel_operations (
+  id TEXT PRIMARY KEY,
+  merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  data JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_channel_operations_merchant_status ON channel_operations(merchant_id, (data->>'status'));
+CREATE INDEX IF NOT EXISTS idx_channel_operations_merchant_run ON channel_operations(merchant_id, (data->>'run_id'));
+CREATE INDEX IF NOT EXISTS idx_channel_operations_merchant_channel ON channel_operations(merchant_id, (data->>'channel'));
+
+-- Sept 2026, multi-channel live demo #2 - see DemoSessionContact's own docstring in models.py.
+CREATE TABLE IF NOT EXISTS demo_session_contacts (
+  id TEXT PRIMARY KEY,
+  merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  data JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_demo_session_contacts_merchant ON demo_session_contacts(merchant_id);
+
+CREATE TABLE IF NOT EXISTS whatsapp_conversation_states (
+  id TEXT PRIMARY KEY,
+  merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  data JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_whatsapp_conversation_states_merchant_phone ON whatsapp_conversation_states(merchant_id, (data->>'phone_e164'));
+
 CREATE TABLE IF NOT EXISTS workflow_executions (
   id TEXT PRIMARY KEY,
   merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
@@ -499,8 +540,17 @@ CREATE TABLE IF NOT EXISTS reconciliation_results (
 );
 CREATE INDEX IF NOT EXISTS idx_reconciliation_merchant_time ON reconciliation_results(merchant_id, created_at DESC);
 
+-- Audit events are append-only for every normal application code path (API routes, workflows,
+-- ingestion). The one deliberate exception: an operator-triggered demo-tenant reset (see
+-- packages/prospect_demo/reset.py, packages/reference_merchant/reset.py) may re-baseline a demo
+-- tenant's evidence ledger from scratch so rehearsal runs start clean. That path (and only that
+-- path) sets the session-local GUC below immediately before its DELETE, inside the same
+-- transaction - no other code in the system ever sets it, so real audit history stays immutable.
 CREATE OR REPLACE FUNCTION prevent_audit_update_delete() RETURNS trigger AS $$
 BEGIN
+  IF TG_OP = 'DELETE' AND current_setting('sanocea.allow_demo_audit_reset', true) = 'on' THEN
+    RETURN OLD;
+  END IF;
   RAISE EXCEPTION 'audit_events is append-only';
 END;
 $$ LANGUAGE plpgsql;
@@ -637,3 +687,44 @@ CREATE TABLE IF NOT EXISTS api_keys (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uq_api_keys_hash ON api_keys(key_hash);
 CREATE INDEX IF NOT EXISTS idx_api_keys_merchant ON api_keys(merchant_id, role);
+
+-- Internal operator multi-merchant authorization (Command Center demo-switching UX correction). Purely
+-- additive: an 'operator' key with no rows here behaves EXACTLY as before (scoped to its single
+-- api_keys.merchant_id, unchanged). An 'operator' key WITH rows here (api_keys.merchant_id left NULL) is
+-- instead scoped to exactly this explicit set - require_operator (packages/authn/deps.py) checks
+-- membership here when present. Real FK referential integrity on both sides, unlike a bare JSONB/array
+-- column - an allowed_merchants row can never reference a merchant that doesn't exist, and is dropped
+-- automatically if the key or the merchant is deleted.
+CREATE TABLE IF NOT EXISTS api_key_merchants (
+  api_key_id TEXT NOT NULL REFERENCES api_keys(id) ON DELETE CASCADE,
+  merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  PRIMARY KEY (api_key_id, merchant_id)
+);
+CREATE INDEX IF NOT EXISTS idx_api_key_merchants_key ON api_key_merchants(api_key_id);
+
+-- Gmail push-notification email edge (replaces the n8n/IMAP trigger - see packages/gmail_watch/).
+-- Mailbox-scoped, not merchant-scoped: one physical Gmail inbox is shared across every prospect demo
+-- tenant, and which merchant an email belongs to is resolved later by SANOCEA's own routing check -
+-- exactly the same division of responsibility the n8n/IMAP transport had. Single-row table (id is
+-- always 'default') - a real multi-mailbox deployment would key this by mailbox address instead, not
+-- needed for one demo mailbox. history_id is Gmail's own change-cursor (see users.history.list) - the
+-- ONLY state that must survive a restart for "no silently lost email" to hold.
+-- OAuth client registration (SANOCEA's own app identity) and the mailbox owner's refresh token are
+-- both genuinely system/mailbox-scoped, not merchant-scoped - they cannot live in `encrypted_credentials`
+-- (that table's merchant_id has a real FK to merchants(id), correctly refusing a synthetic
+-- "no real merchant" row). Reuses the SAME AES-256-GCM primitive and master-key infrastructure as
+-- DurableEncryptedCredentialProvider (packages/domain_contract/credentials.py) rather than inventing a
+-- second encryption scheme - just without forcing this genuinely-not-merchant-scoped secret through a
+-- merchant-scoped table.
+CREATE TABLE IF NOT EXISTS gmail_watch_state (
+  id TEXT PRIMARY KEY,
+  mailbox TEXT NOT NULL,
+  history_id TEXT NOT NULL,
+  watch_expiration TIMESTAMPTZ,
+  oauth_client_ciphertext BYTEA,
+  oauth_client_nonce BYTEA,
+  refresh_token_ciphertext BYTEA,
+  refresh_token_nonce BYTEA,
+  key_version TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

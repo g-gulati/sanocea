@@ -6,6 +6,7 @@ from sanocea.packages.domain_contract.models import (
     Approval,
     AuditEvent,
     Cancellation,
+    ChannelOperation,
     ConnectorCommand,
     CustomerSupportAction,
     Exchange,
@@ -114,6 +115,14 @@ def list_open_approvals(store, merchant_id: str) -> list[Approval]:
 
 def list_open_exceptions(store, merchant_id: str) -> list[ExceptionRecord]:
     return store.list_where(ExceptionRecord, merchant_id, status="open")
+
+
+def list_channel_operations(store, merchant_id: str, run_id: str | None = None, channel: str | None = None) -> list[ChannelOperation]:
+    if run_id:
+        return store.list_where(ChannelOperation, merchant_id, run_id=run_id)
+    if channel:
+        return store.list_where(ChannelOperation, merchant_id, channel=channel)
+    return store.list(ChannelOperation, merchant_id)
 
 
 def list_uncertain_connector_commands(store, merchant_id: str) -> list[ConnectorCommand]:

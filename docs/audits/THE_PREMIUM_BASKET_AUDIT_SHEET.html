@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Premium Basket — Deep Operational Audit Sheet (78 Findings)</title>
+    <style>
+        :root {
+            --bg: #0B1120;
+            --surface: #1E293B;
+            --surface-alt: #0F172A;
+            --border: #334155;
+            --text-main: #F8FAFC;
+            --text-sub: #94A3B8;
+            --cyan: #00E5FF;
+            --amber: #F59E0B;
+            --red: #EF4444;
+            --green: #10B981;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            padding: 24px;
+            font-size: 13px;
+        }
+        .header {
+            margin-bottom: 24px;
+            background: var(--surface);
+            padding: 20px 24px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .header h1 { font-size: 22px; color: var(--cyan); margin-bottom: 8px; }
+        .header p { color: var(--text-sub); font-size: 13.5px; line-height: 1.5; }
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            background: var(--surface-alt);
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .stat-val { font-size: 18px; font-weight: 700; color: #FFF; }
+        .stat-lbl { font-size: 11px; color: var(--text-sub); text-transform: uppercase; }
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        input.search-box {
+            padding: 9px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #FFF;
+            font-size: 13px;
+            min-width: 280px;
+        }
+        select.filter-box {
+            padding: 9px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #FFF;
+            font-size: 13px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        th {
+            background: var(--surface-alt);
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 11.5px;
+            color: var(--cyan);
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 10px 10px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+            vertical-align: top;
+            line-height: 1.45;
+        }
+        tr:hover { background: rgba(0, 229, 255, 0.03); }
+        .badge {
+            font-family: monospace;
+            font-weight: 700;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        .badge-high { background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .badge-medium { background: rgba(245, 158, 11, 0.2); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-low { background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .pill {
+            font-size: 10.5px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        .pill-high { color: #EF4444; }
+        .pill-medium { color: #F59E0B; }
+        .pill-low { color: #10B981; }
+        .links-cell { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
+        a.link-btn {
+            text-decoration: none;
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+        a.live-btn {
+            background: rgba(0, 229, 255, 0.12);
+            color: var(--cyan);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+        }
+        a.live-btn:hover {
+            background: var(--cyan);
+            color: #060B14;
+        }
+        a.proof-btn {
+            background: rgba(148, 163, 184, 0.1);
+            color: #CBD5E1;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+        a.proof-btn:hover {
+            background: rgba(148, 163, 184, 0.25);
+            color: #FFF;
+        }
+        .obs-cell { font-size: 11.5px; color: #CBD5E1; min-width: 180px; max-width: 260px; }
+        .finding-text { color: #94A3B8; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>The Premium Basket — Deep Operational Audit Sheet (78 Findings)</h1>
+        <p>Comprehensive issue-by-issue audit of <strong>thepremiumbasket.in</strong> covering catalogue governance, pricing inversions, blank SKUs, quick-commerce drift, and storefront defects.</p>
+        <div class="stats-bar">
+            <div class="stat-box"><div class="stat-val">78</div><div class="stat-lbl">Total Findings</div></div>
+            <div class="stat-box"><div class="stat-val" style="color:var(--red);">32</div><div class="stat-lbl">High Severity</div></div>
+            <div class="stat-box"><div class="stat-val" style="color:var(--amber);">40</div><div class="stat-lbl">Medium Severity</div></div>
+            <div class="stat-box"><div class="stat-val" style="color:var(--green);">6</div><div class="stat-lbl">Low Severity</div></div>
+            <div class="stat-box"><div class="stat-val">65 / 142</div><div class="stat-lbl">Blank SKUs (45.8%)</div></div>
+            <div class="stat-box"><div class="stat-val">12</div><div class="stat-lbl">Pricing Inversions</div></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="searchInput" class="search-box" placeholder="Search product name, SKU, finding, or URL..." onkeyup="filterTable()">
+        <select id="severityFilter" class="filter-box" onchange="filterTable()">
+            <option value="ALL">All Severities</option>
+            <option value="HIGH">HIGH (32)</option>
+            <option value="MEDIUM">MEDIUM (40)</option>
+            <option value="LOW">LOW (6)</option>
+        </select>
+        <select id="channelFilter" class="filter-box" onchange="filterTable()">
+            <option value="ALL">All Channels</option>
+            <option value="Website">Website</option>
+            <option value="Cross-channel">Cross-Channel</option>
+            <option value="Blinkit">Blinkit</option>
+            <option value="Flipkart">Flipkart</option>
+            <option value="Swiggy Instamart">Swiggy Instamart</option>
+            <option value="Amazon">Amazon</option>
+        </select>
+    </div>
+
+    <table id="auditTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Severity</th>
+                <th>Channel / Area</th>
+                <th>Product & Finding</th>
+                <th>Direct Links</th>
+                <th>Observed State</th>
+                <th>Expected Standard</th>
+                <th>Business Impact</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        <tr data-severity="HIGH" data-channel="Blinkit" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-001</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Blinkit</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://blinkit.com/prn/the-premium-basket-flavoured-makhana-black-salt-cayenne-pepper/prid/730290</strong><br><span class="finding-text">Multiple indexed Blinkit listings found with public out-of-stock signals.</span></td>
+            <td><div class="links-cell"><a href="https://blinkit.com/prn/the-premium-basket-flavoured-makhana-black-salt-cayenne-pepper/prid/730290" target="_blank" class="link-btn live-btn">Blinkit Listing</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/marketplace_footprint.json" target="_blank" class="link-btn proof-btn">marketplace_footprint.json</a></div></td>
+            <td class="obs-cell">Public product snippets list multiple The Premium Basket makhana/dates SKUs, all observed snippets say Out of stock.</td>
+            <td>Quick-commerce listings should be actively monitored for SKU availability and replenishment/suppression decisions.</td>
+            <td><small><strong>Op:</strong> Requires recurring quick-commerce availability monitoring by location/SKU.<br><strong>Comm:</strong> OOS indexed listings can waste discoverability and suppress quick-commerce conversion.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Cross-channel" data-area="Cross-Channel Findings">
+            <td><span class="badge badge-high">TPB-002</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Cross-channel</strong><br><small>Cross-Channel Findings</small></td>
+            <td><strong>Arabian Ajwa Dates</strong><br><span class="finding-text">Same product family is represented differently across channels.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/arabian-ajwa-dates" target="_blank" class="link-btn live-btn">Website: Arabian Ajwa Dates</a><a href="https://www.swiggy.com/instamart/p/the-premium-basket-arabian-ajwa-dates-LDCD10TZD8" target="_blank" class="link-btn live-btn">Instamart: Arabian Ajwa Dates</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/cross_channel_examples.json" target="_blank" class="link-btn proof-btn">cross_channel_examples.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/marketplace_footprint.json" target="_blank" class="link-btn proof-btn">marketplace_footprint.json</a></div></td>
+            <td class="obs-cell">• **product**: Arabian Ajwa Dates<br>• **website**: `{"title": "Arabian Ajwa Dates", "variants": "250gm Pack o...`<br>• **instamart**: `{"title": "The Premium Basket Arabian Ajwa Dates", "quant...`<br>• **issue**: Instamart appears to carry single 250 g unit while website manages multi-pack variants, creating recurring channel-specific listing/pricing work.</td>
+            <td>Cross-channel listings should retain consistent brand/title, pack size, MRP basis, images, and availability truth while allowing channel-specific price strategy.</td>
+            <td><small><strong>Op:</strong> Requires marketplace-specific catalogue mapping, price checks, and availability reconciliation.<br><strong>Comm:</strong> Can confuse customer comparison and create missed sales/OOS or pricing inconsistencies.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Cross-channel" data-area="Cross-Channel Findings">
+            <td><span class="badge badge-high">TPB-003</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Cross-channel</strong><br><small>Cross-Channel Findings</small></td>
+            <td><strong>Himalayan Pink Salt Makhana</strong><br><span class="finding-text">Same product family is represented differently across channels.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/himalayan-pink-salt-perfection-makhana" target="_blank" class="link-btn live-btn">Website: Pink Salt Makhana</a><a href="https://blinkit.com/prn/the-premium-basket-flavoured-makhana-black-salt-cayenne-pepper/prid/730290" target="_blank" class="link-btn live-btn">Blinkit: Makhana Listing</a><a href="https://www.flipkart.com/search?q=the+premium+basket+himalayan+pink+salt+makhana" target="_blank" class="link-btn live-btn">Flipkart: Search Listing</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/cross_channel_examples.json" target="_blank" class="link-btn proof-btn">cross_channel_examples.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/marketplace_footprint.json" target="_blank" class="link-btn proof-btn">marketplace_footprint.json</a></div></td>
+            <td class="obs-cell">• **product**: Himalayan Pink Salt Makhana<br>• **website**: `{"title": "Himalayan Pink Salt Perfection Makhana", "vari...`<br>• **flipkart**: `{"title": "Himalayan Pink Salt Makhana 50g | Air Roasted ...`<br>• **blinkit**: `{"title": "The Premium Basket Himalayan Pink Salt Makhana...`<br>• **issue**: Product naming and pack representation differ across website, Flipkart, and Blinkit.</td>
+            <td>Cross-channel listings should retain consistent brand/title, pack size, MRP basis, images, and availability truth while allowing channel-specific price strategy.</td>
+            <td><small><strong>Op:</strong> Requires marketplace-specific catalogue mapping, price checks, and availability reconciliation.<br><strong>Comm:</strong> Can confuse customer comparison and create missed sales/OOS or pricing inconsistencies.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Cross-channel" data-area="Cross-Channel Findings">
+            <td><span class="badge badge-high">TPB-004</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Cross-channel</strong><br><small>Cross-Channel Findings</small></td>
+            <td><strong>Jordanian Medjool Dates</strong><br><span class="finding-text">Same product family is represented differently across channels.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/jordanian-medjool-dates" target="_blank" class="link-btn live-btn">Website: Jordanian Medjool Dates</a><a href="https://www.flipkart.com/premium-basket-jordanian-medjool-dates-250g-soft-naturally-sweet-dry/p/itm50d5f2a1be14f" target="_blank" class="link-btn live-btn">Flipkart: 3x250g Listing</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/cross_channel_examples.json" target="_blank" class="link-btn proof-btn">cross_channel_examples.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/marketplace_footprint.json" target="_blank" class="link-btn proof-btn">marketplace_footprint.json</a></div></td>
+            <td class="obs-cell">• **product**: Jordanian Medjool Dates<br>• **website**: `{"title": "Jordanian Medjool Dates", "variants": "250gm P...`<br>• **flipkart**: `{"title": "Premium Jordanian Medjool Dates 250g – Premium...`<br>• **blinkit**: `{"title": "The Premium Basket Jordanian Medjool Dates", "...`<br>• **issue**: Same SKU family appears as website single/multipack variants, Flipkart 3x250 g listing, and Blinkit 250 g listing with different availability states.</td>
+            <td>Cross-channel listings should retain consistent brand/title, pack size, MRP basis, images, and availability truth while allowing channel-specific price strategy.</td>
+            <td><small><strong>Op:</strong> Requires marketplace-specific catalogue mapping, price checks, and availability reconciliation.<br><strong>Comm:</strong> Can confuse customer comparison and create missed sales/OOS or pricing inconsistencies.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Flipkart" data-area="Customer Journey / Policy">
+            <td><span class="badge badge-high">TPB-005</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Flipkart</strong><br><small>Customer Journey / Policy</small></td>
+            <td><strong>Flipkart Jordanian Medjool Dates listing</strong><br><span class="finding-text">Flipkart listing shows no returns and no cash on delivery for a food product listing.</span></td>
+            <td><div class="links-cell"><a href="https://www.flipkart.com/premium-basket-jordanian-medjool-dates-250g-soft-naturally-sweet-dry/p/itm50d5f2a1be14f" target="_blank" class="link-btn live-btn">Flipkart Listing</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/flipkart_indexed_product.png" target="_blank" class="link-btn proof-btn">flipkart_indexed_product.png</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/playwright_screenshot_manifest.json" target="_blank" class="link-btn proof-btn">playwright_screenshot_manifest.json</a></div></td>
+            <td class="obs-cell">Screenshot body text shows seller ZIJIBLAVENTURESPVTLTD, 'No returns', and 'No cash on delivery'.</td>
+            <td>Marketplace return/COD settings should be intentionally reviewed against brand policy and customer expectations.</td>
+            <td><small><strong>Op:</strong> Requires marketplace listing policy upkeep and seller-setting reconciliation.<br><strong>Comm:</strong> Can reduce conversion for customers expecting COD/return options, while creating support variance vs owned-site policy.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Customer Journey / Policy">
+            <td><span class="badge badge-high">TPB-006</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Customer Journey / Policy</small></td>
+            <td><strong>Homepage vs shipping policy</strong><br><span class="finding-text">Free-delivery claim conflicts with shipping-policy conditions.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/" target="_blank" class="link-btn live-btn">Storefront Home</a><a href="https://www.thepremiumbasket.in/pages/shipping-policy" target="_blank" class="link-btn live-btn">Page: shipping-policy</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/website_home.png" target="_blank" class="link-btn proof-btn">website_home.png</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/website_shipping_policy.png" target="_blank" class="link-btn proof-btn">website_shipping_policy.png</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/playwright_screenshot_manifest.json" target="_blank" class="link-btn proof-btn">playwright_screenshot_manifest.json</a></div></td>
+            <td class="obs-cell">Homepage/top bar states 'Free Delivery Anywhere in India'; shipping policy says free shipping only on orders above Rs.999 excluding taxes/gift packing and outstation charges vary.</td>
+            <td>Promotional delivery claim and policy terms should be consistent or clearly qualified.</td>
+            <td><small><strong>Op:</strong> Requires policy/banner copy QA whenever shipping thresholds or location rules change.<br><strong>Comm:</strong> Can create support tickets, checkout surprise, or trust loss if customers expect unconditional free delivery.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Digital Footprint">
+            <td><span class="badge badge-high">TPB-007</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Digital Footprint</small></td>
+            <td><strong>https://www.us.thepremiumbasket.com/</strong><br><span class="finding-text">US Shopify subdomain is publicly unavailable.</span></td>
+            <td><div class="links-cell"><a href="https://www.us.thepremiumbasket.com/" target="_blank" class="link-btn live-btn">US Subdomain (402)</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/us_subdomain_unavailable.png" target="_blank" class="link-btn proof-btn">us_subdomain_unavailable.png</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/playwright_screenshot_manifest.json" target="_blank" class="link-btn proof-btn">playwright_screenshot_manifest.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/alt_domain_checks.json" target="_blank" class="link-btn proof-btn">alt_domain_checks.json</a></div></td>
+            <td class="obs-cell">Playwright observed HTTP 402 with Shopify 'This store is currently unavailable' page.</td>
+            <td>Inactive commerce domains should be removed, redirected, or clearly decommissioned.</td>
+            <td><small><strong>Op:</strong> Requires domain/storefront ownership cleanup and periodic footprint monitoring.<br><strong>Comm:</strong> Can confuse customers, partners, or crawlers and dilute trust if discovered.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Merchandising">
+            <td><span class="badge badge-high">TPB-008</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Merchandising</small></td>
+            <td><strong>https://www.thepremiumbasket.in/collections/all</strong><br><span class="finding-text">Collection page count is lower than structured catalogue count.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/collections/all" target="_blank" class="link-btn live-btn">Collection: all</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/website_all_collection.png" target="_blank" class="link-btn proof-btn">website_all_collection.png</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/playwright_screenshot_manifest.json" target="_blank" class="link-btn proof-btn">playwright_screenshot_manifest.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/deep_analysis_summary.json" target="_blank" class="link-btn proof-btn">deep_analysis_summary.json</a></div></td>
+            <td class="obs-cell">Collection page screenshot/body says 'Showing 1-12 of 36 results'; sitemap/products.json expose 38 product URLs.</td>
+            <td>Collection merchandising count should match the published catalogue, or excluded products should be intentionally documented.</td>
+            <td><small><strong>Op:</strong> Requires reconciliation between published products, collection rules, and storefront merchandising.<br><strong>Comm:</strong> Two products may be hidden from the main shopping path despite being published/indexable.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-009</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/almonds-cashews-trio-pack</strong><br><span class="finding-text">Same compare-at/MRP-style value is applied to variants with different total quantities.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/almonds-cashews-trio-pack" target="_blank" class="link-btn live-btn">Product: almonds-cashews-trio-pack</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **compare_at_price**: 1575.0<br>• **variants**: `[{"variant": "750gm", "price": 1399.0, "compare": 1575.0,...`<br>• **product**: Signature Seasoned Trio</td>
+            <td>MRP/compare-at values should correspond to each variant's actual pack quantity.</td>
+            <td><small><strong>Op:</strong> Requires manual MRP/variant matrix validation before publishing.<br><strong>Comm:</strong> Can create misleading discount display or compliance/customer-trust risk.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-010</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew" target="_blank" class="link-btn live-btn">Product: american-ranch-almonds-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "250gm / Pack of 1", "price": 525.0, "compare...`<br>• **larger**: `{"variant": "100 gm / Pack of 3", "price": 1497.0, "compa...`<br>• **product**: American Ranch Indulgence Almonds & Cashews</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-011</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew" target="_blank" class="link-btn live-btn">Product: american-ranch-almonds-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "100 gm / Pack of 1", "price": 349.0, "compar...`<br>• **larger**: `{"variant": "100 gm / Pack of 2", "price": 998.0, "compar...`<br>• **product**: American Ranch Indulgence Almonds & Cashews</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-012</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew" target="_blank" class="link-btn live-btn">Product: american-ranch-almonds-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "100 gm / Pack of 2", "price": 998.0, "compar...`<br>• **larger**: `{"variant": "100 gm / Pack of 4", "price": 2994.0, "compa...`<br>• **product**: American Ranch Indulgence Almonds & Cashews</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-013</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew" target="_blank" class="link-btn live-btn">Product: american-ranch-almonds-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "100 gm / Pack of 3", "price": 1497.0, "compa...`<br>• **larger**: `{"variant": "100 gm / Pack of 4", "price": 2994.0, "compa...`<br>• **product**: American Ranch Indulgence Almonds & Cashews</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-014</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/arabian-mabroom-dates</strong><br><span class="finding-text">Same compare-at/MRP-style value is applied to variants with different total quantities.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/arabian-mabroom-dates" target="_blank" class="link-btn live-btn">Product: arabian-mabroom-dates</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **compare_at_price**: 1650.0<br>• **variants**: `[{"variant": "250 Grams / Pack of 3", "price": 1399.0, "c...`<br>• **product**: Arabian Mabroom Dates</td>
+            <td>MRP/compare-at values should correspond to each variant's actual pack quantity.</td>
+            <td><small><strong>Op:</strong> Requires manual MRP/variant matrix validation before publishing.<br><strong>Comm:</strong> Can create misleading discount display or compliance/customer-trust risk.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-015</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew" target="_blank" class="link-btn live-btn">Product: hickory-bbq-almond-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "250gm / Pack of 1", "price": 499.0, "compare...`<br>• **larger**: `{"variant": "100gm / Pack of 3", "price": 1497.0, "compar...`<br>• **product**: Smoky Hickory Barbecue Almonds & Cashew</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-016</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew" target="_blank" class="link-btn live-btn">Product: hickory-bbq-almond-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "100gm / Pack of 1", "price": 349.0, "compare...`<br>• **larger**: `{"variant": "100gm / Pack of 2", "price": 998.0, "compare...`<br>• **product**: Smoky Hickory Barbecue Almonds & Cashew</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-017</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew</strong><br><span class="finding-text">Same compare-at/MRP-style value is applied to variants with different total quantities.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew" target="_blank" class="link-btn live-btn">Product: hickory-bbq-almond-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **compare_at_price**: 1050.0<br>• **variants**: `[{"variant": "250gm / Pack of 2", "price": 899.0, "compar...`<br>• **product**: Smoky Hickory Barbecue Almonds & Cashew</td>
+            <td>MRP/compare-at values should correspond to each variant's actual pack quantity.</td>
+            <td><small><strong>Op:</strong> Requires manual MRP/variant matrix validation before publishing.<br><strong>Comm:</strong> Can create misleading discount display or compliance/customer-trust risk.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-018</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew</strong><br><span class="finding-text">Selling price is higher than compare-at/MRP-style price.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew" target="_blank" class="link-btn live-btn">Product: hickory-bbq-almond-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **price**: 998.0<br>• **compare_at_price**: 499.0<br>• **title**: Smoky Hickory Barbecue Almonds & Cashew</td>
+            <td>Sale price should not exceed compare-at price.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-019</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew</strong><br><span class="finding-text">Selling price is higher than compare-at/MRP-style price.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew" target="_blank" class="link-btn live-btn">Product: hickory-bbq-almond-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **price**: 1497.0<br>• **compare_at_price**: 1050.0<br>• **title**: Smoky Hickory Barbecue Almonds & Cashew</td>
+            <td>Sale price should not exceed compare-at price.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-020</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew" target="_blank" class="link-btn live-btn">Product: spiced-pondi-pepper-almonds-ca...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "250gm / Pack of 1", "price": 525.0, "compare...`<br>• **larger**: `{"variant": "100gm / Pack of 3", "price": 1497.0, "compar...`<br>• **product**: Spiced Pondi Pepper Almonds & Cashew</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-021</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew" target="_blank" class="link-btn live-btn">Product: spiced-pondi-pepper-almonds-ca...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "100gm / Pack of 2", "price": 998.0, "compare...`<br>• **larger**: `{"variant": "100gm / Pack of 4", "price": 2994.0, "compar...`<br>• **product**: Spiced Pondi Pepper Almonds & Cashew</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-022</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew" target="_blank" class="link-btn live-btn">Product: spiced-pondi-pepper-almonds-ca...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "100gm / Pack of 1", "price": 349.0, "compare...`<br>• **larger**: `{"variant": "100gm / Pack of 2", "price": 998.0, "compare...`<br>• **product**: Spiced Pondi Pepper Almonds & Cashew</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-023</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew</strong><br><span class="finding-text">Larger pack variant is materially more expensive per 100g than a smaller pack.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew" target="_blank" class="link-btn live-btn">Product: spiced-pondi-pepper-almonds-ca...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **smaller**: `{"variant": "100gm / Pack of 3", "price": 1497.0, "compar...`<br>• **larger**: `{"variant": "100gm / Pack of 4", "price": 2994.0, "compar...`<br>• **product**: Spiced Pondi Pepper Almonds & Cashew</td>
+            <td>Pack ladder should be intentionally priced and checked for per-unit anomalies.</td>
+            <td><small><strong>Op:</strong> Needs recurring variant price-ladder QA when prices or pack variants change.<br><strong>Comm:</strong> Can suppress upsell conversion or create customer trust issues around pack value.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-024</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew</strong><br><span class="finding-text">Same compare-at/MRP-style value is applied to variants with different total quantities.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew" target="_blank" class="link-btn live-btn">Product: spiced-pondi-pepper-almonds-ca...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **compare_at_price**: 1050.0<br>• **variants**: `[{"variant": "250gm / Pack of 2", "price": 999.0, "compar...`<br>• **product**: Spiced Pondi Pepper Almonds & Cashew</td>
+            <td>MRP/compare-at values should correspond to each variant's actual pack quantity.</td>
+            <td><small><strong>Op:</strong> Requires manual MRP/variant matrix validation before publishing.<br><strong>Comm:</strong> Can create misleading discount display or compliance/customer-trust risk.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-025</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew</strong><br><span class="finding-text">Selling price is higher than compare-at/MRP-style price.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew" target="_blank" class="link-btn live-btn">Product: spiced-pondi-pepper-almonds-ca...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **price**: 1799.0<br>• **compare_at_price**: 998.0<br>• **title**: Spiced Pondi Pepper Almonds & Cashew</td>
+            <td>Sale price should not exceed compare-at price.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Pricing / Inventory">
+            <td><span class="badge badge-high">TPB-026</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Pricing / Inventory</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew</strong><br><span class="finding-text">Selling price is higher than compare-at/MRP-style price.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew" target="_blank" class="link-btn live-btn">Product: spiced-pondi-pepper-almonds-ca...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **price**: 998.0<br>• **compare_at_price**: 499.0<br>• **title**: Spiced Pondi Pepper Almonds & Cashew</td>
+            <td>Sale price should not exceed compare-at price.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-high">TPB-027</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>All website variants</strong><br><span class="finding-text">Large share of variants have blank SKU values.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products.json" target="_blank" class="link-btn live-btn">Shopify products.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **blank_sku_variants**: 65<br>• **total_variants**: 142<br>• **percent_blank**: 45.8</td>
+            <td>Every sellable variant should have a stable SKU for inventory, fulfilment, reconciliation, and marketplace mapping.</td>
+            <td><small><strong>Op:</strong> Creates recurring reconciliation burden across Shopify, marketplaces, quick commerce, and internal reports.<br><strong>Comm:</strong> Raises risk of wrong variant mapping, fulfilment mistakes, and stock/pricing sync errors.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-high">TPB-028</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/goan-cashews-w240-grade</strong><br><span class="finding-text">Duplicate SKU value appears across multiple variants/products.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/goan-cashews-w240-grade" target="_blank" class="link-btn live-btn">Product: goan-cashews-w240-grade</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **sku**: ND-CA-GOP-0250G<br>• **count**: 2<br>• **owners**: `["Goa Cashews"]`</td>
+            <td>SKU-like identifiers should uniquely map to one sellable unit or intentional bundle.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Technical / Structural QA">
+            <td><span class="badge badge-high">TPB-029</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Technical / Structural QA</small></td>
+            <td><strong>Homepage HTML</strong><br><span class="finding-text">Rendered HTML contains a failed Shopify app block.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/" target="_blank" class="link-btn live-btn">Storefront Home</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/raw/alt_domain_thepremiumbasket.com_7113a08ed4.html" target="_blank" class="link-btn proof-btn">alt_domain_thepremiumbasket.com_7113a08ed4.html</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/website_home.png" target="_blank" class="link-btn proof-btn">website_home.png</a></div></td>
+            <td class="obs-cell">Homepage raw HTML includes: Failed to render app block "autocart-auto-add-to-cart"... app block path does not exist.</td>
+            <td>Removed/uninstalled app blocks should be cleaned from the live theme.</td>
+            <td><small><strong>Op:</strong> Requires theme/app cleanup and regression checks after app changes.<br><strong>Comm:</strong> Can leave broken app behavior, theme bloat, or cart/promotion inconsistencies.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Technical / Structural QA">
+            <td><span class="badge badge-high">TPB-030</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Technical / Structural QA</small></td>
+            <td><strong>Razorpay Magic Checkout config</strong><br><span class="finding-text">Razorpay Magic Checkout embedded JSON is malformed in captured HTML.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/" target="_blank" class="link-btn live-btn">Storefront Home</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/raw/page_017_www.thepremiumbasket.in_products_himalayan-pink-salt-perfection-makhana_230c969b8d.html" target="_blank" class="link-btn proof-btn">page_017_www.thepremiumbasket.in_products_himalayan-pink-salt-perfection-makhana_230c969b8d.html</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/website_spiced_pondi_pricing.png" target="_blank" class="link-btn proof-btn">website_spiced_pondi_pricing.png</a></div></td>
+            <td class="obs-cell">Script tag RazorpayMagicCheckoutConfig contains `"config":,` in raw HTML, which is invalid JSON.</td>
+            <td>Checkout app configuration JSON should parse cleanly.</td>
+            <td><small><strong>Op:</strong> Requires checkout-app configuration QA after theme/app updates.<br><strong>Comm:</strong> Potentially affects accelerated checkout, payment UX, or browser console health.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Technical / Structural QA">
+            <td><span class="badge badge-high">TPB-031</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Technical / Structural QA</small></td>
+            <td><strong>https://www.thepremiumbasket.in/pages/about-us</strong><br><span class="finding-text">Core sampled page returned an HTTP error.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/pages/about-us" target="_blank" class="link-btn live-btn">Page: about-us</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">HTTP 404</td>
+            <td>Public customer journey and policy pages should return 200 or an intentional redirect.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="HIGH" data-channel="Website" data-area="Technical / Structural QA">
+            <td><span class="badge badge-high">TPB-032</span></td>
+            <td><span class="pill pill-high">HIGH</span></td>
+            <td><strong>Website</strong><br><small>Technical / Structural QA</small></td>
+            <td><strong>https://www.thepremiumbasket.in/pages/refund-policy</strong><br><span class="finding-text">Core sampled page returned an HTTP error.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/pages/refund-policy" target="_blank" class="link-btn live-btn">Page: refund-policy</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">HTTP 404</td>
+            <td>Public customer journey and policy pages should return 200 or an intentional redirect.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Swiggy Instamart" data-area="Access Limitation">
+            <td><span class="badge badge-medium">TPB-033</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Swiggy Instamart</strong><br><small>Access Limitation</small></td>
+            <td><strong>https://www.swiggy.com/instamart/p/the-premium-basket-arabian-ajwa-dates-LDCD10TZD8</strong><br><span class="finding-text">Instamart public page blocked automated browser access.</span></td>
+            <td><div class="links-cell"><a href="https://www.swiggy.com/instamart/p/the-premium-basket-arabian-ajwa-dates-LDCD10TZD8" target="_blank" class="link-btn live-btn">Instamart Listing</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/instamart_indexed_product.png" target="_blank" class="link-btn proof-btn">instamart_indexed_product.png</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/playwright_screenshot_manifest.json" target="_blank" class="link-btn proof-btn">playwright_screenshot_manifest.json</a></div></td>
+            <td class="obs-cell">Playwright received HTTP 202 page saying 'Request Blocked. Your request looks automated and has been blocked.'</td>
+            <td>Quick-commerce data should be validated through normal app/location access or merchant account exports.</td>
+            <td><small><strong>Op:</strong> Private/account or manual app review is needed to verify current Instamart price and availability.<br><strong>Comm:</strong> Limits public audit confidence for Instamart.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Content / Media">
+            <td><span class="badge badge-medium">TPB-034</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Content / Media</small></td>
+            <td><strong>Multiple products</strong><br><span class="finding-text">Identical image URLs are reused across multiple product galleries.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products.json" target="_blank" class="link-btn live-btn">Shopify products.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">`25 items list (see JSON evidence)`<br>• Example: `["https://cdn.shopify.com/s/files/1/0980/4775/4538/files/1_44.png?v=1783488994",`</td>
+            <td>Shared images should be intentional bundle/component imagery and not create product-image mismatch.</td>
+            <td><small><strong>Op:</strong> Needs image assignment QA whenever bundle/component listings are updated.<br><strong>Comm:</strong> Can confuse customers comparing similar SKUs or pack variants.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Content / Media">
+            <td><span class="badge badge-medium">TPB-035</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Content / Media</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/black-salt-and-cayenne-pepper-makhana</strong><br><span class="finding-text">Product image file name indicates an asset that should not be used.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/black-salt-and-cayenne-pepper-makhana" target="_blank" class="link-btn live-btn">Product: black-salt-and-cayenne-pepper-...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">https://cdn.shopify.com/s/files/1/0980/4775/4538/files/DONOTUSE.png?v=1783077306</td>
+            <td>Published gallery assets should not include internally marked do-not-use files.</td>
+            <td><small><strong>Op:</strong> Requires media library cleanup and listing image order review.<br><strong>Comm:</strong> Wrong/stale media can hurt product trust and quality perception.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Content / Media">
+            <td><span class="badge badge-medium">TPB-036</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Content / Media</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/pistachio-nut-butter</strong><br><span class="finding-text">Product image file name indicates an asset that should not be used.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/pistachio-nut-butter" target="_blank" class="link-btn live-btn">Product: pistachio-nut-butter</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">https://cdn.shopify.com/s/files/1/0980/4775/4538/files/DONOTUSE_Pistachio_Lifestyle4.png?v=1780914486</td>
+            <td>Published gallery assets should not include internally marked do-not-use files.</td>
+            <td><small><strong>Op:</strong> Requires media library cleanup and listing image order review.<br><strong>Comm:</strong> Wrong/stale media can hurt product trust and quality perception.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Customer Journey / Policy">
+            <td><span class="badge badge-medium">TPB-037</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Customer Journey / Policy</small></td>
+            <td><strong>Homepage vs returns/contact policy</strong><br><span class="finding-text">Support availability claim is broader than policy/contact evidence.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/" target="_blank" class="link-btn live-btn">Storefront Home</a><a href="https://www.thepremiumbasket.in/pages/returns-and-refund-policy" target="_blank" class="link-btn live-btn">Page: returns-and-refund-policy</a><a href="https://www.thepremiumbasket.in/pages/contact-us" target="_blank" class="link-btn live-btn">Page: contact-us</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/website_home.png" target="_blank" class="link-btn proof-btn">website_home.png</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/website_returns_policy.png" target="_blank" class="link-btn proof-btn">website_returns_policy.png</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/website_contact.png" target="_blank" class="link-btn proof-btn">website_contact.png</a></div></td>
+            <td class="obs-cell">Homepage trust strip says '24/7 Support'; refund policy lists support hours Monday to Saturday, 9 AM to 6 PM; contact page provides phone/email but no 24/7 operating detail.</td>
+            <td>Customer-support promise should match actual published support hours.</td>
+            <td><small><strong>Op:</strong> Requires recurring alignment of trust badges, policy pages, and support operations copy.<br><strong>Comm:</strong> Can increase customer frustration and support escalations outside staffed hours.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Merchandising">
+            <td><span class="badge badge-medium">TPB-038</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Merchandising</small></td>
+            <td><strong>All website products</strong><br><span class="finding-text">Product tags are effectively unused; only one tag observed across 38 products.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products.json" target="_blank" class="link-btn live-btn">Shopify products.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **Best Seller**: 1</td>
+            <td>Operational merchandising normally needs stable tags for campaigns, collections, filters, and feed rules.</td>
+            <td><small><strong>Op:</strong> Increases manual collection and campaign upkeep.<br><strong>Comm:</strong> Can make best-seller, flavour, category, and bundle merchandising less scalable.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-039</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>All website products</strong><br><span class="finding-text">All products have blank product_type in public catalogue data.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products.json" target="_blank" class="link-btn live-btn">Shopify products.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• ****: 38</td>
+            <td>Product type/category fields should classify sellable items.</td>
+            <td><small><strong>Op:</strong> Shifts category control into theme menus/manual collections rather than structured catalogue data.<br><strong>Comm:</strong> Weakens filtering, feed mapping, reporting, and cross-channel category consistency.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-040</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>All website products</strong><br><span class="finding-text">Inconsistent vendor/brand naming in product records.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products.json" target="_blank" class="link-btn live-btn">Shopify products.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **The Premium Basket India**: 6<br>• **The Premium Basket**: 32</td>
+            <td>One brand/vendor name should be used unless a true sub-brand distinction exists.</td>
+            <td><small><strong>Op:</strong> Forces manual normalization across website feeds, marketplace listings, and reports.<br><strong>Comm:</strong> Can fragment brand filters, marketplace mapping, or analytics rollups.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-041</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>Website SKU fields</strong><br><span class="finding-text">Several SKU values contain placeholder-like 0000G, numeric-only, or inconsistent underscore patterns.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products.json" target="_blank" class="link-btn live-btn">Shopify products.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">`20 items list (see JSON evidence)`<br>• Example: `{"product": "Black Salt and Cayenne Pepper Makhana", "variant": "50g / Pack of 3`</td>
+            <td>SKU conventions should be consistent and encode actual pack/variant identity.</td>
+            <td><small><strong>Op:</strong> Requires SKU normalization before reliable cross-channel mapping.<br><strong>Comm:</strong> Increases risk of reporting fragmentation or marketplace upload errors.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-042</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/almond-nut-butter</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/almond-nut-butter" target="_blank" class="link-btn live-btn">Product: almond-nut-butter</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Almond Nut Butter<br>• **variant_skus**: `["GC-NB-ALM-0180G-2P", "GC-NB-ALM-0000G", "GC-NB-ALM-540G...`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-043</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/almonds-cashews-trio-pack</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/almonds-cashews-trio-pack" target="_blank" class="link-btn live-btn">Product: almonds-cashews-trio-pack</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Signature Seasoned Trio<br>• **variant_skus**: `["GCSNTRIO0250G3P", null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-044</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/american-ranch-almonds-cashew" target="_blank" class="link-btn live-btn">Product: american-ranch-almonds-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: American Ranch Indulgence Almonds & Cashews<br>• **variant_skus**: `["GC-SN-AMR-0250G-2P", "GC-SN-AMR-0250G", "GC-SN-AMR-0250...`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-045</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/arabian-ajwa-dates</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/arabian-ajwa-dates" target="_blank" class="link-btn live-btn">Product: arabian-ajwa-dates</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Arabian Ajwa Dates<br>• **variant_skus**: `["ND-DT-AAJ-0250G", "ND-DT-AAJ-0000G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-046</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/arabian-mabroom-dates</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/arabian-mabroom-dates" target="_blank" class="link-btn live-btn">Product: arabian-mabroom-dates</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Arabian Mabroom Dates<br>• **variant_skus**: `["ND-DT-AMB-0000G", "ND-DT-AMB-0250G", null, null, "ND-DT...`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-047</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/bountiful-salted-three-mixed-nuts</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/bountiful-salted-three-mixed-nuts" target="_blank" class="link-btn live-btn">Product: bountiful-salted-three-mixed-nuts</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Bountiful Salted Three Mixed Nuts<br>• **variant_skus**: `["ND-MX-BST-0250-2GP", "ND-MX-BST-0250G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-048</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/california-salted-almonds-premium-gold</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/california-salted-almonds-premium-gold" target="_blank" class="link-btn live-btn">Product: california-salted-almonds-prem...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: California Salted Almonds – Premium Gold<br>• **variant_skus**: `[null, "ND-AL-CAS-0250G", "ND-AL-CAS-0250G-3P", null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-049</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/cashew-nut-butter</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/cashew-nut-butter" target="_blank" class="link-btn live-btn">Product: cashew-nut-butter</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Cashew Nut Butter<br>• **variant_skus**: `["GC-NB-CAS-0180G-2P", "GC-NB-CAS-0000G", "GC-NB-CAS-0180...`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-050</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/chile-walnut</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/chile-walnut" target="_blank" class="link-btn live-btn">Product: chile-walnut</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Chile Walnuts<br>• **variant_skus**: `["ND-WA-CHI-0250G-2P", "ND-WA-CHI-0250G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-051</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/elegant-afghan-apricot</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/elegant-afghan-apricot" target="_blank" class="link-btn live-btn">Product: elegant-afghan-apricot</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Afghan Apricots<br>• **variant_skus**: `["ND-AP-AFG-0250G", "ND-AP-AFG-0000G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-052</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/goan-cashews-w240-grade</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/goan-cashews-w240-grade" target="_blank" class="link-btn live-btn">Product: goan-cashews-w240-grade</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Goa Cashews<br>• **variant_skus**: `["ND-CA-GOP-0250G", "ND-CA-GOP-0250G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-053</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/goan-salted-cashews-w240-grade</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/goan-salted-cashews-w240-grade" target="_blank" class="link-btn live-btn">Product: goan-salted-cashews-w240-grade</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Goan Salted Cashews<br>• **variant_skus**: `["ND-CA-GOS-0250G", "ND-CA-GOS-0000G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-054</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/gourmet-makhana-collection</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/gourmet-makhana-collection" target="_blank" class="link-btn live-btn">Product: gourmet-makhana-collection</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Gourmet Makhana Collection<br>• **variant_skus**: `[null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-055</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/gourmet-makhana-collection</strong><br><span class="finding-text">Bundle/collection product uses a generic Default Title variant.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/gourmet-makhana-collection" target="_blank" class="link-btn live-btn">Product: gourmet-makhana-collection</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **title**: Gourmet Makhana Collection<br>• **variant_titles**: `["Default Title"]`<br>• **price**: `["546.00"]`</td>
+            <td>Bundle SKUs should expose pack composition or quantity at variant level.</td>
+            <td><small><strong>Op:</strong> Makes bundle reconciliation and marketplace variant mapping harder.<br><strong>Comm:</strong> Can confuse channel mapping and customer comparison by pack size.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-056</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/hickory-bbq-almond-cashew" target="_blank" class="link-btn live-btn">Product: hickory-bbq-almond-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Smoky Hickory Barbecue Almonds & Cashew<br>• **variant_skus**: `["GC-SN-HBQ-0250G-2P", "GC-SN-HBQ-0250G", "GC-SN-HBQ-0250...`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-057</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/iran-salted-pistachio</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/iran-salted-pistachio" target="_blank" class="link-btn live-btn">Product: iran-salted-pistachio</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Iran Salted Pistachio<br>• **variant_skus**: `[null, null, null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-058</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/jordanian-medjool-dates</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/jordanian-medjool-dates" target="_blank" class="link-btn live-btn">Product: jordanian-medjool-dates</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Jordanian Medjool Dates<br>• **variant_skus**: `["ND-DT-JMD-0250G-2P", "ND-DT-JMD-0250G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-059</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/milk-chocolate-coffee-cashew</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/milk-chocolate-coffee-cashew" target="_blank" class="link-btn live-btn">Product: milk-chocolate-coffee-cashew</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Milk Chocolate Coffee Cashew<br>• **variant_skus**: `[null, null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-060</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/milk-chocolate-hazelnut</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/milk-chocolate-hazelnut" target="_blank" class="link-btn live-btn">Product: milk-chocolate-hazelnut</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Milk Chocolate Hazelnut<br>• **variant_skus**: `["GC-DG-MCH-0100G_2", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-061</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/opulent-afghan-raisin</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/opulent-afghan-raisin" target="_blank" class="link-btn live-btn">Product: opulent-afghan-raisin</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Afghan Raisins<br>• **variant_skus**: `["ND-RA-AFG-0250G", "ND-RA-AFG-0000G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-062</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/pistachio-nut-butter</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/pistachio-nut-butter" target="_blank" class="link-btn live-btn">Product: pistachio-nut-butter</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Pistachio Nut Butter<br>• **variant_skus**: `["GC-NB-PIS-0180G-2P", "GC-NB-PIS-0000G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-063</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/premium-dates-trio</strong><br><span class="finding-text">Bundle/collection product uses a generic Default Title variant.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/premium-dates-trio" target="_blank" class="link-btn live-btn">Product: premium-dates-trio</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a></div></td>
+            <td class="obs-cell">• **title**: Premium Dates Trio<br>• **variant_titles**: `["Default Title"]`<br>• **price**: `["1299.00"]`</td>
+            <td>Bundle SKUs should expose pack composition or quantity at variant level.</td>
+            <td><small><strong>Op:</strong> Makes bundle reconciliation and marketplace variant mapping harder.<br><strong>Comm:</strong> Can confuse channel mapping and customer comparison by pack size.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-064</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/premium-mamra-almonds</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/premium-mamra-almonds" target="_blank" class="link-btn live-btn">Product: premium-mamra-almonds</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Iran Mamra Almonds<br>• **variant_skus**: `[null, "ND-AL-IRM-0250G", null, "ND-AL-IRM-1000G"]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-065</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/prestigious-iran-pistachio-kernels</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/prestigious-iran-pistachio-kernels" target="_blank" class="link-btn live-btn">Product: prestigious-iran-pistachio-ker...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Premium Pistachio Kernels<br>• **variant_skus**: `["ND-PI-IRP-0250G-2P", "ND-PI-IRP-0250G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-066</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/pure-roasted-makhana</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/pure-roasted-makhana" target="_blank" class="link-btn live-btn">Product: pure-roasted-makhana</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Pure Roasted Makhana<br>• **variant_skus**: `[null, null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-067</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/signature-six-mixed-nuts</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/signature-six-mixed-nuts" target="_blank" class="link-btn live-btn">Product: signature-six-mixed-nuts</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Signature Six Mixed Nuts<br>• **variant_skus**: `["ND-MX-SSX-0250G-2P", "ND-MX-SSX-0250G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-068</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/spiced-pondi-pepper-almonds-cashew" target="_blank" class="link-btn live-btn">Product: spiced-pondi-pepper-almonds-ca...</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Spiced Pondi Pepper Almonds & Cashew<br>• **variant_skus**: `["GC-SN-POP-0250G-2P", "GC-SN-POP-0250G", "GC-SN-POP-0250...`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-069</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/the-premium-basket-gift-card</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/the-premium-basket-gift-card" target="_blank" class="link-btn live-btn">Product: the-premium-basket-gift-card</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: The Premium Basket Gift Card<br>• **variant_skus**: `[null, null, null, null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-070</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/the-premium-basket-gift-card</strong><br><span class="finding-text">Product has empty description/body_html in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/the-premium-basket-gift-card" target="_blank" class="link-btn live-btn">Product: the-premium-basket-gift-card</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">The Premium Basket Gift Card</td>
+            <td>Product should include enough product information for customer and marketplace QA.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-071</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/valencia-orange-almond</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/valencia-orange-almond" target="_blank" class="link-btn live-btn">Product: valencia-orange-almond</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Valencia Orange Almond<br>• **variant_skus**: `["GC-DG-VOA-0000G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="MEDIUM" data-channel="Website" data-area="Product Data">
+            <td><span class="badge badge-medium">TPB-072</span></td>
+            <td><span class="pill pill-medium">MEDIUM</span></td>
+            <td><strong>Website</strong><br><small>Product Data</small></td>
+            <td><strong>https://www.thepremiumbasket.in/products/wholesome-three-mixed-nuts</strong><br><span class="finding-text">At least one variant has a blank SKU field in public product JSON.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in/products/wholesome-three-mixed-nuts" target="_blank" class="link-btn live-btn">Product: wholesome-three-mixed-nuts</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">• **title**: Wholesome Three Mixed Nuts<br>• **variant_skus**: `["ND-MX-WHT-0250G-2P", "ND-MX-WHT-0250G", null, null]`</td>
+            <td>Every sellable variant should carry a stable SKU-like identifier.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="LOW" data-channel="Amazon" data-area="Digital Footprint">
+            <td><span class="badge badge-low">TPB-073</span></td>
+            <td><span class="pill pill-low">LOW</span></td>
+            <td><strong>Amazon</strong><br><small>Digital Footprint</small></td>
+            <td><strong>Amazon</strong><br><span class="finding-text">No reliable public product presence found during audit.</span></td>
+            <td><div class="links-cell"><a href="https://www.amazon.in/s?k=the+premium+basket" target="_blank" class="link-btn live-btn">Amazon India Search</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/marketplace_footprint.json" target="_blank" class="link-btn proof-btn">marketplace_footprint.json</a></div></td>
+            <td class="obs-cell">No reliable Amazon product result found in searched public results.</td>
+            <td>Presence should be marked not found unless private account or app-only evidence confirms otherwise.</td>
+            <td><small><strong>Op:</strong> Prevents assuming active workload for this channel without account evidence.<br><strong>Comm:</strong> Limits public cross-channel comparison for this audit.</small></td>
+        </tr>
+        
+        <tr data-severity="LOW" data-channel="BigBasket / BB Now" data-area="Digital Footprint">
+            <td><span class="badge badge-low">TPB-074</span></td>
+            <td><span class="pill pill-low">LOW</span></td>
+            <td><strong>BigBasket / BB Now</strong><br><small>Digital Footprint</small></td>
+            <td><strong>BigBasket / BB Now</strong><br><span class="finding-text">No reliable public product presence found during audit.</span></td>
+            <td><div class="links-cell"><a href="https://www.bigbasket.com/ps/?q=the+premium+basket" target="_blank" class="link-btn live-btn">BigBasket Search</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/marketplace_footprint.json" target="_blank" class="link-btn proof-btn">marketplace_footprint.json</a></div></td>
+            <td class="obs-cell">No reliable BigBasket product result found in searched public results.</td>
+            <td>Presence should be marked not found unless private account or app-only evidence confirms otherwise.</td>
+            <td><small><strong>Op:</strong> Prevents assuming active workload for this channel without account evidence.<br><strong>Comm:</strong> Limits public cross-channel comparison for this audit.</small></td>
+        </tr>
+        
+        <tr data-severity="LOW" data-channel="Meesho" data-area="Digital Footprint">
+            <td><span class="badge badge-low">TPB-075</span></td>
+            <td><span class="pill pill-low">LOW</span></td>
+            <td><strong>Meesho</strong><br><small>Digital Footprint</small></td>
+            <td><strong>Meesho</strong><br><span class="finding-text">No reliable public product presence found during audit.</span></td>
+            <td><div class="links-cell"><a href="https://www.meesho.com/search?q=the+premium+basket" target="_blank" class="link-btn live-btn">Meesho Search</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/marketplace_footprint.json" target="_blank" class="link-btn proof-btn">marketplace_footprint.json</a></div></td>
+            <td class="obs-cell">No reliable Meesho product result found in searched public results.</td>
+            <td>Presence should be marked not found unless private account or app-only evidence confirms otherwise.</td>
+            <td><small><strong>Op:</strong> Prevents assuming active workload for this channel without account evidence.<br><strong>Comm:</strong> Limits public cross-channel comparison for this audit.</small></td>
+        </tr>
+        
+        <tr data-severity="LOW" data-channel="Website" data-area="Content / Media">
+            <td><span class="badge badge-low">TPB-076</span></td>
+            <td><span class="pill pill-low">LOW</span></td>
+            <td><strong>Website</strong><br><small>Content / Media</small></td>
+            <td><strong>https://www.thepremiumbasket.in</strong><br><span class="finding-text">Homepage contains multiple images without alt text.</span></td>
+            <td><div class="links-cell"><a href="https://www.thepremiumbasket.in" target="_blank" class="link-btn live-btn">Storefront Home</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/website_products_extracted.json" target="_blank" class="link-btn proof-btn">website_products_extracted.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/sampled_pages.json" target="_blank" class="link-btn proof-btn">sampled_pages.json</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/internal_link_checks.json" target="_blank" class="link-btn proof-btn">internal_link_checks.json</a></div></td>
+            <td class="obs-cell">39 images without alt in parsed HTML sample.</td>
+            <td>Operational merchandising images should have stable alt/copy metadata for accessibility and QA.</td>
+            <td><small><strong>Op:</strong> Requires recurring catalogue QA / exception correction.<br><strong>Comm:</strong> Can reduce customer confidence, discoverability, conversion, or listing integrity.</small></td>
+        </tr>
+        
+        <tr data-severity="LOW" data-channel="Website" data-area="Digital Footprint">
+            <td><span class="badge badge-low">TPB-077</span></td>
+            <td><span class="pill pill-low">LOW</span></td>
+            <td><strong>Website</strong><br><small>Digital Footprint</small></td>
+            <td><strong>https://thepremiumbasket.com/</strong><br><span class="finding-text">.com domain redirects/canonicalizes to .in storefront.</span></td>
+            <td><div class="links-cell"><a href="https://thepremiumbasket.com/" target="_blank" class="link-btn live-btn">Storefront Home</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/screenshots/alt_dotcom_canonical.png" target="_blank" class="link-btn proof-btn">alt_dotcom_canonical.png</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/alt_domain_checks.json" target="_blank" class="link-btn proof-btn">alt_domain_checks.json</a></div></td>
+            <td class="obs-cell">Playwright requested thepremiumbasket.com and landed on https://www.thepremiumbasket.in/; raw HTML canonical points to .in.</td>
+            <td>This is acceptable if intentional, but should be documented in the footprint.</td>
+            <td><small><strong>Op:</strong> Reduces ambiguity during channel/account audits.<br><strong>Comm:</strong> Low direct impact if canonicalization is intentional.</small></td>
+        </tr>
+        
+        <tr data-severity="LOW" data-channel="Zepto" data-area="Digital Footprint">
+            <td><span class="badge badge-low">TPB-078</span></td>
+            <td><span class="pill pill-low">LOW</span></td>
+            <td><strong>Zepto</strong><br><small>Digital Footprint</small></td>
+            <td><strong>Zepto</strong><br><span class="finding-text">No reliable public product presence found during audit.</span></td>
+            <td><div class="links-cell"><a href="https://www.zeptonow.com/search?q=the+premium+basket" target="_blank" class="link-btn live-btn">Zepto Search</a><a href="file:///D:/Autonomous E-Commerce ERP/sanocea/the premiumbasket/evidence/marketplace_footprint.json" target="_blank" class="link-btn proof-btn">marketplace_footprint.json</a></div></td>
+            <td class="obs-cell">No reliable Zepto product result found in searched public results.</td>
+            <td>Presence should be marked not found unless private account or app-only evidence confirms otherwise.</td>
+            <td><small><strong>Op:</strong> Prevents assuming active workload for this channel without account evidence.<br><strong>Comm:</strong> Limits public cross-channel comparison for this audit.</small></td>
+        </tr>
+        
+        </tbody>
+    </table>
+
+    <script>
+        function filterTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const sev = document.getElementById('severityFilter').value;
+            const chan = document.getElementById('channelFilter').value;
+            const rows = document.querySelectorAll('#auditTable tbody tr');
+
+            rows.forEach(r => {
+                const rSev = r.getAttribute('data-severity');
+                const rChan = r.getAttribute('data-channel');
+                const text = r.textContent.toLowerCase();
+
+                const matchSearch = text.includes(search);
+                const matchSev = (sev === 'ALL' || rSev === sev);
+                const matchChan = (chan === 'ALL' || rChan === chan);
+
+                if (matchSearch && matchSev && matchChan) {
+                    r.style.display = '';
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

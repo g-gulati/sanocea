@@ -106,6 +106,15 @@ def normalize_commercial_fact_value(name: str, value: Any) -> Any:
         num = re.sub(r"[^\d.]", "", val_str)
         return float(num) if num else None
 
+    # Inventory quantity normalization: "10 units", "10", 10 -> int
+    if name_lower in {"inventory_quantity", "quantity", "stock", "opening_stock"}:
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float):
+            return int(value)
+        val_str = re.sub(r"[^\d]", "", str(value).strip())
+        return int(val_str) if val_str else None
+
     # Dimensions normalization: "10x20x30 cm", "10 x 20 x 30" (missing unit)
     if name_lower in {"dimensions", "dimension"}:
         if isinstance(value, dict):
@@ -357,6 +366,63 @@ def resolve_fact_conflict(
     for attr in draft.extracted_attributes:
         if attr.name == fact_name:
             attr.value = chosen_value
+            attr.approved = True
+
+    return draft
+
+
+def provide_missing_fact(
+    draft: ProductDraft,
+    fact_name: str,
+    value: Any,
+    source: str,
+    actor: str,
+    resolution_note: str | None = None,
+    classification: str = ProvenanceClassification.HUMAN_APPROVED.value,
+) -> ProductDraft:
+    """Supplies a value for a fact that is genuinely ABSENT (classification MISSING) - distinct from
+    resolve_fact_conflict above, which only resolves a fact already flagged conflicted (choosing
+    between two or more candidate SOURCE values). A missing fact has no candidates to choose between at
+    all; this is the "the owner just told us the value" path. Real gap found live (Premium Basket
+    bulk-upload scenario): no method existed for this at all before - resolve_fact_conflict explicitly
+    raises ConflictResolutionError for anything not already in conflict state, so a genuinely missing
+    field (the common case for a messy supplier XLS) had no resolution path whatsoever.
+
+    `classification` defaults to HUMAN_APPROVED (the original, only caller shape: the owner literally
+    said the value over WhatsApp) - pass ProvenanceClassification.AI_SUGGESTED.value instead when the
+    value came from AI generation (see ai_enrichment.py), so anyone auditing this fact later can tell
+    the difference between "the owner confirmed this" and "AI generated this, never explicitly
+    confirmed" - never silently relabel AI output as human-approved."""
+    if fact_name not in draft.commercial_facts:
+        draft.commercial_facts[fact_name] = CommercialFact(
+            name=fact_name,
+            value=None,
+            source=source,
+            classification=ProvenanceClassification.MISSING.value,
+            confidence=0.0,
+        )
+    fact = draft.commercial_facts[fact_name]
+    if fact.classification not in (ProvenanceClassification.MISSING.value, ProvenanceClassification.AI_SUGGESTED.value):
+        raise ConflictResolutionError(f"Fact '{fact_name}' is not missing (classification={fact.classification}) - use conflict resolution instead.")
+
+    fact.value = value
+    fact.source = source
+    fact.classification = classification
+    fact.approved = True
+    fact.approved_by = actor
+    fact.approved_at = now_utc()
+    fact.resolution_note = resolution_note or f"Provided by {actor} via {source}"
+
+    norm_val = normalize_commercial_fact_value(fact_name, value)
+    assigned_val = norm_val if norm_val is not None else value
+    fact.value = assigned_val
+    if hasattr(draft, fact_name):
+        setattr(draft, fact_name, assigned_val)
+    draft.attributes[fact_name] = assigned_val
+
+    for attr in draft.extracted_attributes:
+        if attr.name == fact_name:
+            attr.value = assigned_val
             attr.approved = True
 
     return draft

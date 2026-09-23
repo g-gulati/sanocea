@@ -9,6 +9,7 @@ from sanocea.packages.domain_contract.models import (
     ExceptionRecord,
     ExternalIdMapping,
     ListingVerification,
+    Merchant,
     ProductDraft,
     Publication,
     PublicationAttempt,
@@ -35,11 +36,28 @@ class ProductPublicationService:
         self.audit = AuditLedger(store)
         self.exceptions = ExceptionService(store)
 
-    def _prepare_publish_payload(self, draft: ProductDraft) -> dict[str, Any]:
+    def _prepare_publish_payload(self, merchant_id: str, draft: ProductDraft) -> dict[str, Any]:
         """A CONNECTOR-AGNOSTIC payload - title/sku/price/currency/product_type/attributes/options/variants.
         Each connector translates this into its platform-specific wire shape."""
         if "internal_only_field" in draft.attributes:
             raise ValueError("draft contains a field that must never be published externally: internal_only_field")
+
+        # Real gap found live (Premium Basket rehearsal, screenshot evidence): a published product's
+        # storefront vendor showed the DEV STORE's own default ("Sanocea Commerce OS Dev") instead of the
+        # merchant's real name - no CSV/WhatsApp field ever sets attributes["vendor"], so it was always
+        # absent and Shopify fell back to its own default. This is not a guess (unlike product taxonomy
+        # category, deliberately left unmapped below in the connector - see its own comment): every
+        # product onboarded through THIS merchant's own catalogue upload is, by definition, sold by this
+        # merchant, so defaulting vendor to their real display_name is a correct fact, not an invention -
+        # only applied when the draft didn't already carry an explicit vendor value of its own.
+        attributes = dict(draft.attributes)
+        if not attributes.get("vendor"):
+            try:
+                merchant = self.store.get(Merchant, merchant_id, merchant_id)
+                if merchant and getattr(merchant, "display_name", None):
+                    attributes["vendor"] = merchant.display_name
+            except Exception:
+                pass
 
         variants_payload = []
         for v in draft.variants:
@@ -54,15 +72,24 @@ class ProductPublicationService:
                     "inventory_quantity": v.inventory_quantity,
                 })
 
+        category = draft.category or draft.attributes.get("category") or draft.attributes.get("recommended_category_id")
         return {
             "title": draft.title,
             "product_type": draft.product_type,
+            "category": category,
             "sku": draft.sku,
             "price": f"{(draft.price or 0) / 100:.2f}",
             "currency": draft.currency,
-            "attributes": {k: str(v) for k, v in draft.attributes.items() if v not in (None, "")},
+            "attributes": {k: str(v) for k, v in attributes.items() if v not in (None, "")},
             "options": draft.options,
             "variants": variants_payload,
+            "track_inventory": draft.attributes.get("track_inventory") is not False,
+            "inventory_quantity": draft.attributes.get("inventory_quantity"),
+            "inventory_location": draft.attributes.get("inventory_location"),
+            "inventory_location_id": draft.attributes.get("inventory_location_id"),
+            "weight": draft.attributes.get("weight"),
+            "weight_unit": draft.attributes.get("weight_unit") or "GRAMS",
+            "requires_shipping": draft.attributes.get("requires_shipping", True) is not False and not draft.attributes.get("is_digital"),
         }
 
     def create_publication(self, merchant_id: str, draft_id: str, channel_id: str) -> Publication:
@@ -96,6 +123,9 @@ class ProductPublicationService:
         self.store.put(publication)
         return publication
 
+    def _attempt_count(self, merchant_id: str, publication_id: str) -> int:
+        return sum(1 for a in self.store.list(PublicationAttempt, merchant_id) if a.publication_id == publication_id)
+
     def publish(self, merchant_id: str, publication_id: str) -> ListingVerification:
         publication = self.store.get(Publication, merchant_id, publication_id)
         draft = self.store.get(ProductDraft, merchant_id, publication.product_draft_id)
@@ -105,7 +135,7 @@ class ProductPublicationService:
                 f"conflicts={draft.conflicts}, identity_status={draft.identity_status}"
             )
         try:
-            payload = self._prepare_publish_payload(draft)
+            payload = self._prepare_publish_payload(merchant_id, draft)
         except Exception as exc:
             self.exceptions.create(
                 merchant_id=merchant_id,
@@ -123,7 +153,13 @@ class ProductPublicationService:
             object_type="ProductDraft",
             object_id=draft.id,
             payload=payload,
-            idempotency_key=f"publish:{draft.id}:{publication.channel_id}",
+            # Real bug class found live (see auto_publish_after_resolution for the sibling one): this key
+            # used to be fixed per draft+channel, so once a draft had been published, a later publish of
+            # that SAME draft (e.g. after the product was deleted in Shopify) replayed the cached result
+            # and never touched Shopify. The attempt number makes each genuine re-publish a distinct
+            # operation. Safe against double-creates because the Shopify connector itself upserts by SKU
+            # (_find_product_gid_by_sku) - a repeat attempt updates the same product, never duplicates it.
+            idempotency_key=f"publish:{draft.id}:{publication.channel_id}:a{self._attempt_count(merchant_id, publication.id)}",
             policy_decision="ALLOW" if draft.approved_for_publication else "REQUIRE_APPROVAL",
             status="approved" if draft.approved_for_publication else "pending",
         )
@@ -214,13 +250,36 @@ class ProductPublicationService:
             mismatches.append("price")
         if external.get("status") != "active":
             mismatches.append("publication_status")
+        if draft.product_type and "product_type" in external and external.get("product_type") != draft.product_type:
+            mismatches.append("product_type")
+        expected_category = draft.category or draft.attributes.get("category") or draft.attributes.get("recommended_category_id")
+        if expected_category and "category" in external and external.get("category") != expected_category:
+            mismatches.append("category")
+        if draft.attributes.get("track_inventory") is not False and "inventory_tracked" in external:
+            if external.get("inventory_tracked") is False:
+                mismatches.append("inventory_tracked")
+            if draft.attributes.get("inventory_quantity") is not None and "inventory_quantity" in external:
+                if external.get("inventory_quantity") != draft.attributes.get("inventory_quantity"):
+                    mismatches.append("inventory_quantity")
+        checked = {
+            "title": external.get("title"),
+            "sku": external.get("sku"),
+            "price": external.get("price"),
+            "status": external.get("status"),
+            "product_type": external.get("product_type"),
+            "category": external.get("category"),
+            "category_full_name": external.get("category_full_name"),
+            "inventory_quantity": external.get("inventory_quantity"),
+            "inventory_tracked": external.get("inventory_tracked"),
+            "inventory_policy": external.get("inventory_policy"),
+        }
         outcome = "MISMATCH" if mismatches else "VERIFIED"
         verification = ListingVerification(
             merchant_id=merchant_id,
             publication_id=publication.id,
             external_product_id=publication.external_product_id,
             outcome=outcome,
-            checked_fields={"title": external.get("title"), "sku": external.get("sku"), "price": external.get("price"), "status": external.get("status")},
+            checked_fields={k: v for k, v in checked.items() if v is not None},
             mismatches=mismatches,
         )
         self.store.put(verification)

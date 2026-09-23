@@ -372,7 +372,9 @@ class UnifiedProductIngestor:
             first_raw = {self._canonical_header(str(k)): v for k, v in first_row["values"].items()}
 
             title = str(first_raw.get("title") or first_raw.get("product_name") or f"Style {parent_id}").strip()
-            product_type = str(first_raw.get("product_type") or "default").strip()
+            # A blank product type must stay blank (so it is flagged as missing), not become the literal text
+            # "default" - which used to make an incomplete row look complete and publish with type "default".
+            product_type = str(first_raw.get("product_type") or "").strip() or None
             category = str(first_raw.get("category") or "default").strip()
             currency = str(first_raw.get("currency") or "INR").strip().upper()
 

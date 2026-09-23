@@ -8,7 +8,7 @@
     "1_ui_static_serving": {
       "status": "PASS",
       "ui_route": "/ui",
-      "index_html_bytes": 4073,
+      "index_html_bytes": 4669,
       "static_assets_verified": [
         "styles.css",
         "app.js"
@@ -31,7 +31,7 @@
     },
     "4_evidence_conflict_provenance": {
       "status": "PASS",
-      "draft_id": "pdr_ae291fe80e5c44d186e237acfb7ee3de",
+      "draft_id": "pdr_16ff731d57f84cf08e4c1696fa0264df",
       "sku": "ANCHAL-KACHI-GHANI",
       "draft_state": "CONFLICTED",
       "unaltered_price": 15600,
@@ -72,10 +72,11 @@
     },
     "8_audit_timeline_immutability": {
       "status": "PASS",
-      "total_audit_events": 345,
+      "total_audit_events": 494,
       "actions_present": [
         "conflict_resolved",
         "exception_created",
+        "exception_resolved",
         "file_quarantined",
         "inventory_restocked",
         "listing_verified",

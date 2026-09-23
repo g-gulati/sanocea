@@ -22,3 +22,26 @@ sanocea-site-v1.zip
 **/generated/temporal_state/
 sanocea/tests/fixtures/phase11_merchant/generated/integration_phase1/
 
+# Secrets - never commit
+client_secret_*.apps.googleusercontent.com.json
+
+# Local tooling / plugin state, not application source
+.agents/
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.n8n_data/
+.playwright-mcp/
+.shopify-app-config/
+skills-lock.json
+package-lock.json
+
+# Generated output (graphify, brag skills)
+brag-output/
+graphify-out/
+
+# Third-party OSS research clones (CLAUDE.md OSS-first rule) - not Sanocea source
+references/
+
+# Separate, in-progress website redesign - not part of this consolidation
+sanocea-site-v2-preview/
+

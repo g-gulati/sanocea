@@ -39,11 +39,28 @@ class OrderOrchestrator:
         order = self.store.get(Order, merchant_id, order_id)
         if order.payment_status != "paid" or self.post_order is None:
             return
-        result = self.post_order.reserve_inventory_for_order(merchant_id, order)
-        execution.current_step = "inventory_shortfall" if result.get("any_shortfall") else "inventory_reserved"
+        # A NEW, narrowly-scoped opt-in config key - deliberately NOT reusing `default_location_ref`,
+        # which already has an existing, different meaning to the allocator (an implicit priority hint
+        # among locations the allocator still evaluates for whole-order eligibility - see
+        # _allocate_and_reserve_order's docstring). Only a merchant that explicitly sets THIS key gets
+        # genuine PARTIAL per-line reservation (Step 3's explicit-location path) instead of the default
+        # allocator's whole-order-per-location-or-nothing semantic - correct for a single-warehouse
+        # merchant, where "ship the 2 we have, backorder the rest" is a real, owner-authorizable choice,
+        # not a total order failure. Every other merchant (this key unset) is completely unaffected.
+        location = self.store.get_config(merchant_id).get("inventory", {}).get("explicit_reservation_location")
+        result = self.post_order.reserve_inventory_for_order(merchant_id, order, location=location)
+        # Real bug fixed here: reserve_inventory_for_order returns {"reserved": bool, "lines": [...]}
+        # - it has never returned an "any_shortfall" key. `result.get("any_shortfall")` was therefore
+        # always None/falsy, so this step silently reported "inventory_reserved" even on a genuine
+        # shortfall - the exact defect this Mariyal demo rehearsal was built to surface. Found by tracing
+        # the real code path end-to-end rather than trusting the docstring/comment.
+        any_shortfall = not result.get("reserved", True)
+        execution.current_step = "inventory_shortfall" if any_shortfall else "inventory_reserved"
         self.store.put(execution)
         self.audit.record(
             merchant_id=merchant_id, actor="workflow", source="order_orchestrator",
             action="inventory_reservation_step", object_type="Order", object_id=order_id,
             workflow_id=execution.id, result=execution.current_step,
         )
+        if any_shortfall:
+            self.post_order.evaluate_inventory_shortage(merchant_id, order, result.get("lines", []))

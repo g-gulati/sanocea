@@ -115,11 +115,14 @@ class VariantMatrixEngine:
         Detects:
         - Duplicate option value combinations.
         - Barcode collisions among distinct variants.
+        - SKU collisions among distinct variants (two pack sizes sharing one SKU - a real catalogue defect
+          found on a live merchant's storefront, where downstream systems can no longer tell them apart).
         - Missing SKUs.
         """
         errors: list[str] = []
         seen_options: dict[str, str] = {}  # key -> variant_id
         seen_barcodes: dict[str, str] = {}  # barcode -> variant_id
+        seen_skus: dict[str, str] = {}  # sku -> variant_id
 
         for v in draft.variants:
             if v.status != "ACTIVE":
@@ -135,6 +138,16 @@ class VariantMatrixEngine:
                     v.conflicts.append(err)
                 else:
                     seen_options[opt_key] = v.id
+
+            # Check SKU uniqueness
+            if v.sku:
+                if v.sku in seen_skus:
+                    prev_id = seen_skus[v.sku]
+                    err = f"SKU collision within variants: SKU '{v.sku}' shared by {prev_id} and {v.id}"
+                    errors.append(err)
+                    v.conflicts.append(err)
+                else:
+                    seen_skus[v.sku] = v.id
 
             # Check barcode uniqueness
             if v.barcode:
