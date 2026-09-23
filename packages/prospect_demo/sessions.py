@@ -24,7 +24,8 @@ from sanocea.packages.notifications.phone import PhoneValidationError, normalize
 from .reset import reset_prospect_tenant
 from .tenants import PROSPECT_TENANTS
 
-DEFAULT_SESSION_TTL = timedelta(minutes=30)
+DEFAULT_SESSION_TTL = timedelta(minutes=12)  # see module docstring: an active chat keeps sliding this
+# forward (touch_lease), so this is really the ABANDONED-session window, not a hard cap on a real visit.
 
 _lock = threading.Lock()
 # merchant_id -> {"key_id": str | None, "expires_at": datetime}
@@ -37,6 +38,48 @@ class NoDemoTenantAvailable(RuntimeError):
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _has_active_persisted_contact(store, merchant_id: str) -> bool:
+    """Safety check against a real bug: the in-memory `_leases` dict is wiped by every process restart
+    (or deploy), but a real visitor's `DemoSessionContact` is persisted in Postgres and survives it. Without
+    this check, a restart makes every tenant look "free" again to the very next lease request, which then
+    calls reset_prospect_tenant on a tenant a real visitor is still actively using - wiping their session
+    contact out from under them. This makes the in-memory dict a cache/optimization, not the sole source
+    of truth, so a restart can no longer cause a premature reset of a real active session."""
+    from sanocea.packages.domain_contract.models import DemoSessionContact
+
+    now = _now()
+    try:
+        contacts = store.list(DemoSessionContact, merchant_id)
+    except Exception:
+        return False  # never let a lookup failure block leasing - fail open on the safety check itself
+    return any(c.cleared_at is None and c.expires_at > now for c in contacts)
+
+
+def touch_lease(store, merchant_id: str, *, ttl: timedelta = DEFAULT_SESSION_TTL) -> datetime | None:
+    """Slides an in-progress session's expiry forward on real activity (called from the /chat route on
+    every message) - an actively-engaged visitor should not hit an arbitrary fixed cutoff. Extends BOTH
+    the in-memory tenant lease and the persisted DemoSessionContact (if one exists for this merchant), and
+    returns the new expiry so the caller can hand it back to the frontend - the countdown the visitor sees
+    should always reflect real backend state, never a stale client-side guess from session creation.
+    Returns None if this merchant has no active lease at all (nothing to extend)."""
+    from sanocea.packages.domain_contract.models import DemoSessionContact
+
+    now = _now()
+    new_expiry = now + ttl
+    with _lock:
+        if merchant_id not in _leases or _leases[merchant_id]["expires_at"] <= now:
+            return None
+        _leases[merchant_id]["expires_at"] = new_expiry
+    try:
+        for contact in store.list(DemoSessionContact, merchant_id):
+            if contact.cleared_at is None and contact.expires_at > now:
+                contact.expires_at = new_expiry
+                store.put(contact)
+    except Exception:
+        pass  # the in-memory lease extension above is what actually matters; this is best-effort
+    return new_expiry
 
 
 def lease_demo_session(
@@ -56,7 +99,11 @@ def lease_demo_session(
     with _lock:
         now = _now()
         candidate = next(
-            (mid for mid in PROSPECT_TENANTS if mid not in _leases or _leases[mid]["expires_at"] <= now),
+            (
+                mid for mid in PROSPECT_TENANTS
+                if (mid not in _leases or _leases[mid]["expires_at"] <= now)
+                and not _has_active_persisted_contact(store, mid)
+            ),
             None,
         )
         if candidate is None:

@@ -74,7 +74,8 @@ async function sendChatMessage(session, text) {
     err.status = res.status
     throw err
   }
-  return (await res.json()).replies || []
+  const body = await res.json()
+  return {replies: body.replies || [], expiresAt: body.expires_at || null}
 }
 
 // ---- Intro screen (phone capture) --------------------------------------------------------------
@@ -162,8 +163,9 @@ function ChatScreen({session, onSessionEnded}) {
   const [sending, setSending] = useState(false)
   const [booting, setBooting] = useState(true)
   const [ended, setEnded] = useState(false)
+  const [expiresAt, setExpiresAt] = useState(session.expiresAt)
   const bottomRef = useRef(null)
-  const countdown = useCountdown(session.expiresAt)
+  const countdown = useCountdown(expiresAt)
 
   const scrollDown = useCallback(() => {
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({behavior: 'smooth'}))
@@ -179,8 +181,9 @@ function ChatScreen({session, onSessionEnded}) {
         await sendChatMessage(session, 'menu')
         const briefing = await sendChatMessage(session, '1')
         if (cancelled) return
+        if (briefing.expiresAt) setExpiresAt(briefing.expiresAt)
         setMessages([
-          {from: 'sanocea', text: briefing.join('\n\n') || "Good morning — I'm watching this operation now."},
+          {from: 'sanocea', text: briefing.replies.join('\n\n') || "Good morning — I'm watching this operation now."},
           {from: 'sanocea', text: 'Ask me anything — "what needs my attention?", "show me the delivery issues", "resolve it" — or type *menu* any time to see structured options.'},
         ])
       } catch (err) {
@@ -199,6 +202,14 @@ function ChatScreen({session, onSessionEnded}) {
 
   useEffect(scrollDown, [messages, scrollDown])
 
+  // Keep sessionStorage in sync with the real backend expiry (touch_lease slides it forward on every
+  // message) - otherwise a page refresh mid-conversation would fall back to the ORIGINAL, shorter,
+  // now-stale expiry and needlessly start a new session.
+  useEffect(() => {
+    if (expiresAt) storeSession({...session, expiresAt})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expiresAt])
+
   const send = async (text) => {
     const trimmed = text.trim()
     if (!trimmed || sending || ended) return
@@ -206,7 +217,8 @@ function ChatScreen({session, onSessionEnded}) {
     setInput('')
     setSending(true)
     try {
-      const replies = await sendChatMessage(session, trimmed)
+      const {replies, expiresAt: newExpiry} = await sendChatMessage(session, trimmed)
+      if (newExpiry) setExpiresAt(newExpiry)
       setMessages((m) => [...m, ...replies.map((r) => ({from: 'sanocea', text: r}))])
       if (replies.length === 0) {
         setMessages((m) => [...m, {from: 'sanocea', text: '…'}])

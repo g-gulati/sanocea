@@ -204,7 +204,12 @@ def create_app(
             svc.handle_web_chat_message(merchant_id, msg)
         except InboundResolutionError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        return {"replies": transport.sent}
+
+        # Sliding expiry: real activity extends the session rather than letting a fixed one-shot timer
+        # cut off an actively-engaged visitor - see packages/prospect_demo/sessions.py::touch_lease.
+        from sanocea.packages.prospect_demo.sessions import touch_lease
+        new_expiry = touch_lease(store, merchant_id)
+        return {"replies": transport.sent, "expires_at": new_expiry.isoformat() if new_expiry else None}
 
     @app.get("/merchants")
     def merchants(ctx: AuthContext = Depends(require_service)) -> list[dict]:
