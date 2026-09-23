@@ -29,7 +29,16 @@ Use `POSTIZ_POST_TYPE=schedule` only when `POSTIZ_POST_DATE` is set and the item
 
 ## Step 1: Find Instagram Integration ID
 
-After connecting Instagram in Postiz, run:
+Connect the Instagram account in Postiz first:
+
+```text
+Instagram: @sanocea.global
+URL: https://www.instagram.com/sanocea.global/
+```
+
+Use the official Meta/Instagram connection flow inside Postiz. If Postiz asks for it, switch Instagram to a professional account and connect it to the relevant Facebook/Page identity before authorizing.
+
+After Instagram is connected in Postiz, run:
 
 ```bash
 node marketing-ops/scripts/postiz-list-integrations.mjs

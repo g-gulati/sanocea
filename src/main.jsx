@@ -845,7 +845,14 @@ function Diagnostic() {
           ))}
         </div>
         <div className="hero-actions">
-          <a className="button primary light" href="mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic">Request diagnostic</a>
+          <a
+            className="button primary light"
+            href="https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com&su=Sanocea%20operations%20diagnostic"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Request diagnostic
+          </a>
           <a className="button ghost dark-btn" href="https://wa.me/919909360065" target="_blank" rel="noreferrer">Chat on WhatsApp</a>
         </div>
       </div>
@@ -920,7 +927,13 @@ function Footer() {
           <span>Surat, Gujarat, India</span>
         </div>
         <div>
-          <a href="mailto:hello@sanocea.com">hello@sanocea.com</a>
+          <a
+            href="https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com"
+            target="_blank"
+            rel="noreferrer"
+          >
+            hello@sanocea.com
+          </a>
           <span>© 2026 Sanocea</span>
         </div>
       </div>
