@@ -15,7 +15,20 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Protocol
 
-CHANNEL_LABELS = {"own_website": "Own Website", "amazon_in": "Amazon India", "flipkart": "Flipkart", "jiomart": "JioMart", "blinkit": "Blinkit"}
+CHANNEL_LABELS = {
+    "own_website": "Own Website", "amazon_in": "Amazon India", "amazon_us": "Amazon US",
+    "flipkart": "Flipkart", "jiomart": "JioMart", "blinkit": "Blinkit", "swiggy_instamart": "Swiggy Instamart",
+}
+
+
+def humanize_channel(channel_id: str) -> str:
+    """Maps an internal channel identifier (e.g. "chn_amazon_in", as stored on Order.channel_id - see
+    packages/prospect_demo/tenants.py's known_channels for the full set actually seeded) to the
+    human-readable name a prospect should see, built from CHANNEL_LABELS above - the same source of truth
+    already used for outbound approval messages (format_approval_message). Never exposes the raw
+    internal id: an unrecognized one falls back to a title-cased guess rather than the raw code."""
+    short = channel_id.removeprefix("chn_").removeprefix("demo_")
+    return CHANNEL_LABELS.get(short, short.replace("_", " ").title())
 
 
 @dataclass

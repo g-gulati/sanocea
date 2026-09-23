@@ -266,6 +266,7 @@ class DemoApprovalNotificationService:
         - Pending actions in the approval queue requiring sign-off
         """
         from sanocea.packages.domain_contract.models import Approval, Inventory, Location, Order, Product
+        from .transport import humanize_channel
 
         if not recipient:
             contacts = [c for c in self.store.list(DemoSessionContact, merchant_id) if c.cleared_at is None and c.expires_at > now_utc()]
@@ -297,16 +298,29 @@ class DemoApprovalNotificationService:
         unreconciled_orders = [o for o in orders if getattr(o, "financial_reconciliation_status", "UNRECONCILED") == "UNRECONCILED"]
 
         merchant_name = merchant_id.replace("prospect_", "").replace("_", " ").title()
+        # Sourced from this tenant's OWN config (packages/prospect_demo/reset.py writes known_channels
+        # into merchant_configurations at seed time), not the shared `channels` table - channel ids there
+        # are not merchant-namespaced (e.g. "chn_amazon_in" is reused by every tenant that lists
+        # "amazon_in"), a real pre-existing cross-tenant collision unrelated to this fix; per-merchant
+        # config has no such collision risk.
+        known_channels = ((self.store.get_config(merchant_id) or {}).get("demo") or {}).get("known_channels") or []
+        channel_names = sorted({humanize_channel(c) for c in known_channels})
 
         briefing_lines = [
             f"📊 *Sanocea Daily Operational Briefing* — {merchant_name}",
+        ]
+        if channel_names:
+            briefing_lines.append(
+                f"_Watching {len(channel_names)} channels in this sandbox: {', '.join(channel_names)}._"
+            )
+        briefing_lines.extend([
             "",
             "*Catalogue & Store Health:*",
             f"• Products active: {len(products)}",
             f"• Locations monitored: {len(locations)}",
             "",
             "*Stock & Inventory Status:*",
-        ]
+        ])
 
         if oos_stock:
             for inv in oos_stock[:3]:
@@ -877,9 +891,10 @@ class DemoApprovalNotificationService:
 
     def _explain_free_text(self, merchant_id: str, question: str):
         """Grounds a free-text question in this merchant's own currently-open exceptions/approvals only
-        - never a full-database query, never a mutation. Returns None (not a low-confidence AIResult)
-        when nothing in the evidence bundle is even loosely related, so the caller can fall through to
-        the ordinary 'I didn't recognize that' menu prompt instead of a confusing non-answer."""
+        - never a full-database query, never a mutation. AIProvider.explain() always returns a real,
+        honest answer now (matched evidence, an explicit "no open X issues", or "I don't have evidence for
+        that" when the question doesn't map to a known operational category) - never None, never a
+        confidently wrong cross-category guess. See packages/ai/provider.py::DeterministicAIProvider."""
         from sanocea.packages.ai.provider import DeterministicAIProvider
         from sanocea.packages.runtime.queries import list_open_approvals, list_open_exceptions
 
@@ -889,23 +904,43 @@ class DemoApprovalNotificationService:
             "exceptions": [e.model_dump(mode="json") for e in exceptions],
             "approvals": [a.model_dump(mode="json") for a in approvals],
         }
-        result = DeterministicAIProvider().explain(question, evidence, [])
-        if result.confidence < 0.3:
-            return None
-        return result
+        return DeterministicAIProvider().explain(question, evidence, [])
+
+    # Checked before any evidence lookup - this question has one true answer regardless of tenant data,
+    # and must be reachable from anywhere in the conversation (main menu, disambiguation, mid-approval),
+    # not only the initial landing screen. See website/src/whatsapp-demo - the intro screen's own
+    # disclosure covers the moment before a session starts; this covers every moment after.
+    _SANDBOX_QUESTION_KEYWORDS = (
+        "connected to my", "connected to the", "is this connected", "is this live", "is this real",
+        "actually connected", "my real", "my actual", "really connected", "live account", "live data",
+        "real data", "sandbox", "is this a demo", "is this simulated",
+    )
 
     def _try_ai_explain_reply(self, merchant_id: str, contact: DemoSessionContact, msg: InboundApprovalMessage, text: str) -> bool:
-        """Shared by every context that falls through to 'I didn't recognize that' (main menu, and the
-        top-level no-active-context path): grounded ONLY in this merchant's own currently-open
-        exceptions/approvals (never the whole database, never a mutation) - AI is interaction/
-        intelligence only, the deterministic engine already produced everything it cites. See
-        packages/ai/provider.py. Returns True if it sent a real answer (caller returns instead of falling
-        through to the generic rejection message), False if nothing matched closely enough."""
+        """Shared by every context that falls through to 'I didn't recognize that' (main menu, approval
+        disambiguation, and the top-level no-active-context path): grounded ONLY in this merchant's own
+        currently-open exceptions/approvals (never the whole database, never a mutation) - AI is
+        interaction/intelligence only, the deterministic engine already produced everything it cites. See
+        packages/ai/provider.py. Always sends a real, honest reply for text >= 4 chars now (matched
+        evidence, an explicit "no open X issues", or "I don't have evidence for that") - never a silent
+        no-op, never a confidently wrong cross-category guess."""
         if len(text) < 4:
             return False
+
+        lowered = text.lower()
+        if any(kw in lowered for kw in self._SANDBOX_QUESTION_KEYWORDS):
+            self.transport.send_approval(
+                recipient=contact.phone_e164,
+                message=(
+                    "No. This demo uses a sandboxed Sanocea environment with representative commerce "
+                    "data - it isn't connected to your real Shopify, marketplace, or logistics accounts. "
+                    "In a live deployment, Sanocea would connect to your actual commerce systems and "
+                    "operate on their data the same way it's operating on this sandbox's data now."
+                ),
+            )
+            return True
+
         ai_result = self._explain_free_text(merchant_id, text)
-        if ai_result is None:
-            return False
         try:
             self.transport.send_approval(recipient=contact.phone_e164, message=ai_result.output["answer"])
         except Exception:
@@ -1699,6 +1734,12 @@ class DemoApprovalNotificationService:
                 self.transport.send_approval(recipient=contact.phone_e164, message=card)
                 return {"merchant_id": merchant_id, "approval_id": approval.id, "action": "decision_selected"}
 
+        # Not a valid selection - before assuming the prospect is confused about HOW to answer, try it as
+        # a genuine question first (the approval list stays displayed/selectable either way; this doesn't
+        # clear pending_disambiguation_ids, so a number still works on the next message).
+        if self._try_ai_explain_reply(merchant_id, contact, msg, text):
+            return {"merchant_id": merchant_id, "action": "ai_explained_during_disambiguation"}
+
         dis_msg = f"Please reply with a number between 1 and {len(conv.pending_disambiguation_ids)} to select a decision, or send *Menu*."
         self.transport.send_approval(recipient=contact.phone_e164, message=dis_msg)
         return {"merchant_id": merchant_id, "action": "invalid_disambiguation_choice"}
@@ -1854,6 +1895,10 @@ class DemoApprovalNotificationService:
         )
 
         if not is_approve and not is_reject:
+            # Same dead-end fix as approval_disambiguation: try it as a genuine question before assuming
+            # confusion about how to respond - the active decision card stays displayed either way.
+            if self._try_ai_explain_reply(merchant_id, contact, msg, raw_text):
+                return {"merchant_id": merchant_id, "action": "ai_explained_during_decision"}
             self.transport.send_approval(
                 recipient=contact.phone_e164,
                 message="Please reply with a valid action (*1* Approve, *2* Reject, *3* Details, *4* Later), or send *Menu*.",

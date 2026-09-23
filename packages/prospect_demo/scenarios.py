@@ -18,6 +18,7 @@ from typing import Any
 from sanocea.packages.domain_contract.models import Approval, Inventory, Location, Order, ProductDraft
 from sanocea.packages.exceptions import ExceptionCategory, ExceptionService
 from sanocea.packages.finance.operations import FinanceOperationsService
+from sanocea.packages.notifications.transport import humanize_channel
 from sanocea.packages.post_order.operations import PostOrderOperationsService
 
 DEFAULT_LOCATION_REF = "loc_default_hub"
@@ -88,7 +89,7 @@ def seed_order_monitoring_scenario(store, merchant_id: str, product_drafts: list
         if stuck:
             exc = exceptions.create(
                 merchant_id=merchant_id, category=ExceptionCategory.FULFILMENT_DELAY,
-                message=f"Order {order.order_number} on {channel_id} has been unfulfilled past the expected window.",
+                message=f"Order {order.order_number} on {humanize_channel(channel_id)} has been unfulfilled past the expected window.",
                 object_id=order.id, severity="warning",
                 remediation_options=["escalate_to_fulfilment_team", "contact_customer", "review"],
             )
@@ -181,7 +182,7 @@ def seed_catalogue_operations_scenario(store, merchant_id: str, product_drafts: 
             merchant_id=merchant_id, category="cross_channel_listing_variance",
             message=(
                 f"'{priced[0].title}' is represented with different pack-size/price data across "
-                f"{', '.join(config['known_channels'][:3])} - verified via public audit evidence, requires "
+                f"{', '.join(humanize_channel(c) for c in config['known_channels'][:3])} - verified via public audit evidence, requires "
                 f"merchandising review."
             ),
             object_id=priced[0].id, severity="warning",

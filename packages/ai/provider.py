@@ -95,51 +95,140 @@ class DeterministicAIProvider:
         )
 
     # No real LLM is configured in this environment (no ANTHROPIC_API_KEY) - this implementation is
-    # intentionally NOT a language model. It never fabricates an answer: it keyword-matches the question
-    # against the real evidence records it was given and surfaces THEIR OWN already-written message/
-    # summary/recommendation text verbatim, exactly the deterministic engine's own account of what
-    # happened - honest under "don't fake intelligence" even without an LLM behind it. Swapping in a real
-    # LLM-backed provider later is a drop-in: same AIProvider.explain signature, same evidence-only input.
+    # intentionally NOT a language model. It never fabricates an answer: a question is first classified
+    # into one of a FIXED set of operational intents (pricing, inventory, dispatch, delivery_delay, ndr,
+    # rto, reconciliation, listing, approvals) by keyword match, then evidence is filtered by the
+    # deterministic engine's OWN category/action fields for that intent ONLY - never a fuzzy cross-
+    # category text-overlap score. This is deliberate: a loose keyword match ("pricing" vs. some unrelated
+    # exception's text) previously produced a confidently wrong answer (a real fulfilment-delay exception
+    # returned for a pricing question). The rule now is: strong category evidence, or an explicit "no
+    # matching issue found" - never a broadened, lower-confidence guess. Swapping in a real LLM-backed
+    # provider later is a drop-in: same AIProvider.explain signature, same evidence-only input.
+    INTENTS: dict[str, dict[str, Any]] = {
+        "pricing": {
+            "keywords": ("pric", "discount", "promotion"),
+            "exception_categories": ("cross_channel_listing_variance",),
+            "approval_actions": ("price_change",),
+        },
+        "inventory": {
+            "keywords": ("inventory", "stock", "out of stock", "oos", "stockout", "stock-out"),
+            "exception_categories": ("inventory_conflict",),
+            "approval_actions": ("resolve_inventory_shortage",),
+        },
+        "dispatch": {
+            "keywords": ("dispatch", "fulfilment", "fulfillment", "order issue", "order problem"),
+            "exception_categories": ("fulfilment_delay",),
+            "approval_actions": ("escalate_fulfilment_delay",),
+        },
+        "rto": {
+            # RTO-risk shipments are seeded under the same "shipment_delay" category as ordinary delays
+            # (see packages/prospect_demo/scenarios.py::seed_delivery_exceptions_scenario) - disambiguated
+            # from a plain delay by requiring the record's OWN text to actually say "RTO".
+            "keywords": ("rto", "return to origin", "return-to-origin"),
+            "exception_categories": ("shipment_delay",),
+            "approval_actions": ("resolve_delivery_exception",),
+            "require_text_contains": ("rto",),
+        },
+        "ndr": {
+            "keywords": ("ndr", "non-delivery", "non delivery", "undelivered", "delivery report"),
+            "exception_categories": ("ndr_detected",),
+        },
+        "delivery_delay": {
+            "keywords": ("delay", "delayed", "late", "shipment", "transit", "delivery issue", "delivery"),
+            "exception_categories": ("shipment_delay",),
+            # excludes the RTO-flagged item above so a generic "delivery delay" question doesn't also
+            # surface the RTO case under a different heading - "rto" questions have their own intent.
+            "exclude_text_contains": ("rto",),
+        },
+        "reconciliation": {
+            "keywords": ("reconcil", "settlement", "payment", "discrepanc"),
+            "exception_categories": ("payment_inconsistency",),
+        },
+        "listing": {
+            "keywords": ("listing", "content", "catalogue", "catalog"),
+            "exception_categories": ("cross_channel_listing_variance",),
+        },
+        "approvals": {
+            "keywords": ("approval", "approve", "decision", "pending", "sign off", "sign-off"),
+            "approval_actions": "ALL",
+        },
+    }
+
+    def _detect_intent(self, question: str) -> str | None:
+        lowered = question.lower()
+        for intent, spec in self.INTENTS.items():
+            if any(kw in lowered for kw in spec["keywords"]):
+                return intent
+        return None
+
+    # A named channel (e.g. "Blinkit", "Amazon") is a precise, unambiguous reference - unlike a generic
+    # word, matching a question against it can't accidentally retrieve an unrelated category the way
+    # broad keyword-overlap scoring did, so this is safe to check even when no category-intent matched.
+    _CHANNEL_NAMES = ("blinkit", "amazon", "flipkart", "shopify", "jiomart", "swiggy instamart", "swiggy", "tata 1mg", "shiprocket")
+
     def explain(self, question: str, evidence: dict[str, Any], evidence_refs: list[str]) -> AIResult:
-        items: list[dict[str, Any]] = []
-        for exc in evidence.get("exceptions", []) or []:
-            items.append({
-                "ref": exc.get("id"), "kind": "exception", "severity": exc.get("severity"),
-                "category": exc.get("category"), "text": exc.get("message") or "",
-                "remediation_options": exc.get("remediation_options") or [],
-            })
-        for appr in evidence.get("approvals", []) or []:
-            summary = appr.get("summary") or appr.get("action", "").replace("_", " ")
-            items.append({
-                "ref": appr.get("id"), "kind": "approval", "severity": None,
-                "category": appr.get("action"), "text": summary,
-                "recommendation": appr.get("recommendation"),
-                "reference": appr.get("reference"),
-            })
+        lowered_q = question.lower()
+        intent = self._detect_intent(question)
 
-        q_tokens = {t for t in _WORD_RE.findall(question.lower()) if len(t) > 2}
+        if intent is None:
+            channel = next((c for c in self._CHANNEL_NAMES if c in lowered_q), None)
+            if channel is None:
+                return AIResult(
+                    task="explain", provider=self.provider, model=self.model,
+                    output={"answer": "I don't have evidence for that. Try asking about pricing, inventory, dispatch, delivery delays, NDR/RTO, reconciliation, listing/content, or approvals.", "citations": {}},
+                    confidence=0.0, evidence_refs=[], requires_human_approval=False,
+                )
+            all_items = self._collect_items(evidence, "ALL")
+            matched = [i for i in all_items if channel in i["text"].lower()]
+            if not matched:
+                return AIResult(
+                    task="explain", provider=self.provider, model=self.model,
+                    output={"answer": f"I don't see any open issues mentioning {channel.title()} for this tenant right now.", "citations": {}},
+                    confidence=0.9, evidence_refs=[], requires_human_approval=False,
+                )
+            return self._format_result(matched)
 
-        def score(item: dict[str, Any]) -> int:
-            haystack = " ".join(str(v) for v in (item.get("text"), item.get("category"), item.get("reference")) if v).lower()
-            hay_tokens = set(_WORD_RE.findall(haystack))
-            return len(q_tokens & hay_tokens)
+        spec = self.INTENTS[intent]
+        items = self._collect_items(evidence, spec.get("approval_actions", ()), spec.get("exception_categories", ()))
 
-        scored = sorted(((score(i), i) for i in items), key=lambda pair: pair[0], reverse=True)
-        matched = [i for s, i in scored if s > 0][:3]
+        require = spec.get("require_text_contains")
+        if require:
+            items = [i for i in items if any(kw in i["text"].lower() for kw in require)]
+        exclude = spec.get("exclude_text_contains")
+        if exclude:
+            items = [i for i in items if not any(kw in i["text"].lower() for kw in exclude)]
 
-        if not matched:
+        if not items:
+            label = intent.replace("_", " ")
             return AIResult(
                 task="explain", provider=self.provider, model=self.model,
-                output={
-                    "answer": "I don't see anything in this tenant's current open exceptions or approvals matching that - try asking about a specific order, channel, or 'what needs my attention?'.",
-                    "citations": {},
-                },
-                confidence=0.15, evidence_refs=[], requires_human_approval=False,
+                output={"answer": f"I don't see any open {label} issues for this tenant right now.", "citations": {}},
+                confidence=0.9, evidence_refs=[], requires_human_approval=False,
             )
+        return self._format_result(items)
 
+    @staticmethod
+    def _collect_items(evidence: dict[str, Any], approval_actions, exception_categories: tuple = ()) -> list[dict[str, Any]]:
+        items: list[dict[str, Any]] = []
+        for exc in evidence.get("exceptions", []) or []:
+            if approval_actions == "ALL" or exc.get("category") in exception_categories:
+                items.append({
+                    "ref": exc.get("id"), "severity": exc.get("severity"), "text": exc.get("message") or "",
+                    "remediation_options": exc.get("remediation_options") or [],
+                })
+        for appr in evidence.get("approvals", []) or []:
+            if approval_actions == "ALL" or appr.get("action") in approval_actions:
+                summary = appr.get("summary") or appr.get("action", "").replace("_", " ")
+                items.append({
+                    "ref": appr.get("id"), "severity": None, "text": summary,
+                    "recommendation": appr.get("recommendation"),
+                })
+        return items
+
+    def _format_result(self, items: list[dict[str, Any]]) -> AIResult:
         lines = []
         citations: dict[str, str] = {}
-        for item in matched:
+        for item in items[:5]:
             prefix = "🔴" if item.get("severity") == "critical" else ("🟠" if item.get("severity") == "warning" else "•")
             lines.append(f"{prefix} {item['text']}")
             if item.get("recommendation"):
@@ -148,12 +237,10 @@ class DeterministicAIProvider:
                 lines.append(f"   Options: {', '.join(item['remediation_options'])}")
             if item.get("ref"):
                 citations[item["ref"]] = item["text"]
-
         return AIResult(
             task="explain", provider=self.provider, model=self.model,
             output={"answer": "\n".join(lines), "citations": citations},
-            confidence=0.85 if len(matched) == 1 else 0.6,
-            evidence_refs=[i["ref"] for i in matched if i.get("ref")],
+            confidence=0.9, evidence_refs=[i["ref"] for i in items if i.get("ref")],
             requires_human_approval=False,
         )
 
