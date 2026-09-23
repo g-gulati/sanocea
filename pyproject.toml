@@ -14,10 +14,13 @@ dependencies = [
   "boto3",
   "docling",
   "pillow",
+  "pymupdf",
+  "openpyxl",
   "phonenumbers",
   "google-api-python-client",
   "google-auth-oauthlib",
   "google-cloud-pubsub",
+  "slowapi",
 ]
 
 [tool.pytest.ini_options]

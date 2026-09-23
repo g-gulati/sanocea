@@ -26,7 +26,7 @@ _REF_TABLES_TO_CLEAR = (
     "payment_observations", "returns", "exchanges", "refunds", "cancellations", "order_lines", "orders",
     "shipments", "tracking_events", "workflow_executions", "connector_commands", "approvals", "exceptions",
     "external_id_mappings", "raw_external_events", "credential_references",
-    "merchant_configurations", "customers", "inventory", "channels", "api_keys",
+    "merchant_configurations", "customers", "inventory", "channels", "api_keys", "locations",
     "product_drafts", "publications", "publication_attempts", "listing_verifications",
     "support_conversations", "support_intents", "customer_support_actions",
     "identity_decisions", "audit_events", "channel_operations", "demo_session_contacts",

@@ -6,8 +6,13 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from sanocea.packages.audit.context import reset_correlation_id, set_correlation_id
@@ -76,6 +81,30 @@ def create_app(
 
     app = FastAPI(title="Sanocea Commerce OS")
     app.add_middleware(CorrelationMiddleware)
+
+    # Self-service demo browser (Slice 1): the public /demo/sessions endpoint is rate-limited per
+    # client IP, in-process (no Redis - see infra/systemd/sanocea-api.service.example, one uvicorn
+    # worker). Every other route is unaffected - only endpoints explicitly decorated with
+    # @limiter.limit(...) below are governed by this.
+    limiter = Limiter(key_func=get_remote_address)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
+
+    # CORS: narrow by design - no origins allowed unless explicitly configured, never credentialed
+    # (every route here authenticates via Bearer token, not cookies), and only the methods/headers the
+    # demo browser and Command Center actually use. Unset SANOCEA_DEMO_CORS_ORIGINS (the default)
+    # leaves this middleware entirely out, i.e. no behavior change for same-origin deployments.
+    _demo_cors_origins = [o.strip() for o in os.environ.get("SANOCEA_DEMO_CORS_ORIGINS", "").split(",") if o.strip()]
+    if _demo_cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=_demo_cors_origins,
+            allow_credentials=False,
+            allow_methods=["GET", "POST"],
+            allow_headers=["Authorization", "Content-Type"],
+        )
+
     app.state.store = store
     app.state.workflow = graph.order_orchestrator
     app.state.storefronts = graph.storefronts
@@ -122,6 +151,23 @@ def create_app(
             except Exception as exc:
                 status["object_storage"] = f"error:{type(exc).__name__}"
         return status
+
+    # ================================================================================================
+    # Self-service prospect demo sessions (public, unauthenticated by design - this IS the entry point
+    # that mints a merchant-scoped credential; see packages/prospect_demo/sessions.py). It only ever
+    # leases an already-isolated prospect_* tenant, reset to its canonical baseline before being handed
+    # out - never real merchant data, never ref_anchal_heritage. Every other route's auth is unchanged.
+    # ================================================================================================
+
+    @app.post("/demo/sessions")
+    @limiter.limit("5/minute")
+    def create_demo_session(request: Request) -> dict:
+        from sanocea.packages.prospect_demo import NoDemoTenantAvailable, lease_demo_session
+
+        try:
+            return lease_demo_session(store, dsn=os.environ.get("SANOCEA_PG_DSN"))
+        except NoDemoTenantAvailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     @app.get("/merchants")
     def merchants(ctx: AuthContext = Depends(require_service)) -> list[dict]:
