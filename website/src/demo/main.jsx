@@ -3,11 +3,11 @@ import {createRoot} from 'react-dom/client'
 import './demo.css'
 
 // The self-service demo browser calls the Sanocea Commerce OS API directly, cross-origin (this page is
-// static, served from GitHub Pages - see website/.github/workflows - while the API runs on the VPS).
-// Until the API has a public, reverse-proxied hostname (see infra/systemd/sanocea-api.service.example's
-// own P0.6 note - loopback-only today), set VITE_SANOCEA_API_BASE at build time to that public origin.
-// The dev default below only works when this page and the API are reachable on the same machine.
-const API_BASE = (import.meta.env.VITE_SANOCEA_API_BASE || 'http://127.0.0.1:8010').replace(/\/$/, '')
+// static, served from /var/www/sanocea while the API stays loopback-only behind the api.sanocea.com
+// nginx reverse proxy - see infra/systemd/sanocea-api.service.example and
+// /etc/nginx/sites-available/sanocea-api on the VPS). https://api.sanocea.com is the real production
+// default; override with VITE_SANOCEA_API_BASE at build time for local dev against a different API host.
+const API_BASE = (import.meta.env.VITE_SANOCEA_API_BASE || 'https://api.sanocea.com').replace(/\/$/, '')
 const LOGO = 'https://www.sanocea.com/sanocea-wordmark.png'
 const SESSION_KEY = 'sanocea_demo_session'
 
