@@ -27,7 +27,7 @@ SOURCE_REPO="${SANOCEA_DEPLOY_SOURCE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &
 # deploy can never itself be what pushes the shared host disk toward GPE's thresholds.
 MIN_FREE_MB="${SANOCEA_DEPLOY_MIN_FREE_MB:-20480}"
 # How many most-recent releases to keep after a successful deploy (current + this many older ones).
-KEEP_RELEASES="${SANOCEA_DEPLOY_KEEP_RELEASES:-2}"
+KEEP_RELEASES="${SANOCEA_DEPLOY_KEEP_RELEASES:-1}"
 
 fail() {
     echo "DEPLOY FAILED: $1" >&2
