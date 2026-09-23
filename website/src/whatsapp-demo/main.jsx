@@ -167,8 +167,25 @@ function ChatScreen({session, onSessionEnded}) {
   const bottomRef = useRef(null)
   const countdown = useCountdown(expiresAt)
 
+  const inputRef = useRef(null)
+
   const scrollDown = useCallback(() => {
     requestAnimationFrame(() => bottomRef.current?.scrollIntoView({behavior: 'smooth'}))
+  }, [])
+
+  // Only ever called right after a message THIS user just sent finishes (success or error) - never on
+  // any other event - so it can't steal focus from a control the user deliberately clicked instead
+  // (e.g. the Operations Console link). requestAnimationFrame waits for the DOM update (input
+  // re-enabled, response bubble rendered) before focusing, so it's never a no-op on a still-disabled
+  // input. Caret goes to the end of whatever's left in the box, not the start.
+  const refocusInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      const el = inputRef.current
+      if (!el) return
+      el.focus()
+      const end = el.value.length
+      el.setSelectionRange(end, end)
+    })
   }, [])
 
   useEffect(() => {
@@ -190,7 +207,10 @@ function ChatScreen({session, onSessionEnded}) {
         if (cancelled) return
         setMessages([{from: 'sanocea', text: "I couldn't load today's briefing, but you can still ask me questions."}])
       } finally {
-        if (!cancelled) setBooting(false)
+        if (!cancelled) {
+          setBooting(false)
+          refocusInput()
+        }
       }
     }
     boot()
@@ -233,6 +253,7 @@ function ChatScreen({session, onSessionEnded}) {
       }
     } finally {
       setSending(false)
+      refocusInput()
     }
   }
 
@@ -271,6 +292,7 @@ function ChatScreen({session, onSessionEnded}) {
       )}
       <div className="wa-composer">
         <input
+          ref={inputRef}
           className="wa-composer-input"
           placeholder={ended ? 'Session ended' : 'Message Sanocea…'}
           value={input}
