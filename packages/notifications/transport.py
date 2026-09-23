@@ -180,6 +180,29 @@ class WhatsAppDemoTransport:
         )
 
 
+class WebChatTransport:
+    """Transport for the browser self-service chat demo - implements the SAME
+    ApprovalNotificationTransport interface as WhatsAppDemoTransport, so DemoApprovalNotificationService's
+    conversation engine (menu navigation, approval decisions, the AI explain fallback) runs completely
+    unchanged regardless of which transport delivered/will deliver the reply. Where WhatsAppDemoTransport
+    posts to WAHA, this one just accumulates the reply text in-process - the caller (the /chat API route)
+    reads `sent` back out and returns it as the HTTP response. A real WAHA transport can be swapped in
+    later for the same conversation layer without touching packages/notifications/resolution.py at all.
+    Never persisted/shared across requests - construct one fresh per HTTP request."""
+
+    name = "web_chat"
+
+    def __init__(self) -> None:
+        self.sent: list[str] = []
+
+    def send_approval(self, *, recipient: str, message: str) -> DeliveryResult:
+        self.sent.append(message)
+        return DeliveryResult(delivered=True)
+
+    def parse_inbound(self, raw_event: dict[str, Any]) -> InboundApprovalMessage | None:
+        raise NotImplementedError("web chat messages are constructed directly by the API route, never parsed from a webhook event")
+
+
 class EmailApprovalTransport:
     """Not implemented - no outbound email-send capability exists anywhere in this codebase (confirmed
     by audit; see docs/architecture/integrations/LIVE_DEMO_OPEN_SOURCE_AUDIT.md's ADOPT recommendation

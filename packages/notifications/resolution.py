@@ -181,7 +181,10 @@ class DemoApprovalNotificationService:
 
     # --- Session contact lifecycle (Section 11) --------------------------------------------------
 
-    def set_session_contact(self, merchant_id: str, *, phone_e164: str, session_label: str, consented: bool) -> DemoSessionContact:
+    def set_session_contact(
+        self, merchant_id: str, *, phone_e164: str, session_label: str, consented: bool,
+        ttl: timedelta = DEFAULT_SESSION_CONTACT_EXPIRY,
+    ) -> DemoSessionContact:
         if not consented:
             raise ValueError("a DemoSessionContact may only be created with explicit recorded consent")
         # Validate/normalize BEFORE anything is persisted or sent - a malformed number must never reach
@@ -196,7 +199,7 @@ class DemoApprovalNotificationService:
                 self.store.put(old)
         contact = DemoSessionContact(
             merchant_id=merchant_id, session_label=session_label, phone_e164=normalized,
-            expires_at=now + DEFAULT_SESSION_CONTACT_EXPIRY,
+            expires_at=now + ttl,
         )
         self.store.put(contact)
         self.audit.record(
@@ -379,6 +382,31 @@ class DemoApprovalNotificationService:
             # reaches a real merchant at all, so there is nothing to scope that entry to.
             self.audit.record(
                 merchant_id=result["merchant_id"], actor="notifications", source=msg.provider,
+                action="duplicate_inbound_message_ignored", object_type="InboundApprovalMessage",
+                object_id=msg.provider_message_id, result="duplicate",
+            )
+        return result
+
+    def handle_web_chat_message(self, merchant_id: str, msg: InboundApprovalMessage) -> dict[str, Any]:
+        """The browser self-service demo's entry point into the SAME conversation engine `handle_inbound`
+        uses for real WAHA messages (menu navigation, contextual replies, approval decisions, the AI
+        explain fallback below) - the only difference is identity: `merchant_id` is already known and
+        authorized (the caller's own merchant-scoped API key, via require_operator), so this skips the
+        cross-tenant phone search `_resolve_sender` does for a real inbound WhatsApp webhook, and instead
+        just needs an active DemoSessionContact for this merchant+phone (created at session-lease time).
+        This is exactly the seam that lets a real WAHA transport be plugged in later without touching the
+        conversation logic itself - see docs/architecture/integrations/WHATSAPP_DEMO_TRANSPORT_COMPARISON.md."""
+        contact = self._active_contact_for_phone(merchant_id, msg.from_identifier)
+        if contact is None:
+            raise InboundResolutionError("no active demo session contact for this merchant/number - the demo session may have expired")
+
+        def _process() -> dict[str, Any]:
+            return self._handle_inbound_once_for(merchant_id, contact, msg)
+
+        result, created = self.idempotency.run_once(f"notifications:{msg.provider}", msg.provider_message_id, _process)
+        if not created:
+            self.audit.record(
+                merchant_id=merchant_id, actor="notifications", source=msg.provider,
                 action="duplicate_inbound_message_ignored", object_type="InboundApprovalMessage",
                 object_id=msg.provider_message_id, result="duplicate",
             )
@@ -767,6 +795,8 @@ class DemoApprovalNotificationService:
             "price_change",
             "catalog_unpublish",
             "inventory_writeoff",
+            "resolve_delivery_exception",
+            "escalate_fulfilment_delay",
         }
         pending = [
             a for a in self.store.list_where(Approval, merchant_id, status="pending")
@@ -842,6 +872,50 @@ class DemoApprovalNotificationService:
             f"👉 Reply with a number (*1*-*{len(approvals)}*) to select a decision, or send *Menu*.",
         ])
         return "\n".join(lines)
+
+    # --- AI explain (free-text questions) ---------------------------------------------------------
+
+    def _explain_free_text(self, merchant_id: str, question: str):
+        """Grounds a free-text question in this merchant's own currently-open exceptions/approvals only
+        - never a full-database query, never a mutation. Returns None (not a low-confidence AIResult)
+        when nothing in the evidence bundle is even loosely related, so the caller can fall through to
+        the ordinary 'I didn't recognize that' menu prompt instead of a confusing non-answer."""
+        from sanocea.packages.ai.provider import DeterministicAIProvider
+        from sanocea.packages.runtime.queries import list_open_approvals, list_open_exceptions
+
+        exceptions = list_open_exceptions(self.store, merchant_id)
+        approvals = list_open_approvals(self.store, merchant_id)
+        evidence = {
+            "exceptions": [e.model_dump(mode="json") for e in exceptions],
+            "approvals": [a.model_dump(mode="json") for a in approvals],
+        }
+        result = DeterministicAIProvider().explain(question, evidence, [])
+        if result.confidence < 0.3:
+            return None
+        return result
+
+    def _try_ai_explain_reply(self, merchant_id: str, contact: DemoSessionContact, msg: InboundApprovalMessage, text: str) -> bool:
+        """Shared by every context that falls through to 'I didn't recognize that' (main menu, and the
+        top-level no-active-context path): grounded ONLY in this merchant's own currently-open
+        exceptions/approvals (never the whole database, never a mutation) - AI is interaction/
+        intelligence only, the deterministic engine already produced everything it cites. See
+        packages/ai/provider.py. Returns True if it sent a real answer (caller returns instead of falling
+        through to the generic rejection message), False if nothing matched closely enough."""
+        if len(text) < 4:
+            return False
+        ai_result = self._explain_free_text(merchant_id, text)
+        if ai_result is None:
+            return False
+        try:
+            self.transport.send_approval(recipient=contact.phone_e164, message=ai_result.output["answer"])
+        except Exception:
+            pass
+        self.audit.record(
+            merchant_id=merchant_id, actor="notifications", source=msg.provider, action="ai_explain_answered",
+            object_type="InboundApprovalMessage", object_id=msg.provider_message_id, result="answered",
+            evidence_ref=",".join(ai_result.evidence_refs) or None,
+        )
+        return True
 
     # --- Sequential Product Onboarding Queue -----------------------------------------------------
 
@@ -1148,8 +1222,14 @@ class DemoApprovalNotificationService:
     # --- Inbound Execution Handlers -------------------------------------------------------------
 
     def _handle_inbound_once(self, msg: InboundApprovalMessage) -> dict[str, Any]:
-        # 1. Resolve sender (authorized active DemoSessionContact)
+        # 1. Resolve sender (authorized active DemoSessionContact) - cross-tenant search by phone alone,
+        # since a real WAHA webhook carries no other identity. See handle_web_chat_message for the
+        # browser-chat path, which already knows merchant_id (from the caller's own scoped API key) and
+        # skips this search.
         contact, merchant_id = self._resolve_sender(msg.from_identifier)
+        return self._handle_inbound_once_for(merchant_id, contact, msg)
+
+    def _handle_inbound_once_for(self, merchant_id: str, contact: DemoSessionContact, msg: InboundApprovalMessage) -> dict[str, Any]:
         actor = f"whatsapp:{msg.from_identifier[-4:]}"
 
         # 2. Get or create server-side conversation state (durable, keyed by merchant_id + phone)
@@ -1204,6 +1284,10 @@ class DemoApprovalNotificationService:
         draft_result = self._try_resolve_missing_fields(merchant_id, msg)
         if draft_result is not None:
             return draft_result
+
+        # 8b. Free-text question, not a recognized command - ask the AI explain layer.
+        if self._try_ai_explain_reply(merchant_id, contact, msg, raw_text):
+            return {"merchant_id": merchant_id, "status": "ai_explained"}
 
         # 9. Fail closed
         self.audit.record(
@@ -1287,11 +1371,45 @@ class DemoApprovalNotificationService:
         )
         return {"merchant_id": merchant_id, "action": "resume_noop"}
 
+    # Natural-language aliases for the numbered menu options, checked before falling through to AI
+    # explain / rejection - phrases like "what needs my attention?" are common enough (they're even one
+    # of the demo's own quick-reply suggestions) that they deserve a direct, deterministic answer rather
+    # than depending on fuzzy keyword overlap against specific exception text.
+    _MENU_ALIASES: dict[str, tuple[str, ...]] = {
+        "1": ("WHAT NEEDS MY ATTENTION", "WHAT HAPPENED", "GIVE ME A SUMMARY", "SUMMARY", "GOOD MORNING"),
+        "2": ("WHAT NEEDS MY APPROVAL", "PENDING APPROVALS", "ANYTHING TO APPROVE"),
+        "3": ("PRICING ISSUES", "ANY PRICING ISSUES", "LISTING ISSUES"),
+        "4": ("STOCK ISSUES", "ANY STOCK ISSUES", "DELIVERY ISSUES", "SHOW ME THE DELIVERY ISSUES", "ANY RTOS I SHOULD KNOW ABOUT", "ANY NDRS", "WHY IS INVENTORY SHOWING DIFFERENTLY"),
+        "5": ("ORDER ISSUES", "RECONCILIATION ISSUES", "SHOW ME THE AFFECTED ORDERS"),
+    }
+
     def _handle_main_menu_selection(
         self, merchant_id: str, contact: DemoSessionContact, conv: WhatsAppConversationState, msg: InboundApprovalMessage, text: str
     ) -> dict[str, Any]:
-        upper = text.upper().strip()
+        upper = text.upper().strip().rstrip("?!.")
         from sanocea.packages.domain_contract.models import Inventory, Location, Order, Product
+
+        # "Resolve it" / "approve it" - a direct action shortcut, not a menu number. Only acts when
+        # there's exactly one pending approval to act on (no reference/ordinal is given, so anything
+        # ambiguous falls through to the normal "2. Decisions waiting for approval" disambiguation flow
+        # instead of guessing which item "it" means).
+        if upper in ("RESOLVE IT", "APPROVE IT", "APPROVE", "RESOLVE", "YES APPROVE", "DO IT"):
+            pending = self._get_actionable_pending_approvals(merchant_id)
+            if len(pending) == 1:
+                resolve_result = self.approvals.resolve(merchant_id, pending[0].id, decision="approved", resolved_via="web_chat", decided_by=f"whatsapp:{msg.from_identifier[-4:]}")
+                conv.active_context_type = "main_menu"
+                self.store.put(conv)
+                confirm = f"✅ Approved: {pending[0].summary or pending[0].action}"
+                self.transport.send_approval(recipient=contact.phone_e164, message=confirm)
+                return {"merchant_id": merchant_id, "action": "resolved_via_shortcut", "approval_id": pending[0].id, "result": resolve_result}
+            # 0 or 2+ pending - route into the normal "2. Decisions waiting for approval" handling below,
+            # which already covers "none pending" and disambiguation among several correctly.
+            upper = "2"
+
+        for number, phrases in self._MENU_ALIASES.items():
+            if upper in phrases:
+                upper = number
+                break
 
         # 1. Today’s business briefing
         if upper in ("1", "TODAY", "BRIEFING", "TODAY'S BUSINESS BRIEFING", "TODAYS BUSINESS BRIEFING"):
@@ -1491,7 +1609,10 @@ class DemoApprovalNotificationService:
             self.store.put(conv)
             return {"merchant_id": merchant_id, "action": "help"}
 
-        # Unrecognized menu reply
+        # Not a menu number/keyword - try it as a free-text question before giving up.
+        if self._try_ai_explain_reply(merchant_id, contact, msg, text):
+            return {"merchant_id": merchant_id, "action": "ai_explained"}
+
         unrec_msg = f"I didn't recognize '{text}'. Please reply with a number (*1*-*6*, *0*) or send *Menu*."
         self.transport.send_approval(recipient=contact.phone_e164, message=unrec_msg)
         return {"merchant_id": merchant_id, "action": "unrecognized_menu_option"}

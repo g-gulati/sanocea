@@ -399,7 +399,7 @@ function DemoApp({session, onSessionInvalid}) {
       <div className="demo-header">
         <div className="demo-header-brand">
           <img src={LOGO} alt="Sanocea" />
-          <span>Commerce OS — Live Demo</span>
+          <span>Operations Console</span>
         </div>
         <div className="demo-header-tenant">{session.displayName}</div>
         <div className="demo-header-right">
@@ -407,8 +407,8 @@ function DemoApp({session, onSessionInvalid}) {
         </div>
       </div>
       <div className="demo-disclosure">
-        You're exploring an isolated, real Sanocea Commerce OS tenant — not a mockup. Actions here are
-        real but sandboxed to this session, and this tenant resets automatically for the next visitor.
+        This is the underlying record view behind the WhatsApp-style demo — the same sandboxed tenant,
+        for anyone who wants to inspect the raw operational data directly.
       </div>
       <div className="demo-tabs">
         {TABS.map((t) => (

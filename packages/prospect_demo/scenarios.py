@@ -280,9 +280,95 @@ def seed_catalogue_operations_scenario(store, merchant_id: str, product_drafts: 
 
 
 
+def seed_delivery_exceptions_scenario(store, merchant_id: str, product_drafts: list[ProductDraft], config: dict[str, Any]) -> dict[str, Any]:
+    """HealthVitals: post-dispatch delivery-logistics exceptions - NDR (non-delivery report), a shipment
+    running behind its expected transit window, and a shipment approaching RTO (return-to-origin) risk.
+    This is the "someone has to track every carrier/marketplace tracking page and notice before it's too
+    late" gap HealthVitals described (cross-platform tracking, NDR/RTO, escalations). Each is a real
+    Order + ExceptionRecord via ExceptionService, using the ExceptionCategory values the domain already
+    defines (NDR_DETECTED, SHIPMENT_DELAY) - no new category invented. The RTO-risk case additionally
+    gets a pending Approval, matching how a genuine near-RTO shipment needs a human decision (reattempt
+    delivery vs. accept the return) rather than silent auto-resolution."""
+    exceptions = ExceptionService(store)
+    priced = [d for d in product_drafts if d.price]
+    channels = ["chn_" + c for c in config["known_channels"]] or ["chn_own_website"]
+    results: dict[str, Any] = {"orders": 0, "ndr": 0, "shipment_delays": 0, "rto_risk": 0, "escalations": 0}
+    if not priced:
+        return results
+
+    def _next_draft(i: int) -> ProductDraft:
+        return priced[i % len(priced)]
+
+    def _next_channel(i: int) -> str:
+        return channels[i % len(channels)]
+
+    order_seq = 5000
+    # ── 3 NDR cases: courier attempted delivery, customer unreachable/refused ──
+    ndr_reasons = ["customer unreachable - phone switched off", "customer refused delivery", "address not found by courier"]
+    for i, reason in enumerate(ndr_reasons):
+        draft = _next_draft(i)
+        order = _order(merchant_id, _next_channel(i), f"DEMO-DJH-{order_seq}", draft.price, draft.currency or "INR", fulfillment_status="ndr")
+        store.put(order)
+        results["orders"] += 1
+        exceptions.create(
+            merchant_id=merchant_id, category=ExceptionCategory.NDR_DETECTED,
+            message=f"Non-delivery report on order {order.order_number}: {reason}. Courier will attempt RTO after 2 more failed attempts.",
+            object_id=order.id, severity="warning",
+            remediation_options=["reattempt_delivery", "contact_customer", "escalate_to_courier"],
+        )
+        results["ndr"] += 1
+        order_seq += 1
+
+    # ── 2 shipments running behind their expected transit window ─────────────
+    for i in range(2):
+        draft = _next_draft(i + 3)
+        order = _order(merchant_id, _next_channel(i + 3), f"DEMO-DJH-{order_seq}", draft.price, draft.currency or "INR", fulfillment_status="in_transit")
+        store.put(order)
+        results["orders"] += 1
+        days_late = 2 + i
+        exceptions.create(
+            merchant_id=merchant_id, category=ExceptionCategory.SHIPMENT_DELAY,
+            message=f"Shipment for order {order.order_number} is {days_late} day(s) past its expected delivery window with no carrier scan update.",
+            object_id=order.id, severity="warning",
+            remediation_options=["contact_courier", "notify_customer", "review"],
+        )
+        results["shipment_delays"] += 1
+        order_seq += 1
+
+    # ── 1 shipment approaching RTO risk (repeated NDR, courier will return it) ─
+    draft = _next_draft(5)
+    order = _order(merchant_id, _next_channel(5), f"DEMO-DJH-{order_seq}", draft.price, draft.currency or "INR", fulfillment_status="ndr")
+    store.put(order)
+    results["orders"] += 1
+    rto_exc = exceptions.create(
+        merchant_id=merchant_id, category=ExceptionCategory.SHIPMENT_DELAY,
+        message=(
+            f"Order {order.order_number} has failed 2 delivery attempts and is now flagged by the courier "
+            f"for RTO (return-to-origin) if a 3rd attempt fails or no action is taken within 24h."
+        ),
+        object_id=order.id, severity="critical",
+        remediation_options=["approve_reattempt", "accept_rto", "contact_customer_urgently"],
+    )
+    store.put(Approval(
+        merchant_id=merchant_id, action="resolve_delivery_exception", object_id=order.id,
+        status="pending", requested_by="policy", workflow_id=rto_exc.id,
+        reference=f"RTO-{order.order_number}",
+        summary=f"Order {order.order_number} is one failed attempt away from RTO - reattempt delivery or accept the return?",
+        recommendation="Approve a final reattempt with customer SMS confirmation before the courier auto-RTOs the shipment.",
+        evidence={
+            "order_number": order.order_number, "attempts_failed": 2, "hours_until_auto_rto": 24,
+            "likely_impact": "RTO reverses this order's revenue and adds reverse-logistics cost if not caught in time.",
+        },
+    ))
+    results["rto_risk"] += 1
+    results["escalations"] += 1
+    return results
+
+
 SCENARIO_SEEDERS = {
     "reconciliation": seed_reconciliation_scenario,
     "order_monitoring": seed_order_monitoring_scenario,
     "returns_reconciliation": seed_returns_reconciliation_scenario,
     "catalogue_operations": seed_catalogue_operations_scenario,
+    "delivery_exceptions": seed_delivery_exceptions_scenario,
 }

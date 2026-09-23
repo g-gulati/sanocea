@@ -131,8 +131,8 @@ PROSPECT_TENANTS: dict[str, dict[str, Any]] = {
         "currency": "INR",
         "gstin": None,
         "deterministic_seed": 1002,
-        "enabled_scenarios": ["order_monitoring"],
-        "known_channels": ["own_website", "amazon_in"],
+        "enabled_scenarios": ["order_monitoring", "delivery_exceptions"],
+        "known_channels": ["own_website", "amazon_in", "flipkart", "jiomart"],
         "public_catalogue_sources": [
             {
                 "url": "https://drjshealthvitals.com/products.json",
@@ -190,9 +190,12 @@ PROSPECT_TENANTS: dict[str, dict[str, Any]] = {
         ],
         "prospect_provided_context": {
             "stated_channel_split": "Website + Amazon are the bulk of orders, approximately 65/35.",
+            "stated_volume": "Approximately 200-300 orders/month, ~8% RTO/cancellation rate.",
+            "stated_systems": ["Shopify", "Shiprocket", "Amazon", "Flipkart", "JioMart", "Tata 1mg", "Meta Business Suite"],
             "stated_pain_point": (
                 "Current work requires someone to process, escalate and follow up. Operation is manual "
-                "and important. They do not want someone checking multiple portals constantly."
+                "and important. They do not want someone checking multiple portals constantly. Cross-"
+                "platform tracking, delivery delays, NDR/RTO, claims and escalations consume the most time."
             ),
         },
         "policy_profile": _default_policy_profile(),
@@ -267,7 +270,7 @@ PROSPECT_TENANTS: dict[str, dict[str, Any]] = {
         "currency": "INR",
         "gstin": None,
         "deterministic_seed": 1004,
-        "enabled_scenarios": ["catalogue_operations"],
+        "enabled_scenarios": ["catalogue_operations", "order_monitoring"],
         "known_channels": [
             "own_website", "amazon_in", "amazon_us", "flipkart", "blinkit", "swiggy_instamart",
         ],

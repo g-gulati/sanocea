@@ -18,6 +18,9 @@ import threading
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from sanocea.packages.audit import AuditLedger
+from sanocea.packages.notifications.phone import PhoneValidationError, normalize_phone
+
 from .reset import reset_prospect_tenant
 from .tenants import PROSPECT_TENANTS
 
@@ -36,11 +39,20 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def lease_demo_session(store, *, dsn: str | None = None, ttl: timedelta = DEFAULT_SESSION_TTL) -> dict[str, Any]:
+def lease_demo_session(
+    store, *, dsn: str | None = None, ttl: timedelta = DEFAULT_SESSION_TTL, whatsapp_number: str | None = None,
+) -> dict[str, Any]:
     """Leases one free (or expired) prospect tenant to a new anonymous visitor: resets it to its
     canonical baseline and mints a fresh merchant-scoped operator key scoped to it. Reclaiming an expired
     lease revokes its stale key first, so the fixed tenant pool self-heals with no background cleanup
-    job - the next visitor's request is what triggers the reclaim."""
+    job - the next visitor's request is what triggers the reclaim.
+
+    `whatsapp_number`, if given, is lead-context only (the WhatsApp-style chat demo collects it, but no
+    WAHA transport is provisioned - see docs/architecture/integrations/WHATSAPP_DEMO_TRANSPORT_COMPARISON.md
+    - so nothing is actually sent to it). Recorded as a normal audit event, the same durable record every
+    other operator-visible action already produces, so it's visible via the existing
+    GET /merchants/{id}/audit route rather than a new lead-capture pipe. A malformed number never blocks
+    starting the demo itself - it's just not recorded."""
     with _lock:
         now = _now()
         candidate = next(
@@ -70,6 +82,21 @@ def lease_demo_session(store, *, dsn: str | None = None, ttl: timedelta = DEFAUL
     expires_at = _now() + ttl
     with _lock:
         _leases[candidate] = {"key_id": result["operator_key_id"], "expires_at": expires_at}
+
+    if whatsapp_number:
+        try:
+            from sanocea.packages.notifications.resolution import DemoApprovalNotificationService
+            from sanocea.packages.notifications.transport import WebChatTransport
+
+            contact = DemoApprovalNotificationService(store, WebChatTransport()).set_session_contact(
+                candidate, phone_e164=whatsapp_number, session_label="web_chat_demo", consented=True, ttl=ttl,
+            )
+            AuditLedger(store).record(
+                merchant_id=candidate, actor="prospect", source="web_chat_demo", action="demo_lead_captured",
+                object_type="DemoSessionContact", object_id=contact.id, result="consented",
+            )
+        except PhoneValidationError:
+            pass  # cosmetic/lead-context only (see docstring) - never blocks starting the demo itself
 
     return {
         "session_id": f"demosess_{os.urandom(12).hex()}",
