@@ -1,6 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import {createRoot} from 'react-dom/client'
 import './chat.css'
+import StorySequence from './StorySequence.jsx'
+
+const STORY_SEEN_KEY = 'sanocea_whatsapp_demo_story_seen'
 
 // Same production API this repo's other demo surface (website/src/demo/) uses - see that file's own
 // comment for why this defaults to the real public origin rather than loopback.
@@ -315,6 +318,15 @@ function ChatScreen({session, onSessionEnded}) {
 
 function App() {
   const [session, setSession] = useState(() => loadStoredSession())
+  // The story only plays once per browser session - a returning visitor (or anyone who already saw it
+  // and refreshed) goes straight to phone entry / their live chat, never a replay they didn't ask for.
+  const [storyDone, setStoryDone] = useState(() => {
+    try {
+      return sessionStorage.getItem(STORY_SEEN_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
 
   const start = useCallback(async (phone) => {
     const s = await createSession(phone)
@@ -326,8 +338,16 @@ function App() {
     clearStoredSession()
   }, [])
 
-  if (!session) return <IntroScreen onStart={start} />
-  return <ChatScreen session={session} onSessionEnded={onSessionEnded} />
+  const finishStory = useCallback(() => {
+    try {
+      sessionStorage.setItem(STORY_SEEN_KEY, '1')
+    } catch {}
+    setStoryDone(true)
+  }, [])
+
+  if (session) return <ChatScreen session={session} onSessionEnded={onSessionEnded} />
+  if (!storyDone) return <StorySequence onFinish={finishStory} />
+  return <IntroScreen onStart={start} />
 }
 
 createRoot(document.getElementById('root')).render(
