@@ -1,13 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import {createRoot} from 'react-dom/client'
 import './chat.css'
-import StorySequence from './StorySequence.jsx'
+import Walkthrough from './Walkthrough.jsx'
+import {API_BASE} from './api.js'
 
-const STORY_SEEN_KEY = 'sanocea_whatsapp_demo_story_seen'
-
-// Same production API this repo's other demo surface (website/src/demo/) uses - see that file's own
-// comment for why this defaults to the real public origin rather than loopback.
-const API_BASE = (import.meta.env.VITE_SANOCEA_API_BASE || 'https://api.sanocea.com').replace(/\/$/, '')
 const LOGO = 'https://www.sanocea.com/sanocea-wordmark.png'
 const SESSION_KEY = 'sanocea_whatsapp_demo_session'
 
@@ -38,30 +34,6 @@ function clearStoredSession() {
   } catch {}
 }
 
-async function createSession(whatsappNumber) {
-  const res = await fetch(`${API_BASE}/demo/sessions`, {
-    method: 'POST',
-    headers: {Accept: 'application/json', 'Content-Type': 'application/json'},
-    body: JSON.stringify({whatsapp_number: whatsappNumber}),
-  })
-  if (!res.ok) {
-    let detail = res.statusText
-    try {
-      detail = (await res.json()).detail || detail
-    } catch {}
-    const err = new Error(detail)
-    err.status = res.status
-    throw err
-  }
-  const body = await res.json()
-  return {
-    merchantId: body.merchant_id,
-    displayName: body.display_name,
-    apiKey: body.api_key,
-    expiresAt: body.expires_at,
-  }
-}
-
 async function sendChatMessage(session, text) {
   const res = await fetch(`${API_BASE}/merchants/${session.merchantId}/chat`, {
     method: 'POST',
@@ -79,65 +51,6 @@ async function sendChatMessage(session, text) {
   }
   const body = await res.json()
   return {replies: body.replies || [], expiresAt: body.expires_at || null}
-}
-
-// ---- Intro screen (phone capture) --------------------------------------------------------------
-
-function IntroScreen({onStart}) {
-  const [phone, setPhone] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState(null)
-
-  const submit = async (e) => {
-    e.preventDefault()
-    if (!phone.trim()) {
-      setError('Enter a WhatsApp number to continue.')
-      return
-    }
-    setBusy(true)
-    setError(null)
-    try {
-      await onStart(phone.trim())
-    } catch (err) {
-      if (err.status === 503) setError('Every demo environment is in use right now. Please try again in a couple of minutes.')
-      else if (err.status === 429) setError('Too many people are starting demos at once — please wait a few seconds and try again.')
-      else setError(err.message || 'Could not start the demo.')
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="wa-intro">
-      <div className="wa-intro-card">
-        <img src={LOGO} alt="Sanocea" />
-        <h1>Chat with Sanocea</h1>
-        <p>
-          Enter your WhatsApp number and Sanocea will start watching a live, sandboxed commerce
-          operation for you — the same conversation you'd have if this were running your business.
-          This is a self-contained demo: no real WhatsApp message is sent, your number is only used
-          for this demo session.
-        </p>
-        <form onSubmit={submit}>
-          <div className="wa-phone-row">
-            <input
-              className="wa-input"
-              type="tel"
-              placeholder="+91 98765 43210"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              disabled={busy}
-              autoFocus
-            />
-          </div>
-          <p className="wa-hint">Any format works — we just need something that looks like a real number.</p>
-          <button className="wa-btn" type="submit" disabled={busy}>
-            {busy ? 'Starting…' : 'Start the conversation'}
-          </button>
-          {error && <p className="wa-error">{error}</p>}
-        </form>
-      </div>
-    </div>
-  )
 }
 
 // ---- Chat screen ---------------------------------------------------------------------------------
@@ -318,36 +231,21 @@ function ChatScreen({session, onSessionEnded}) {
 
 function App() {
   const [session, setSession] = useState(() => loadStoredSession())
-  // The story only plays once per browser session - a returning visitor (or anyone who already saw it
-  // and refreshed) goes straight to phone entry / their live chat, never a replay they didn't ask for.
-  const [storyDone, setStoryDone] = useState(() => {
-    try {
-      return sessionStorage.getItem(STORY_SEEN_KEY) === '1'
-    } catch {
-      return false
-    }
-  })
-
-  const start = useCallback(async (phone) => {
-    const s = await createSession(phone)
-    storeSession(s)
-    setSession(s)
-  }, [])
 
   const onSessionEnded = useCallback(() => {
     clearStoredSession()
   }, [])
 
-  const finishStory = useCallback(() => {
-    try {
-      sessionStorage.setItem(STORY_SEEN_KEY, '1')
-    } catch {}
-    setStoryDone(true)
+  // The walkthrough already leased the tenant and (via attach-whatsapp) bound the phone number to it
+  // WITHOUT resetting it - so the audit record/state the visitor just built in the walkthrough is still
+  // there when they land in chat, not wiped by a fresh lease.
+  const goToChat = useCallback((walkthroughSession) => {
+    storeSession(walkthroughSession)
+    setSession(walkthroughSession)
   }, [])
 
   if (session) return <ChatScreen session={session} onSessionEnded={onSessionEnded} />
-  if (!storyDone) return <StorySequence onFinish={finishStory} />
-  return <IntroScreen onStart={start} />
+  return <Walkthrough onGoToChat={goToChat} />
 }
 
 createRoot(document.getElementById('root')).render(

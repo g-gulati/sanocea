@@ -171,6 +171,38 @@ def create_app(
         except NoDemoTenantAvailable as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
 
+    @app.post("/merchants/{merchant_id}/demo/attach-whatsapp")
+    @limiter.limit("10/minute")
+    def attach_demo_whatsapp(request: Request, merchant_id: str, payload: dict = Body(...), ctx: AuthContext = Depends(require_operator)) -> dict:
+        """Lets the interactive walkthrough (real findings, real approve action, real audit record - all
+        BEFORE a phone number is ever asked for) hand off into the WhatsApp-style chat on the SAME
+        already-leased, already-interacted-with tenant - never re-leases or resets it, which would wipe
+        the very state the visitor just built. Reuses DemoApprovalNotificationService.set_session_contact
+        exactly as lease_demo_session's own whatsapp_number path already does (packages/prospect_demo/
+        sessions.py) - this is just that same call exposed for an already-scoped session instead of a
+        brand new one. TTL matches the tenant lease's own window so this can't keep a tenant reserved
+        past when the underlying lease itself would naturally free it for the next visitor."""
+        from sanocea.packages.notifications.phone import PhoneValidationError
+        from sanocea.packages.notifications.resolution import DemoApprovalNotificationService
+        from sanocea.packages.notifications.transport import WebChatTransport
+        from sanocea.packages.prospect_demo.sessions import DEFAULT_SESSION_TTL, touch_lease
+
+        whatsapp_number = payload.get("whatsapp_number")
+        if not whatsapp_number:
+            raise HTTPException(status_code=400, detail="whatsapp_number is required")
+        try:
+            contact = DemoApprovalNotificationService(store, WebChatTransport()).set_session_contact(
+                merchant_id, phone_e164=whatsapp_number, session_label="web_chat_demo", consented=True,
+                ttl=DEFAULT_SESSION_TTL,
+            )
+        except PhoneValidationError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        new_expiry = touch_lease(store, merchant_id, ttl=DEFAULT_SESSION_TTL)
+        return {
+            "status": "attached", "contact_id": contact.id,
+            "expires_at": (new_expiry or contact.expires_at).isoformat(),
+        }
+
     @app.post("/merchants/{merchant_id}/chat")
     @limiter.limit("30/minute")
     def demo_chat(request: Request, merchant_id: str, payload: dict = Body(...), ctx: AuthContext = Depends(require_operator)) -> dict:
