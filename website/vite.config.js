@@ -11,6 +11,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         demo: resolve(__dirname, 'demo.html'),
         console: resolve(__dirname, 'console.html'),
+        reconciliation: resolve(__dirname, 'solutions/marketplace-reconciliation/index.html'),
       },
     },
   },
