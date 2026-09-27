@@ -870,7 +870,7 @@ function PlatformCoverageScene() {
 
 function AuthorityScene() {
   return (
-    <section className="scene authority-scene">
+    <section id="authority" className="scene authority-scene">
       <div className="shell authority-layout">
         <Reveal>
           <span className="chapter dark">08 / governance & authority</span>
@@ -937,9 +937,7 @@ function Diagnostic() {
         <div className="hero-actions">
           <a
             className="button primary light"
-            href="https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com&su=Sanocea%20operations%20diagnostic"
-            target="_blank"
-            rel="noreferrer"
+            href="mailto:hello@sanocea.com?subject=Sanocea%20operations%20diagnostic"
           >
             Audit my commerce operation
           </a>
@@ -1027,11 +1025,7 @@ function Footer() {
           <span>Surat, Gujarat, India</span>
         </div>
         <div>
-          <a
-            href="https://mail.google.com/mail/?view=cm&fs=1&to=hello@sanocea.com"
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a href="mailto:hello@sanocea.com">
             hello@sanocea.com
           </a>
           <span>© 2026 SANOCEA™</span>
