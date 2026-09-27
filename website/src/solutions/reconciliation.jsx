@@ -65,14 +65,16 @@ function Hero() {
         </span>
 
         <h1>
-          Marketplace Settlement & Payout Reconciliation Automation
+          Stop Marketplace Payout Leakage Across Connected Commerce Channels
         </h1>
 
         <p className="sol-hero-lede">
-          Multichannel brands selling across Amazon, Flipkart, Blinkit, and Shopify routinely lose 3% to 8% of gross
+          Sanocea reconciles settlement and payout data across connected marketplaces and commerce channels,
+          with current integrations including Amazon, Flipkart, Blinkit and Shopify. Multichannel brands routinely lose 3% to 8% of gross
           revenue to silent commission tier creep, uncredited customer return deductions, and courier volumetric weight inflation.
           Sanocea automates continuous batch audit, investigates root-cause discrepancies, and prepares verified dispute dossiers
-          for human sign-off — before claim windows expire.
+          for human sign-off — before claim windows expire. Sanocea can be connected to additional marketplaces and commerce systems
+          where the required APIs, settlement files, exports, or data interfaces are available.
         </p>
 
         <div className="sol-hero-actions">
@@ -245,7 +247,7 @@ const workflowStages = [
     title: 'Catches Remittance Divergence Per Settlement Batch',
     desc: 'Continuously parses marketplace remittance and settlement files as they post. Evaluates every individual order line against contractual pricing, fee schedules, and tax rules to isolate fee divergence.',
     checks: [
-      'Multi-channel ingestion: Amazon, Flipkart, Blinkit, Shopify',
+      'Multi-channel ingestion across connected commerce channels (including Amazon, Flipkart, Blinkit, Shopify)',
       'Instant order-line variance calculation against master contract',
       'Flags fee creep as batches post — not 45 days late at month-end',
     ],
@@ -253,7 +255,7 @@ const workflowStages = [
       title: 'Remittance Divergence Stream',
       badge: 'Batch AMZ-IN-SETTLE-2026-W38-B2',
       rows: [
-        { label: 'Channel', val: 'Amazon India (FBA / MFN)' },
+        { label: 'Channel (Example)', val: 'Amazon India (FBA / MFN)' },
         { label: 'Batch Orders', val: '1,482 order lines processed' },
         { label: 'Flagged Variance', val: '₹28,450.00 across 41 order lines', alert: true },
         { label: 'Sample Order', val: '#408-9128491-1182701 (SKU: GC-MK-BLK-0050G-2P)' },
@@ -465,7 +467,7 @@ function EvidenceLab() {
           <div className="specimen-top">
             <div className="specimen-id-group">
               <span className="specimen-dossier-id">DOS-2026-REC-0927-408</span>
-              <span className="specimen-channel-pill">Amazon India · SAFE-T Staged</span>
+              <span className="specimen-channel-pill">Amazon India · SAFE-T Staged (Example Integration)</span>
             </div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted)' }}>
               Order: #408-9128491-1182701 · SKU: GC-MK-BLK-0050G-2P
@@ -533,7 +535,7 @@ function EvidenceLab() {
 const liveCapabilities = [
   {
     title: 'Multi-Channel Settlement Ingestion',
-    detail: 'Parses raw payment settlement and remittance files across Amazon, Flipkart, Blinkit, and Shopify.',
+    detail: 'Parses raw payment settlement and remittance files across connected marketplaces and commerce channels, currently including Amazon, Flipkart, Blinkit, and Shopify. Sanocea can be connected to additional marketplaces and commerce systems where the required APIs, settlement files, exports, or data interfaces are available.',
   },
   {
     title: 'Order-Level Fee Breakdown & Variance',
@@ -695,7 +697,7 @@ const faqs = [
   ],
   [
     'What credentials or permissions are required to get started?',
-    'Sanocea configures around your existing channels using standard API read permissions or approved settlement file exports. You do not need to migrate existing systems or change your order management software. Credentials are encrypted, and initial diagnostic audits can be run on historical settlement exports without touching live operations.',
+    'Sanocea configures around your connected marketplaces and commerce channels using standard API read permissions, webhooks, or approved settlement file exports. Current supported integrations include Amazon, Flipkart, Blinkit, and Shopify, and Sanocea can be connected to additional marketplaces and commerce systems where the required APIs, settlement files, exports, or data interfaces are available. You do not need to migrate existing systems or change your order management software. Credentials are encrypted, and initial diagnostic audits can be run on historical settlement exports without touching live operations.',
   ],
 ]
 
@@ -733,9 +735,9 @@ function CTASection() {
       <div className="shell">
         <Reveal className="sol-cta-box">
           <span className="chapter dark">Start With Grounded Evidence</span>
-          <h2>Audit Your Marketplace Settlements in 24 Hours</h2>
+          <h2>Audit Your Marketplace & Channel Settlements in 24 Hours</h2>
           <p>
-            Send us a sample settlement remittance file and agreed vendor rate card.
+            Send us a sample settlement remittance file and agreed vendor rate card from any of your active commerce channels.
             We will map your fee divergence and isolate hidden leakage across commissions, shipping overcharges, and uncredited returns.
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>

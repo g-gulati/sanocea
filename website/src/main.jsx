@@ -242,7 +242,7 @@ const faqs = [
   ],
   [
     'How can Sanocea automate ecommerce operations across Amazon, Flipkart, and Blinkit in India?',
-    'Sanocea bridges global marketplaces (Amazon), regional channels (Flipkart, Myntra, Nykaa), and quick-commerce dark stores (Blinkit, Zepto, Instamart). It continuously watches for stockout drift, suppressed listings, SLA countdown risks, and price discrepancies across your channels. When an issue occurs, Sanocea assembles the evidence and prepares the exact remediation for your team to approve via WhatsApp or Console.',
+    'Sanocea bridges global marketplaces (Amazon), regional channels (Flipkart, Myntra, Nykaa), quick-commerce dark stores (Blinkit, Zepto, Instamart), and storefront platforms like Shopify. Sanocea can connect to additional marketplaces and commerce systems wherever standard APIs, webhooks, or settlement exports are available. It continuously watches for stockout drift, suppressed listings, SLA countdown risks, and price discrepancies across your channels. When an issue occurs, Sanocea assembles the evidence and prepares the exact remediation for your team to approve via WhatsApp or Console.',
     '#coverage',
     'See Supported Platforms →',
   ],
