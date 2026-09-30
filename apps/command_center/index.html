@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SANOCEA Operations Command Center — Reference Merchant</title>
   <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/seo.css">
   <link rel="icon" type="image/png" href="/static/logo.png">
 </head>
 <body>
@@ -84,6 +85,11 @@
     <button class="tab-btn" data-tab="audit">
       <span>Audit Timeline</span>
     </button>
+    <!-- SEO Intelligence: hidden until GET /merchants/{id}/seo/overview confirms this tenant has an SEO monitor
+         (apps/command_center/seo.js). Never shown for tenants without one. -->
+    <button class="tab-btn" data-tab="seo" id="tab-btn-seo" style="display:none;">
+      <span>SEO Intelligence</span>
+    </button>
   </nav>
 
   <!-- Main View Area -->
@@ -95,6 +101,7 @@
     <section class="tab-content" id="tab-inventory"></section>
     <section class="tab-content" id="tab-refunds"></section>
     <section class="tab-content" id="tab-audit"></section>
+    <section class="tab-content" id="tab-seo"></section>
   </main>
 
   <!-- Operator Auth Modal (Safe Local-Dev Mechanism) -->
@@ -118,6 +125,7 @@
   </div>
 
   <script src="/static/app.js"></script>
+  <script src="/static/seo.js"></script>
 </body>
 </html>
 

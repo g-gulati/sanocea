@@ -183,3 +183,41 @@ test('worker+scheduler: a failing provider job is retried with backoff, not sile
   assert.ok(Date.parse(st.jobs.find(j => j.name === 'bing-webmaster')!.nextRunAt) - Date.now() < 70000, 'retry is scheduled soon, not a day away');
   worker.stop();
 });
+
+test('worker: GSC summary is persisted-only and states whether the worker is live (fixtures must not read as live-verified)', () => {
+  const worker = new SeoMonitoringWorker({ tenantId: 'sanocea', domain: 'www.sanocea.com', dbPath: ':memory:', enableTier1: false, enableTier2: false, enableTier3: false });
+  assert.equal(worker.getGscSummary().snapshot, null);
+  assert.equal(worker.getGscSummary().provenance, '[NOT AVAILABLE]');
+  (worker as any).db.saveGscSnapshot('sanocea', { snapshotId: 's1', siteUrl: 'sc-domain:sanocea.com', dateRange: { startDate: '2026-09-02', endDate: '2026-09-30' },
+    totalClicks: 11, totalImpressions: 28, averageCtr: 0.392857, averagePosition: 2.428571, queryRows: [], pageRows: [], capturedAt: '2026-09-30T08:15:17.165Z' });
+  const g = worker.getGscSummary();
+  assert.equal(g.live, false, 'no service account in this test => not live');
+  assert.equal(g.snapshot!.totalImpressions, 28);
+  assert.equal(g.snapshot!.totalClicks, 11);
+  worker.stop();
+});
+
+test('worker: without live GSC and without a supplied snapshot, tier 2 fabricates and persists NOTHING (no hardcoded baseline can reach the tables)', async () => {
+  const worker = new SeoMonitoringWorker({ tenantId: 'sanocea', domain: 'www.sanocea.com', dbPath: ':memory:', enableTier1: false, enableTier2: false, enableTier3: false });
+  const db: SeoDatabase = (worker as any).db;
+  const r = await worker.runTier2();
+  assert.equal(r.status, 'unavailable');
+  assert.match(r.reason!, /not connected in live mode/);
+  assert.equal(r.snapshotId, '');
+  assert.equal(db.getGscSnapshotsForTenant('sanocea').length, 0, 'no snapshot may be persisted');
+  assert.equal(worker.getGscSummary().snapshot, null);
+  assert.equal(worker.getGscSummary().provenance, '[NOT AVAILABLE]');
+  // the old fabricated baseline's signature values must not exist anywhere
+  const raw = (db as any).raw as import('better-sqlite3').Database;
+  assert.equal((raw.prepare(`SELECT COUNT(*) AS n FROM gsc_queries`).get() as any).n, 0);
+  worker.stop();
+});
+
+test('agent: with no real GSC snapshot the analytics agent reports AWAITING_PROVIDER (fixture data is never presented as observed)', async () => {
+  const worker = new SeoMonitoringWorker({ tenantId: 'sanocea', domain: 'www.sanocea.com', dbPath: ':memory:', enableTier1: false, enableTier2: false, enableTier3: false });
+  await worker.runTier2();
+  const run = await (worker as any).agentRoster.executeAgent('agent-analytics-manager', 'sanocea');
+  assert.equal(run.status, 'AWAITING_PROVIDER');
+  assert.equal(run.provenance, '[NOT AVAILABLE]');
+  worker.stop();
+});

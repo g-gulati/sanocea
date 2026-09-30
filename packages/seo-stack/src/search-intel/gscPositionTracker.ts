@@ -35,6 +35,8 @@ export interface GscPositionTrajectory {
   /** SITE: the property URL; PAGE: the page URL; QUERY: the query text. */
   key: string;
   observationDays: number;
+  /** Every observed date (ascending). Dates without impressions are absent: they are gaps, not zeros. */
+  points: GscPositionPoint[];
   start: GscPositionPoint;
   previous: GscPositionPoint | null;
   current: GscPositionPoint;
@@ -135,7 +137,7 @@ export class GscPositionTracker {
       movementFormatted = s > 0 ? `▲ +${s} positions since start` : s < 0 ? `▼ ${s} positions since start` : '0 (unchanged since start)';
     }
     return {
-      tenantId, siteUrl, dimension, key, observationDays: pts.length, start, previous, current,
+      tenantId, siteUrl, dimension, key, observationDays: pts.length, points: pts.map(toPt), start, previous, current,
       movementSincePrevious, movementSinceStart,
       gapDaysSincePrevious: previous ? dayDiff(previous.date, current.date) : null,
       lowSample: current.impressions < LOW_SAMPLE_IMPRESSIONS || start.impressions < LOW_SAMPLE_IMPRESSIONS,

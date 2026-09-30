@@ -23,7 +23,7 @@ export interface GeoCitationProvider {
 /** Default production provider until a real citation source is connected. Always fails closed. */
 export class UnconfiguredGeoProvider implements GeoCitationProvider {
   public readonly name = 'UNCONFIGURED_GEO_PROVIDER';
-  constructor(private reason = 'No AI-citation provider is connected (requires DataForSEO AI Optimization or direct LLM search API credentials)') {}
+  constructor(private reason = 'No AI-citation provider is connected: consumer AI assistants cannot be queried at zero cost') {}
   public async checkQueryCitations(): Promise<ProviderUnavailable> {
     return { available: false, provider: this.name, reason: this.reason, timestamp: new Date().toISOString() };
   }

@@ -120,3 +120,10 @@ test('scheduler: start() runs the loop and stop() ends it', async () => {
   const after = n.n; await new Promise(r => setTimeout(r, 80));
   assert.equal(n.n, after);
 });
+
+test('scheduler: status exposes each run\'s summary so operators see what a job actually did', async () => {
+  const db = new SeoDatabase(':memory:'); const c = clock(); const s = mk(db, c);
+  s.register({ name: 'j', intervalMs: HOUR, run: async () => ({ status: 'OK', summary: 'stored 20 rows' }) });
+  await s.tick();
+  assert.equal(s.status().recentRuns[0].summary, 'stored 20 rows');
+});

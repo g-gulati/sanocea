@@ -24,6 +24,7 @@ import {
   isProviderUnavailable
 } from './rankCommandTypes.js';
 import { SeoDatabase } from '../persistence/seoDb.js';
+import { verifiedSerpTrajectories } from './serpRankMovement.js';
 
 /** Configured competitor set (configuration, not observation). Sitemap URLs are unverified until polled. */
 export const DEFAULT_COMPETITOR_ROSTER: CompetitorConfig[] = [
@@ -39,7 +40,7 @@ export interface CompetitorRankResult {
   observedAt: string;
 }
 
-/** Live SERP source for competitor positions (e.g. DataForSEO Labs ranked_keywords). Not wired yet. */
+/** Live SERP source for competitor positions. No compliant zero-cost source exists, so none is wired. */
 export interface CompetitorRankProvider {
   name: string;
   fetchCompetitorRank(tenantId: string, competitorDomain: string, query: string): Promise<CompetitorRankResult | ProviderUnavailable>;
@@ -199,12 +200,12 @@ export class CompetitorIntelligenceEngine {
 
     if (!this.rankProvider) {
       unavailable.push({ available: false, provider: 'UNCONFIGURED_COMPETITOR_RANK_PROVIDER', timestamp: new Date().toISOString(),
-        reason: 'No live SERP provider is connected for competitor rankings (requires DataForSEO Labs / SERP credentials)' });
+        reason: 'No verified SERP provider is connected for competitor rankings; competitor positions are not observable at zero cost' });
       return { gaps, unavailable };
     }
 
     const ownRank = new Map<string, number | null>();
-    for (const t of this.db ? this.db.getAllSerpTrajectories(tenantId) : []) ownRank.set(t.query.toLowerCase().trim(), t.currentRank);
+    for (const t of this.db ? verifiedSerpTrajectories(this.db, tenantId) : []) ownRank.set(t.query.toLowerCase().trim(), t.currentRank);
 
     for (const comp of this.competitors) {
       for (const q of queries) {
@@ -234,8 +235,8 @@ export class CompetitorIntelligenceEngine {
   public getBacklinkStatus(): CompetitorBacklinkStatus {
     return {
       status: 'NOT AVAILABLE',
-      reason: 'Requires a backlink index API (DataForSEO Backlinks, Ahrefs or Moz). SANOCEA does not fabricate third-party domain authority or backlink counts.',
-      providerRequired: 'DataForSEO Backlinks / Ahrefs / Moz API'
+      reason: 'Backlink counts and third-party domain authority are not obtainable at zero cost. SANOCEA does not fabricate them. The Common Crawl panel is a domain reference signal, not backlinks.',
+      providerRequired: 'A paid backlink index (not available at zero cost)'
     };
   }
 

@@ -179,8 +179,9 @@ export class JobScheduler {
         name: j.job_name, intervalMs: j.interval_ms, nextRunAt: j.next_run_at, lastRunAt: j.last_run_at, lastStatus: j.last_status, lastError: j.last_error,
         consecutiveFailures: j.consecutive_failures, maxAttempts: j.max_attempts, enabled: Boolean(j.enabled), overdue: Date.parse(j.next_run_at) < nowMs
       })),
-      recentRuns: (raw.prepare(`SELECT run_id, job_name, attempt, started_at, finished_at, status, error, duration_ms FROM job_runs WHERE tenant_id = ? ORDER BY started_at DESC LIMIT 20`).all(this.tenantId) as any[])
-        .map(r => ({ runId: r.run_id, job: r.job_name, attempt: r.attempt, startedAt: r.started_at, finishedAt: r.finished_at, status: r.status, error: r.error, durationMs: r.duration_ms }))
+      recentRuns: (raw.prepare(`SELECT run_id, job_name, attempt, started_at, finished_at, status, error, duration_ms, output_json FROM job_runs WHERE tenant_id = ? ORDER BY started_at DESC LIMIT 20`).all(this.tenantId) as any[])
+        .map(r => ({ runId: r.run_id, job: r.job_name, attempt: r.attempt, startedAt: r.started_at, finishedAt: r.finished_at, status: r.status, error: r.error, durationMs: r.duration_ms,
+          summary: (() => { try { return r.output_json ? (JSON.parse(r.output_json).summary ?? null) : null; } catch { return null; } })() as string | null }))
     };
   }
 }

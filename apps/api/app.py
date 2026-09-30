@@ -1480,6 +1480,20 @@ def create_app(
         return [a.model_dump(mode="json") for a in queries.list_support_actions(store, merchant_id)]
 
     # ================================================================================================
+    # SEO Intelligence (read-only bridge to the SEO monitoring worker)
+    # ================================================================================================
+    # The worker is single-tenant, localhost-only and unauthenticated; this route is the only way to it. See
+    # packages/seo_bridge/client.py for the allowlist, tenant-isolation and truth rules. Never proxy /sync-* paths.
+    @app.get("/merchants/{merchant_id}/seo/overview")
+    def seo_overview(merchant_id: str, ctx: AuthContext = Depends(require_operator)) -> dict:
+        from sanocea.packages.seo_bridge import SeoBridge, SeoWorkerUnreachable
+
+        try:
+            return SeoBridge().overview(merchant_id)
+        except SeoWorkerUnreachable as exc:
+            raise HTTPException(status_code=503, detail=f"SEO worker unavailable: {exc}")
+
+    # ================================================================================================
     # Operations Command Center (Phase 4.7 Demo Presentation Layer)
     # ================================================================================================
     ui_dir = Path(__file__).resolve().parent.parent / "command_center"

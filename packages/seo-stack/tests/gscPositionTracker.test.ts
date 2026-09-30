@@ -154,3 +154,12 @@ test('trajectories: tenant, property and level isolation; ordered by current imp
   assert.equal(t.trajectories('C', SITE, 'QUERY').length, 0);
   assert.equal(t.trajectories('A', SITE, 'PAGE').length, 1);
 });
+
+test('trajectory: exposes every observed point in date order so a chart can draw gaps honestly', () => {
+  const t = GscPositionTracker.computeTrajectory('t1', SITE, 'SITE', SITE, [
+    { observedDate: '2026-09-10', position: 6, impressions: 30, clicks: 2, fetchedAt: 'f' },
+    { observedDate: '2026-09-01', position: 12, impressions: 20, clicks: 0, fetchedAt: 'f' }])!;
+  assert.deepEqual(t.points.map(p => p.date), ['2026-09-01', '2026-09-10']);
+  assert.equal(t.points.length, t.observationDays);
+  assert.equal(t.points[0].impressions, 20);
+});

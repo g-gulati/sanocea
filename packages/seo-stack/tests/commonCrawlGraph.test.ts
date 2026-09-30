@@ -32,6 +32,10 @@ test('authority: finds tracked domains, records release/method provenance, and m
   assert.match(by['acme.com'].methodology, /not a backlink count/);
   assert.equal(by['acme.com'].releaseId, REL);
   assert.equal(db.getDomainAuthority('t1', REL)[0].sourceLastModified, 'Tue, 22 Sep 2026 19:22:16 GMT');
+  // the served rows (what the Command Centre displays) must carry the release source and dates too
+  assert.equal(by['acme.com'].sourceLastModified, 'Tue, 22 Sep 2026 19:22:16 GMT');
+  assert.equal(by['acme.com'].sourceUrl, ccDomainRanksUrl(REL));
+  assert.ok(by['acme.com'].fetchedAt);
 });
 
 test('authority: second collect for the same release is served from persistence (no re-download)', async () => {

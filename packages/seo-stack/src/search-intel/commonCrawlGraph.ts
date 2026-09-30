@@ -49,6 +49,10 @@ export interface DomainAuthorityResult {
   pagerankPos: number | null;
   pagerankVal: number | null;
   nHosts: number | null;
+  /** Where the values came from and when: shown next to every value so a release snapshot is never read as current. */
+  sourceUrl: string;
+  sourceLastModified: string | null;
+  fetchedAt: string;
   provenance: typeof CC_GRAPH_PROVENANCE;
   methodology: string;
 }
@@ -69,7 +73,8 @@ export class CommonCrawlAuthorityCollector {
   /** Persisted-only read of every stored release for the tenant. */
   public latest(tenantId: string): DomainAuthorityResult[] {
     return this.db.getDomainAuthority(tenantId).map(r => ({ domain: r.domain, releaseId: r.releaseId, inGraph: r.inGraph, harmonicPos: r.harmonicPos, harmonicVal: r.harmonicVal,
-      pagerankPos: r.pagerankPos, pagerankVal: r.pagerankVal, nHosts: r.nHosts, provenance: CC_GRAPH_PROVENANCE, methodology: CC_GRAPH_METHODOLOGY }));
+      pagerankPos: r.pagerankPos, pagerankVal: r.pagerankVal, nHosts: r.nHosts, sourceUrl: r.sourceUrl, sourceLastModified: r.sourceLastModified, fetchedAt: r.fetchedAt,
+      provenance: CC_GRAPH_PROVENANCE, methodology: CC_GRAPH_METHODOLOGY }));
   }
 
   /** One streaming pass of the release file (~2.5 GB gz, nothing written to disk), skipped when already stored. */

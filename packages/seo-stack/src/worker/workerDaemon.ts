@@ -104,6 +104,18 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.url === '/gsc-summary') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(worker.getGscSummary(), null, 2));
+    return;
+  }
+
+  if (req.url === '/serp-rank-movement') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(worker.getLiveSerpRankMovement(), null, 2));
+    return;
+  }
+
   if (req.url === '/scheduler') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(worker.getSchedulerStatus(), null, 2));
@@ -187,6 +199,8 @@ const server = http.createServer(async (req, res) => {
       '/search-signals', 
       '/serp-trajectories',
       '/rank-movement',
+      '/gsc-summary',
+      '/serp-rank-movement',
       '/scheduler',
       '/authority',
       '/bing',

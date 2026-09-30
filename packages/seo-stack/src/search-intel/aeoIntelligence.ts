@@ -8,7 +8,7 @@
  *   and NOTHING is persisted. Absent != false.
  * - No mock provider lives in this module; test doubles live under tests/.
  *
- * A production SERP adapter (e.g. DataForSEO SERP API) is deliberately not wired yet: until one is
+ * A production SERP adapter is deliberately not wired: no compliant zero-cost source exists. Until one is
  * implemented and verified against the live API this capability is fail-closed (RED).
  */
 

@@ -31,6 +31,7 @@ import { GeoCitationEngine, GeoCitationProvider, UnconfiguredGeoProvider } from 
 import { CompetitorIntelligenceEngine, CompetitorEngineOptions, DEFAULT_COMPETITOR_ROSTER } from '../search-intel/competitorWorker.js';
 import { CompetitorConfig } from '../search-intel/rankCommandTypes.js';
 import { AgentRosterManager } from '../agents/agentRoster.js';
+import { buildLiveSerpRankMovement, verifiedSerpTrajectories, LiveSerpRankMovement } from '../search-intel/serpRankMovement.js';
 import { GscPositionTracker, GscPositionCollectResult, GscPositionTrajectory } from '../search-intel/gscPositionTracker.js';
 import { BingWebmasterCollector } from '../search-intel/bingWebmaster.js';
 import { CommonCrawlAuthorityCollector } from '../search-intel/commonCrawlGraph.js';
@@ -334,6 +335,8 @@ export class SeoMonitoringWorker {
    */
   public async runTier2(customSnapshot?: GscSnapshot): Promise<{
     status: string;
+    /** Set when status is 'unavailable': why nothing was captured. */
+    reason?: string;
     snapshotId: string;
     winnersCount: number;
     losersCount: number;
@@ -364,28 +367,19 @@ export class SeoMonitoringWorker {
         throw err;
       }
     } else {
-      // Baseline/Daily snapshot for offline mock pipelines
-      const now = new Date();
-      const endStr = now.toISOString().split('T')[0];
-      const startStr = new Date(now.getTime() - 28 * 86400000).toISOString().split('T')[0];
-
-      snapshot = {
-        snapshotId: `GSC-SNAP-${this.config.tenantId}-${endStr}`,
-        siteUrl: `https://${this.config.domain}/`,
-        dateRange: { startDate: startStr, endDate: endStr },
-        capturedAt: timestamp,
-        totalClicks: 1420,
-        totalImpressions: 51800,
-        averageCtr: 0.0274,
-        averagePosition: 13.9,
-        queryRows: [
-          { query: 'multichannel ecommerce orchestration', clicks: 420, impressions: 8400, ctr: 0.05, position: 3.4 },
-          { query: 'catalogue discrepancy automation', clicks: 310, impressions: 6200, ctr: 0.05, position: 4.1 },
-          { query: 'enterprise price erosion control', clicks: 220, impressions: 7100, ctr: 0.031, position: 6.8 }
-        ],
-        pageRows: [
-          { page: `https://${this.config.domain}/`, clicks: 950, impressions: 38000, ctr: 0.025, position: 12.1 }
-        ]
+      // Not connected to live GSC (no service account) and no snapshot supplied: there is nothing real to capture.
+      // A hardcoded "baseline" snapshot used to be persisted here; that fabricated clicks/impressions/queries into
+      // the production tables and would have read as an observed GSC snapshot. Nothing is captured or persisted.
+      this.db.updateTenantMonitorRun(this.config.tenantId, 'tier2', timestamp);
+      return {
+        status: 'unavailable',
+        reason: 'GSC is not connected in live mode (no service account) and no snapshot was supplied; nothing was captured or persisted.',
+        snapshotId: '',
+        winnersCount: 0,
+        losersCount: 0,
+        strikeZoneCount: 0,
+        signalsCount: 0,
+        signals: []
       };
     }
 
@@ -738,6 +732,26 @@ export class SeoMonitoringWorker {
     ];
   }
 
+  /** LIVE SERP RANK MOVEMENT: separate capability from GSC average position. Persisted-only. */
+  public getLiveSerpRankMovement(): LiveSerpRankMovement {
+    return buildLiveSerpRankMovement(this.db, this.config.tenantId);
+  }
+
+  /**
+   * Persisted-only: totals of the latest stored GSC snapshot. `live` says whether THIS worker is connected to the live
+   * GSC API; a snapshot stored while running on fixtures must never be presented as live-verified data.
+   */
+  public getGscSummary() {
+    const snaps = this.db.getGscSnapshotsForTenant(this.config.tenantId).sort((a, b) => a.capturedAt.localeCompare(b.capturedAt));
+    const s = snaps[snaps.length - 1];
+    if (!s) return { provenance: '[NOT AVAILABLE]', live: this.isLiveGsc, siteUrl: this.gscPropertyUrl, snapshot: null };
+    return {
+      provenance: '[OBSERVED: PERSISTED GSC SNAPSHOT]', live: this.isLiveGsc, siteUrl: this.gscPropertyUrl,
+      snapshot: { snapshotId: s.snapshotId, siteUrl: s.siteUrl, startDate: s.dateRange.startDate, endDate: s.dateRange.endDate, capturedAt: s.capturedAt,
+        totalClicks: s.totalClicks, totalImpressions: s.totalImpressions, averageCtr: s.averageCtr, averagePosition: s.averagePosition, queryRowCount: s.queryRows.length, pageRowCount: s.pageRows.length }
+    };
+  }
+
   public getSchedulerStatus() { return this.scheduler.status(); }
 
   /** Persisted-only. Common Crawl Domain Reference Graph values per tracked domain, with release + methodology. */
@@ -826,8 +840,9 @@ export class SeoMonitoringWorker {
   /**
    * Retrieves all computed SERP rank trajectories from the SQLite observation ledger.
    */
+  /** Only trajectories from verified SERP providers; unverified stored rows are never presented as ranks. */
   public getSerpTrajectories(): SerpTrajectory[] {
-    return this.db.getAllSerpTrajectories(this.config.tenantId);
+    return verifiedSerpTrajectories(this.db, this.config.tenantId);
   }
 
   /**

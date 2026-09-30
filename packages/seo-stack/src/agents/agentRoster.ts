@@ -12,6 +12,7 @@
 import { randomUUID } from 'node:crypto';
 import { AgentRole, AgentStatus, AgentTaskExecution, AgentRosterSummary } from '../search-intel/rankCommandTypes.js';
 import { SeoDatabase } from '../persistence/seoDb.js';
+import { verifiedSerpTrajectories } from '../search-intel/serpRankMovement.js';
 import { KeywordIntelligenceEngine } from '../search-intel/keywordIntelligence.js';
 import { AeoIntelligenceEngine } from '../search-intel/aeoIntelligence.js';
 import { GeoCitationEngine } from '../search-intel/geoCitationEngine.js';
@@ -51,7 +52,7 @@ export const DEFAULT_AGENTS: AutonomousAgent[] = [
       const gsc = ctx.db?.getGscSnapshotsForTenant(ctx.tenantId) ?? [];
       const inputs = {
         gscSnapshots: gsc.length,
-        serpProviderTrajectories: ctx.db?.getAllSerpTrajectories(ctx.tenantId).length ?? 0,
+        serpProviderTrajectories: ctx.db ? verifiedSerpTrajectories(ctx.db, ctx.tenantId).length : 0,
         gscPositionObservations: ctx.db?.getGscPositionObservations(ctx.tenantId, ctx.siteUrl ?? '').length ?? 0,
         keywordObservations: ctx.db?.getLatestKeywordObservations(ctx.tenantId).length ?? 0,
         aeoObservations: ctx.db?.getLatestAeoObservations(ctx.tenantId).length ?? 0,
