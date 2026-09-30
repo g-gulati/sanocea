@@ -1,0 +1,35 @@
+{
+  "name": "@sanocea/seo-stack",
+  "version": "1.0.0",
+  "description": "SANOCEA SEO Operations & Intelligence Stack — High-Performance Technical, Ecommerce & GEO Crawler and Audit Engine",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node --test dist/tests/*.test.js",
+    "worker": "tsc && node dist/src/worker/workerDaemon.js",
+    "audit:sanocea": "tsc && node dist/src/cli.js audit https://www.sanocea.com",
+    "audit:fixture": "tsc && node dist/src/cli.js fixture"
+  },
+  "keywords": [
+    "seo",
+    "ecommerce",
+    "geo",
+    "audit",
+    "crawler",
+    "sanocea"
+  ],
+  "author": "SANOCEA Operations Engineering",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "better-sqlite3": "^12.11.1",
+    "cheerio": "^1.0.0",
+    "playwright": "^1.63.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}

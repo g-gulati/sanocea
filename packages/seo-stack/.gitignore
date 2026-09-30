@@ -1,0 +1,16 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Databases: production and test SQLite files (+ WAL/SHM journals) and their backups hold live data
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.db
+data/backups/
+
+# Local runtime artifacts
+*.log
+.env
+.env.*
