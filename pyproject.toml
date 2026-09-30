@@ -17,6 +17,7 @@ dependencies = [
   "pymupdf",
   "openpyxl",
   "phonenumbers",
+  "fpdf2",
   "google-api-python-client",
   "google-auth-oauthlib",
   "google-cloud-pubsub",
@@ -25,4 +26,4 @@ dependencies = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit", "tests/integration", "tests/e2e"]
-pythonpath = [".."]
+pythonpath = [".pyroot", "."]

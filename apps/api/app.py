@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -160,13 +160,22 @@ def create_app(
     # ================================================================================================
 
     @app.post("/demo/sessions")
-    @limiter.limit("5/minute")
+    # Sept 2026, ephemeral session-scoped demo tenancy: this was 5/minute per-IP, sized for the OLD
+    # fixed 4-tenant pool. With that pool removed, this limit's ONLY job is abuse protection (stop one
+    # source from scripting unbounded tenant creation) - it must never again function as a disguised
+    # capacity ceiling; actual scalability is now whatever Postgres can sustain (measured directly: 20
+    # concurrent leases all succeeded in ~13-16s each, no errors - see the 20-session load test). Sized
+    # generously above any plausible legitimate burst (a real office/NAT full of simultaneous evaluators
+    # is nowhere near this) rather than tuned to "just clear our own test size" - 40/minute was itself
+    # still an arbitrary number picked to pass a 20-request test, not a principled abuse threshold.
+    @limiter.limit("300/minute")
     def create_demo_session(request: Request, payload: dict = Body(default={})) -> dict:
         from sanocea.packages.prospect_demo import NoDemoTenantAvailable, lease_demo_session
 
         try:
             return lease_demo_session(
                 store, dsn=os.environ.get("SANOCEA_PG_DSN"), whatsapp_number=payload.get("whatsapp_number"),
+                preferred_merchant_id=payload.get("preferred_merchant_id"),
             )
         except NoDemoTenantAvailable as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
@@ -241,7 +250,34 @@ def create_app(
         # cut off an actively-engaged visitor - see packages/prospect_demo/sessions.py::touch_lease.
         from sanocea.packages.prospect_demo.sessions import touch_lease
         new_expiry = touch_lease(store, merchant_id)
-        return {"replies": transport.sent, "expires_at": new_expiry.isoformat() if new_expiry else None}
+        attachments = [transport.attachments.get(i) for i in range(len(transport.sent))]
+        return {
+            "replies": transport.sent, "attachments": attachments,
+            "expires_at": new_expiry.isoformat() if new_expiry else None,
+        }
+
+    @app.get("/merchants/{merchant_id}/reports/download")
+    def download_report(
+        merchant_id: str, type: str, channel: str | None = None, ctx: AuthContext = Depends(require_operator),
+    ) -> Response:
+        """Real file download for the WhatsApp Reports capability - regenerates the report on demand
+        from the SAME real store data the chat summary was built from a moment earlier (see
+        DemoApprovalNotificationService._generate_report), so there is no cached/stale file and no
+        separate storage to keep in sync. Auth matches every other merchant-scoped route (operator API
+        key) - the browser chat UI fetches this with its own already-held key and offers the bytes as a
+        save-to-disk download, never a bare public link."""
+        from sanocea.packages.notifications.resolution import DemoApprovalNotificationService
+        from sanocea.packages.notifications.transport import WebChatTransport
+
+        svc = DemoApprovalNotificationService(store, WebChatTransport())
+        if type not in svc._REPORT_TYPES:
+            raise HTTPException(status_code=404, detail=f"unknown report type: {type}")
+        title, _scope_line, pdf_bytes, _sections = svc._generate_report(merchant_id, type, channel)
+        safe_title = title.replace(" ", "_").replace("&", "and")
+        return Response(
+            content=pdf_bytes, media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{safe_title}.pdf"'},
+        )
 
     @app.get("/merchants")
     def merchants(ctx: AuthContext = Depends(require_service)) -> list[dict]:
@@ -289,7 +325,7 @@ def create_app(
             # paid/created Shopify order arrives. Runs in a daemon thread so it never
             # blocks Shopify's required 200 ACK and never raises if Tally is down.
             topic = request.headers.get("x-shopify-topic", "")
-            if channel_type == "shopify_live" and topic in ("orders/paid", "orders/create", "orders/updated"):
+            if channel_type == getattr(connector, "name", channel_type) and topic in ("orders/paid", "orders/create", "orders/updated"):
                 import json as _json
                 import threading as _threading
                 def _post_to_tally():
@@ -312,7 +348,7 @@ def create_app(
                             "order_number": str(payload.get("order_number") or payload.get("name") or payload.get("id")),
                             "total_amount": int(float(payload.get("total_price", 0)) * 100),  # to paise
                             "currency": payload.get("currency", "INR"),
-                            "channel_id": "shopify_live",
+                            "channel_id": channel_type,
                             "status": "confirmed",
                             "payment_status": "paid",
                             "customer_name": customer_name,
