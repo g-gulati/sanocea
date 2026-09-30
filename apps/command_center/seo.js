@@ -1,7 +1,7 @@
 /* SEO Intelligence tab (light theme only).
  *
- * Data: ONE authenticated call, GET /merchants/{merchant_id}/seo/overview, served by packages/seo_bridge from the SEO
- * worker's persisted endpoints. Opening this tab never calls a provider and never mutates anything.
+ * Data: ONE authenticated call, GET /internal/seo/overview, served by packages/seo_bridge from the SEO worker's
+ * persisted endpoints. It is Sanocea's OWN internal SEO tenant, not a merchant: there is no merchant id in the URL. Opening this tab never calls a provider and never mutates anything.
  *
  * Truth rules enforced here:
  *  - Every number on screen is derived from the backend response; nothing is defaulted, estimated or invented.
@@ -9,8 +9,10 @@
  *    is never populated from GSC data.
  *  - Common Crawl data is a domain reference signal, never labelled backlinks.
  *  - A missing/failed view renders NOT AVAILABLE with the reason, never a zero.
- *  - Tenant isolation: everything is keyed on STATE.merchantId at request time; a response that arrives after the
- *    operator switched merchant is discarded. The tab is only shown when the backend says the tenant is monitored.
+ *  - Access: decided by the backend from the key class alone (service or internal-operator keys only; every
+ *    single-merchant key gets 403). The tab is shown only when this authenticated probe succeeds, independently of
+ *    which merchant is selected. Everything is keyed on the API key; a response that arrives after the key changed
+ *    is discarded.
  *
  * Integration: loaded after app.js. It relies only on the globals STATE, apiCall and switchTab/renderActiveTab and does
  * not modify app.js.
@@ -19,7 +21,7 @@
   'use strict';
 
   const TTL_MS = 5000;
-  const cache = { merchantId: null, apiKey: null, at: 0, overview: null, error: null, inflight: null };
+  const cache = { apiKey: null, at: 0, overview: null, error: null, inflight: null };
   const ui = { level: 'site' };
 
   // ---- helpers ------------------------------------------------------------------------------------------------
@@ -42,24 +44,23 @@
 
   // ---- data loading -------------------------------------------------------------------------------------------
   async function load(force) {
-    const merchantId = STATE.merchantId;
     const apiKey = STATE.apiKey;
-    if (!merchantId || !apiKey) return { merchantId, overview: null, error: null };
-    const fresh = cache.merchantId === merchantId && cache.apiKey === apiKey && Date.now() - cache.at < TTL_MS;
-    if (fresh && !force) return { merchantId, overview: cache.overview, error: cache.error };
-    if (cache.inflight && cache.inflight.merchantId === merchantId) return cache.inflight.promise;
+    if (!apiKey) return { apiKey, overview: null, error: null };
+    const fresh = cache.apiKey === apiKey && Date.now() - cache.at < TTL_MS;
+    if (fresh && !force) return { apiKey, overview: cache.overview, error: cache.error };
+    if (cache.inflight && cache.inflight.apiKey === apiKey) return cache.inflight.promise;
     const promise = (async () => {
       let overview = null;
       let error = null;
       try {
-        overview = await apiCall(`/merchants/${encodeURIComponent(merchantId)}/seo/overview`);
+        overview = await apiCall('/internal/seo/overview');
       } catch (e) {
         error = e && e.message ? e.message : String(e);
       }
-      cache.merchantId = merchantId; cache.apiKey = apiKey; cache.at = Date.now(); cache.overview = overview; cache.error = error; cache.inflight = null;
-      return { merchantId, overview, error };
+      cache.apiKey = apiKey; cache.at = Date.now(); cache.overview = overview; cache.error = error; cache.inflight = null;
+      return { apiKey, overview, error };
     })();
-    cache.inflight = { merchantId, promise };
+    cache.inflight = { apiKey, promise };
     return promise;
   }
 
@@ -69,10 +70,13 @@
     if (!visible && STATE.activeTab === 'seo' && typeof window.switchTab === 'function') window.switchTab('overview');
   }
 
+  // The tab is visible iff the caller is authorized. 200 = authorized and data available. 503 = authorized (the
+  // authorization check runs first) but the worker is down, so the tab is shown and renders the failure. 401/403
+  // (no key, or a single-merchant key) and anything else: hidden.
   async function probe() {
     const r = await load(false);
-    if (r.merchantId !== STATE.merchantId) return; // operator switched merchant meanwhile: discard
-    setTabVisible(Boolean(r.overview && r.overview.monitored === true));
+    if (r.apiKey !== STATE.apiKey) return; // key changed meanwhile: discard
+    setTabVisible(Boolean((r.overview && r.overview.monitored === true) || (r.error && /^API 503/.test(r.error))));
   }
 
   // ---- components ---------------------------------------------------------------------------------------------
@@ -389,7 +393,7 @@
   }
 
   function banner(o) {
-    return `<div class="governance-banner info" data-testid="seo-source-banner"><div><div class="governance-title">Persisted data, loaded ${ts(o.fetched_at)}</div><div class="governance-desc">Tenant <code>${esc(o.merchant_id)}</code> · SEO worker ${esc(o.worker_status || 'status unknown')}. This view reads the worker's persisted results only: opening it never calls a provider or triggers a job.</div></div></div>`;
+    return `<div class="governance-banner info" data-testid="seo-source-banner"><div><div class="governance-title">Persisted data, loaded ${ts(o.fetched_at)}</div><div class="governance-desc">Internal SEO tenant <code>${esc(o.tenant_id)}</code> · SEO worker ${esc(o.worker_status || 'status unknown')}. This view reads the worker's persisted results only: opening it never calls a provider or triggers a job.</div></div></div>`;
   }
 
   // ---- render -------------------------------------------------------------------------------------------------
@@ -400,7 +404,7 @@
 
   function renderOverview(o) {
     paint(`<div class="seo-view">
-      <div><h2 style="font-size:18px; font-weight:700;">SEO Intelligence</h2><div style="font-size:13px; color:var(--text-muted);">Operational SEO evidence for ${esc(o.merchant_id)}: what was observed, how, and what cannot be known.</div></div>
+      <div><h2 style="font-size:18px; font-weight:700;">SEO Intelligence</h2><div style="font-size:13px; color:var(--text-muted);">Operational SEO evidence for Sanocea's own internal SEO tenant: what was observed, how, and what cannot be known.</div></div>
       ${banner(o)}${legendPanel()}${kpis(o)}${gscMovementPanel(o)}${liveSerpPanel(o)}
       <div class="seo-cols">${sitemapPanel(o)}${authorityPanel(o)}</div>
       <div class="seo-cols">${schedulerPanel(o)}<div class="seo-stack">${bingPanel(o)}${modelPanel(o)}</div></div>
@@ -409,19 +413,17 @@
   }
 
   async function render(force) {
-    const merchantId = STATE.merchantId;
     const el = document.getElementById('tab-seo');
     if (!el) return;
-    if (!(cache.merchantId === merchantId && cache.overview)) paint('<div class="card" style="text-align:center; padding:32px; color:var(--text-muted);">Loading SEO intelligence…</div>');
+    if (!(cache.apiKey === STATE.apiKey && cache.overview)) paint('<div class="card" style="text-align:center; padding:32px; color:var(--text-muted);">Loading SEO intelligence…</div>');
     const r = await load(Boolean(force));
-    if (r.merchantId !== STATE.merchantId || STATE.activeTab !== 'seo') return; // stale: merchant/tab changed while loading
+    if (r.apiKey !== STATE.apiKey || STATE.activeTab !== 'seo') return; // stale: key/tab changed while loading
     if (r.error) {
       paint(`<div class="seo-view"><div class="seo-error">SEO intelligence could not be loaded: ${esc(r.error)}. Nothing is shown rather than stale or default data.</div></div>`);
       return;
     }
     if (!r.overview || r.overview.monitored !== true) {
-      paint(`<div class="seo-view"><div class="seo-empty"><p><strong>NOT AVAILABLE.</strong> ${esc((r.overview && r.overview.reason) || 'No SEO monitor is configured for this tenant.')}</p></div></div>`);
-      setTabVisible(false);
+      paint('<div class="seo-view"><div class="seo-empty"><p><strong>NOT AVAILABLE.</strong> No SEO data was returned.</p></div></div>');
       return;
     }
     renderOverview(r.overview);
@@ -429,7 +431,7 @@
 
   window.seoSetLevel = function (level) {
     ui.level = level;
-    if (cache.overview && cache.merchantId === STATE.merchantId) renderOverview(cache.overview);
+    if (cache.overview && cache.apiKey === STATE.apiKey) renderOverview(cache.overview);
   };
 
   // ---- integration (no app.js edits): wrap the global renderActiveTab ------------------------------------------
