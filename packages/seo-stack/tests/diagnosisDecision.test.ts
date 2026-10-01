@@ -22,7 +22,7 @@ test('real production shape: every observable fact gathered and split => ONE pre
   assert.deepEqual(d.decision_needed!.options.map(o => o.address), [D, L]);
   const optL = d.decision_needed!.options.find(o => o.address === L)!;
   assert.match(optL.consequence, /web-server change, which SANOCEA never makes on its own/);
-  assert.ok(optL.signals.some(s => /sitemap lists it/.test(s)) && optL.signals.some(s => /canonical tag names it/.test(s)) && optL.signals.some(s => /markup name it/.test(s)));
+  assert.ok(optL.signals.some(s => /sitemap lists it/.test(s)) && optL.signals.some(s => /canonical tag names it/.test(s)) && optL.signals.some(s => /markup also names it/.test(s)));
   assert.ok(d.decision_needed!.options.find(o => o.address === D)!.signals.some(s => /internal link/.test(s)));
   const plan = selectAction(d, f);
   assert.equal(plan.selected, 'INVESTIGATE');

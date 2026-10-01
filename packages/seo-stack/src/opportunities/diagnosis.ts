@@ -110,7 +110,7 @@ export function diagnoseRedirectFamily(facts: Fact[]): Diagnosis {
     const sig = (addr: string): string[] => {
       const out: string[] = [];
       if (votes(addr).for.length) out.push(...[...votes(addr).for].map(id => ({ sl: 'the sitemap lists it', rd: 'the web server redirects visitors to it', dc: "the page's own canonical tag names it" } as Record<string, string>)[id.split(':')[1] === 'sitemap_lists' ? 'sl' : id.split(':')[1] === 'redirects_to' ? 'rd' : 'dc']));
-      if (declFor(addr).length) out.push(`${declFor(addr).length} other place(s) in the page's own markup name it (social URL, structured data, breadcrumbs)`);
+      if (declFor(addr).length) out.push("the page's own markup also names it (social URL, structured data, breadcrumbs)");
       const l = links.filter(x => x.value === addr).length; if (l) out.push(`${l} internal link(s) use it`);
       return out;
     };

@@ -17,6 +17,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { buildLifecycle, Lifecycle } from './lifecycle.js';
 import { ActionPlan, Diagnosis, Fact, collectRedirectFamilyFacts, Ga4LandingObs, diagnoseRedirectFamily, selectAction, verifyOutcome, Verification } from './diagnosis.js';
 import { AUTONOMOUS_ACTOR, modeAllows, AuthorizationDecision, AutonomyMode, DEFAULT_MODE, POLICY_REF, classifyAction, evaluateAuthorization, isAutonomyMode } from './autonomyPolicy.js';
 import { SeoDatabase } from '../persistence/seoDb.js';
@@ -101,6 +102,8 @@ export interface Opportunity {
   approval: ApprovalRecord | null;
   diagnosis: Diagnosis | null;
   actionPlan: ActionPlan | null;
+  /** Customer-facing Found -> Concluded -> Selected -> Policy -> Executed -> Verified view, derived from the fields above and the audit trail. */
+  lifecycle?: Lifecycle;
 }
 
 /** Persisted authorisation record. actorType distinguishes HUMAN from AUTONOMOUS_AGENT and is never inferred from free text. */
@@ -504,7 +507,8 @@ export class OpportunityEngine {
    */
   public list(tenantId: string): { tenantId: string; provenance: string; count: number; opportunities: Opportunity[] } {
     const rows = this.db.handle.prepare(`SELECT * FROM seo_opportunities WHERE tenant_id = ? ORDER BY detected_at ASC, target ASC, type ASC, opportunity_id ASC`).all(tenantId);
-    return { tenantId, provenance: '[CALCULATED]', count: rows.length, opportunities: rows.map(r => this.rowToOpp(r)) };
+    const mode = this.getAutonomyMode(tenantId);
+    return { tenantId, provenance: '[CALCULATED]', count: rows.length, opportunities: rows.map(r => { const o = this.rowToOpp(r); return { ...o, lifecycle: buildLifecycle(o, this.history(tenantId, o.opportunityId), mode) }; }) };
   }
 
   public history(tenantId: string, opportunityId: string): Array<{ at: string; actor: string; from: string | null; to: string; note: string }> {
