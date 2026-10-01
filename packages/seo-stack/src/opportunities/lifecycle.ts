@@ -83,6 +83,6 @@ export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode
     : { key: 'verified', label: 'Verified', state: 'waiting', headline: 'Nothing to verify yet' });
 
   const cur = stages.find(s => s.state === 'blocked' || s.state === 'current') ?? stages[stages.length - 1];
-  const summary = dn ? 'Waiting for one decision from the owner.' : cur.state === 'blocked' ? `${cur.label}: ${cur.headline}` : stages.every(s => s.state === 'done' || s.state === 'not_applicable') ? 'Complete.' : `${cur.label}: ${cur.headline}`;
+  const summary = dn ? 'Waiting for one decision from the owner.' : investigating && !appr ? 'SANOCEA is investigating; there is nothing to change yet.' : cur.state === 'blocked' ? `${cur.label}: ${cur.headline}` : stages.every(s => s.state === 'done' || s.state === 'not_applicable') ? 'Complete.' : `${cur.label}: ${cur.headline}`;
   return { stages, decisionNeeded: dn, summary };
 }
