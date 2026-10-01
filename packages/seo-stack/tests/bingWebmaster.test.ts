@@ -80,3 +80,49 @@ test('bing: one endpoint failing yields a partial result with the failure disclo
   assert.equal(r.status, 'OBSERVED');
   assert.ok(r.notes.some(n => /GetLinkCounts: HTTP 500/.test(n)));
 });
+
+// ── Live-verified behaviour (sanocea.com, 2026-10-01): property detection, empty-but-valid answers, crawl/index evidence ──
+const APEX = 'https://sanocea.com/';
+const ua = (m: string, extra = '') => `https://ssl.bing.com/webmaster/api.svc/json/${m}?apikey=${KEY}&siteUrl=${encodeURIComponent(APEX)}${extra}`;
+const emptyRoutes = (over: Record<string, any> = {}) => ({
+  [ua('GetQueryStats')]: ok({ d: [] }), [ua('GetLinkCounts')]: ok({ d: { Links: [], TotalPages: 0 } }), [ua('GetPageStats')]: ok({ d: [] }),
+  [ua('GetCrawlStats')]: ok({ d: [] }), [ua('GetCrawlIssues')]: ok({ d: [] }), [ua('GetFeeds')]: ok({ d: [] }),
+  [ua('GetUrlInfo', `&url=${encodeURIComponent(APEX)}`)]: ok({ d: { Url: APEX, DiscoveryDate: d(1789455600000), LastCrawledDate: d(1789484109000), HttpStatus: 0 } }), ...over });
+
+test('bing: resolveSite picks the verified property for the domain whatever the www spelling', async () => {
+  const f = fakeFetch({ [`https://ssl.bing.com/webmaster/api.svc/json/GetUserSites?apikey=${KEY}`]: ok({ d: [{ Url: 'https://other.test/', IsVerified: true }, { Url: APEX, IsVerified: true }, { Url: 'https://www.sanocea.com/', IsVerified: false }] }) });
+  const r = await new BingWebmasterCollector(new SeoDatabase(':memory:'), { apiKey: KEY, fetchImpl: f }).resolveSite('www.sanocea.com');
+  assert.equal(r.siteUrl, APEX);
+  const none = await new BingWebmasterCollector(new SeoDatabase(':memory:'), { apiKey: KEY, fetchImpl: fakeFetch({ [`https://ssl.bing.com/webmaster/api.svc/json/GetUserSites?apikey=${KEY}`]: ok({ d: [{ Url: APEX, IsVerified: false }] }) }) }).resolveSite('sanocea.com');
+  assert.equal(none.siteUrl, null, 'an unverified property is never used');
+});
+
+test('bing: a verified property with no data yet is OBSERVED-empty (not a failure), and URL index info is stored', async () => {
+  const db = new SeoDatabase(':memory:');
+  const c = new BingWebmasterCollector(db, { apiKey: KEY, fetchImpl: fakeFetch(emptyRoutes()) });
+  const r = await c.collect('t1', APEX);
+  assert.equal(r.status, 'OBSERVED');
+  assert.equal(r.positionRowsStored + r.linkRowsStored, 0);
+  assert.equal(r.extra.URL_INFO, 1);
+  assert.ok(r.notes.some(n => /no data for this property yet/.test(n)) === false, 'URL info was stored, so it is not wholly empty');
+  const rep = c.crawlReport('t1', APEX);
+  assert.equal(rep.urlInfo[0].LastCrawledDate, '2026-09-15');
+  assert.equal(rep.aiPerformance.available, false);
+  assert.match(rep.aiPerformance.reason, /no API/);
+});
+
+test('bing: crawl stats, issues and sitemaps are stored as returned; rows without a key are disclosed, not silently dropped', async () => {
+  const db = new SeoDatabase(':memory:');
+  const f = fakeFetch(emptyRoutes({
+    [ua('GetCrawlStats')]: ok({ d: [{ Date: d(1699920000000), CrawledPages: 10, Code4xx: 2 }] }),
+    [ua('GetCrawlIssues')]: ok({ d: [{ Url: 'https://sanocea.com/x', HttpCode: 404, Issues: 1 }, { Nope: 1 }] }),
+    [ua('GetFeeds')]: ok({ d: [{ Url: 'https://sanocea.com/sitemap.xml', Status: 'Success' }] }) }));
+  const c = new BingWebmasterCollector(db, { apiKey: KEY, fetchImpl: f });
+  const r = await c.collect('t1', APEX);
+  assert.deepEqual([r.extra.CRAWL_STATS, r.extra.CRAWL_ISSUE, r.extra.FEED], [1, 1, 1]);
+  assert.ok(r.notes.some(n => /GetCrawlIssues: 1 of 2 rows had no usable key/.test(n)));
+  const rep = c.crawlReport('t1', APEX);
+  assert.equal(rep.crawlIssues[0].HttpCode, 404);
+  assert.equal(rep.sitemaps[0].Status, 'Success');
+  assert.equal(c.crawlReport('other', APEX).provenance, '[NOT AVAILABLE]', 'tenant isolation');
+});

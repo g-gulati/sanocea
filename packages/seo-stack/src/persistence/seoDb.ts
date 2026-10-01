@@ -421,6 +421,16 @@ export class SeoDatabase {
         PRIMARY KEY (tenant_id, property_id, event_name)
       );
 
+      CREATE TABLE IF NOT EXISTS bing_raw_observations (
+        tenant_id TEXT NOT NULL,
+        site_url TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        obs_key TEXT NOT NULL,
+        payload_json TEXT NOT NULL,
+        fetched_at TEXT NOT NULL,
+        PRIMARY KEY (tenant_id, site_url, kind, obs_key)
+      );
+
       CREATE TABLE IF NOT EXISTS llm_model_observations (
         observation_id TEXT PRIMARY KEY,
         tenant_id TEXT NOT NULL,
@@ -1206,6 +1216,21 @@ export class SeoDatabase {
   public getBingPositionObservations(tenantId: string, siteUrl: string): Array<{ key: string; observedDate: string; position: number; impressions: number; clicks: number; fetchedAt: string }> {
     return (this.db.prepare(`SELECT * FROM bing_position_observations WHERE tenant_id = ? AND site_url = ? ORDER BY key, observed_date`).all(tenantId, siteUrl) as any[])
       .map(r => ({ key: r.key, observedDate: r.observed_date, position: r.position, impressions: r.impressions, clicks: r.clicks, fetchedAt: r.fetched_at }));
+  }
+
+  /** Bing rows kept as the API returned them (kind: PAGE_STATS | CRAWL_STATS | CRAWL_ISSUE | FEED | URL_INFO). replace=true drops the kind's earlier rows first (snapshot kinds). */
+  public storeBingRaw(tenantId: string, siteUrl: string, kind: string, rows: Array<{ key: string; payload: unknown }>, fetchedAt: string, replace: boolean): void {
+    const stmt = this.db.prepare(`INSERT INTO bing_raw_observations (tenant_id, site_url, kind, obs_key, payload_json, fetched_at) VALUES (?,?,?,?,?,?)
+      ON CONFLICT(tenant_id, site_url, kind, obs_key) DO UPDATE SET payload_json = excluded.payload_json, fetched_at = excluded.fetched_at`);
+    this.db.transaction(() => {
+      if (replace) this.db.prepare(`DELETE FROM bing_raw_observations WHERE tenant_id = ? AND site_url = ? AND kind = ?`).run(tenantId, siteUrl, kind);
+      for (const r of rows) stmt.run(tenantId, siteUrl, kind, r.key, JSON.stringify(r.payload), fetchedAt);
+    })();
+  }
+
+  public getBingRaw(tenantId: string, siteUrl: string, kind: string): Array<{ key: string; payload: any; fetchedAt: string }> {
+    return (this.db.prepare(`SELECT obs_key, payload_json, fetched_at FROM bing_raw_observations WHERE tenant_id = ? AND site_url = ? AND kind = ? ORDER BY obs_key`).all(tenantId, siteUrl, kind) as any[])
+      .map(r => ({ key: r.obs_key, payload: JSON.parse(r.payload_json), fetchedAt: r.fetched_at }));
   }
 
   public recordBingLinkCounts(rows: Array<{ tenantId: string; siteUrl: string; pageUrl: string; inboundLinks: number; fetchedAt: string }>): void {

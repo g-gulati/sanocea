@@ -10,8 +10,11 @@
  * - Positions are Bing's own average positions [OBSERVED: BING WEBMASTER AVERAGE POSITION]; a separate series from GSC
  *   and from any SERP-provider rank. Bing's date granularity is stored exactly as returned.
  * - Link counts are Bing's inbound-link counts for pages of OUR site: own-site data only, never competitors.
- * - STATUS: implemented against Microsoft's documented JSON endpoints and tested with HTTP fakes. It has NOT been run
- *   against the live API (no key on this host), so response-shape assumptions are unverified and fail closed.
+ * - STATUS: run against the live API for sanocea.com (2026-10-01). Verified live: GetUserSites, GetUrlInfo and the
+ *   envelope of every listed endpoint. Bing had no query/page/crawl/link/sitemap data yet for this newly verified site, so
+ *   row-level shapes for those are NOT yet verified: they are stored raw (never reinterpreted), and rows we cannot parse
+ *   are counted and disclosed rather than dropped silently.
+ * - NOT AVAILABLE BY DESIGN: Bing's "AI Performance" (Copilot citations) report has no API; it is a dashboard CSV export.
  * - The API key travels in the query string (Bing's design); it is stripped from every error message we produce.
  */
 
@@ -20,6 +23,7 @@ import { ProviderUnavailable } from './rankCommandTypes.js';
 import { GscPositionTracker, GscPositionTrajectory } from './gscPositionTracker.js';
 
 export const BING_POSITION_PROVENANCE = '[OBSERVED: BING WEBMASTER AVERAGE POSITION]' as const;
+export const BING_CRAWL_PROVENANCE = '[OBSERVED: BING WEBMASTER CRAWL & INDEX DATA]' as const;
 export const BING_LINKS_PROVENANCE = '[OBSERVED: BING WEBMASTER LINK COUNTS]' as const;
 const BASE = 'https://ssl.bing.com/webmaster/api.svc/json';
 
@@ -33,6 +37,8 @@ export interface BingCollectResult {
   status: 'OBSERVED' | 'NOT_AVAILABLE';
   positionRowsStored: number;
   linkRowsStored: number;
+  /** Rows stored per extra endpoint (page stats, crawl stats, crawl issues, sitemaps, URL info). */
+  extra: Record<string, number>;
   unavailable?: ProviderUnavailable;
   notes: string[];
 }
@@ -44,8 +50,8 @@ export class BingWebmasterCollector {
 
   private get key(): string | undefined { return this.opts.apiKey ?? process.env.BING_WEBMASTER_API_KEY; }
 
-  private async call(method: string, siteUrl: string, key: string): Promise<any> {
-    const url = `${BASE}/${method}?apikey=${encodeURIComponent(key)}&siteUrl=${encodeURIComponent(siteUrl)}`;
+  private async call(method: string, siteUrl: string, key: string, withSite = true, extra: Record<string, string> = {}): Promise<any> {
+    const url = `${BASE}/${method}?apikey=${encodeURIComponent(key)}${withSite ? `&siteUrl=${encodeURIComponent(siteUrl)}` : ''}${Object.entries(extra).map(([k, v]) => `&${k}=${encodeURIComponent(v)}`).join('')}`;
     let res: Response;
     try {
       res = await (this.opts.fetchImpl ?? fetch)(url, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(this.opts.timeoutMs ?? 30000) });
@@ -59,9 +65,21 @@ export class BingWebmasterCollector {
     return json;
   }
 
-  public async collect(tenantId: string, siteUrl: string): Promise<BingCollectResult> {
+  /** Finds the verified Bing property that matches our domain (www or apex) so the host spelling is never assumed. */
+  public async resolveSite(domain: string): Promise<{ siteUrl: string | null; sites: string[] }> {
     const key = this.key;
-    const na = (reason: string, notes: string[] = []): BingCollectResult => ({ status: 'NOT_AVAILABLE', positionRowsStored: 0, linkRowsStored: 0, notes,
+    if (!key) return { siteUrl: null, sites: [] };
+    const bare = domain.replace(/^www\./, '').toLowerCase();
+    const j = await this.call('GetUserSites', '', key, false);
+    if (!Array.isArray(j?.d)) throw new Error('GetUserSites: unexpected response shape (no "d" array)');
+    const sites = j.d.filter((x: any) => x?.IsVerified === true && typeof x?.Url === 'string').map((x: any) => x.Url as string);
+    const match = sites.filter((u: string) => { try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase() === bare; } catch { return false; } });
+    return { siteUrl: match.find((u: string) => !new URL(u).hostname.startsWith('www.')) ?? match[0] ?? null, sites };
+  }
+
+  public async collect(tenantId: string, siteUrl: string, urls: string[] = []): Promise<BingCollectResult> {
+    const key = this.key;
+    const na = (reason: string, notes: string[] = []): BingCollectResult => ({ status: 'NOT_AVAILABLE', positionRowsStored: 0, linkRowsStored: 0, extra: {}, notes,
       unavailable: { available: false, provider: 'BING_WEBMASTER_API', reason, timestamp: new Date().toISOString() } });
     if (!key) return na('BING_WEBMASTER_API_KEY is not configured');
 
@@ -95,10 +113,41 @@ export class BingWebmasterCollector {
       linkRows = rows.length;
     } catch (e: any) { errors.push(String(e.message).replace(key, '***')); }
 
-    if (positionRows + linkRows === 0 && errors.length === 2) return na(errors.join('; '));
+    // Additional official endpoints. Each is stored as returned; an endpoint that answers with a recognised (even empty) list counts as answered.
+    const extra: Record<string, number> = {};
+    let answered = 2 - errors.length; // the two core endpoints above: answered unless they errored
+    const snapshot = async (kind: string, method: string, keyOf: (r: any) => string | null, replace: boolean, params: Record<string, string> = {}) => {
+      try {
+        const j = await this.call(method, siteUrl, key, true, params);
+        if (!Array.isArray(j?.d)) throw new Error(`${method}: unexpected response shape (no "d" array)`);
+        const rows = j.d.map((r: any) => ({ key: keyOf(r), payload: r })).filter((r: any): r is { key: string; payload: any } => typeof r.key === 'string' && r.key.length > 0);
+        if (rows.length < j.d.length) notes.push(`${method}: ${j.d.length - rows.length} of ${j.d.length} rows had no usable key and were not stored`);
+        this.db.storeBingRaw(tenantId, siteUrl, kind, rows, fetchedAt, replace);
+        extra[kind] = rows.length; answered++;
+      } catch (e: any) { errors.push(String(e.message).replace(key, '***')); }
+    };
+    const dateKey = (r: any) => parseAspNetDate(r?.Date);
+    await snapshot('PAGE_STATS', 'GetPageStats', r => (typeof r?.Query === 'string' && dateKey(r) ? `${r.Query}|${dateKey(r)}` : null), false);
+    await snapshot('CRAWL_STATS', 'GetCrawlStats', dateKey, false);
+    await snapshot('CRAWL_ISSUE', 'GetCrawlIssues', r => (typeof r?.Url === 'string' ? r.Url : null), true);
+    await snapshot('FEED', 'GetFeeds', r => (typeof r?.Url === 'string' ? r.Url : null), true);
+
+    // Index details (discovery / last-crawled) for the site root and the URLs we know about; capped.
+    const infoRows: Array<{ key: string; payload: any }> = [];
+    for (const u of [...new Set([siteUrl, ...urls])].slice(0, 50)) {
+      try {
+        const j = await this.call('GetUrlInfo', siteUrl, key, true, { url: u });
+        if (j?.d && typeof j.d === 'object' && typeof j.d.Url === 'string') infoRows.push({ key: j.d.Url, payload: j.d });
+        else throw new Error('GetUrlInfo: unexpected response shape');
+      } catch (e: any) { errors.push(String(e.message).replace(key, '***')); break; }
+    }
+    if (infoRows.length) { this.db.storeBingRaw(tenantId, siteUrl, 'URL_INFO', infoRows, fetchedAt, true); extra.URL_INFO = infoRows.length; answered++; }
+
+    if (answered <= 0) return na(errors.join('; ') || 'no endpoint returned a recognised response', notes);
     if (errors.length) notes.push(...errors.map(e => `partial: ${e}`));
-    return { status: positionRows + linkRows > 0 ? 'OBSERVED' : 'NOT_AVAILABLE', positionRowsStored: positionRows, linkRowsStored: linkRows, notes,
-      ...(positionRows + linkRows === 0 ? { unavailable: { available: false as const, provider: 'BING_WEBMASTER_API', reason: notes.join('; ') || 'no rows', timestamp: fetchedAt } } : {}) };
+    const stored = positionRows + linkRows + Object.values(extra).reduce((a, b) => a + b, 0);
+    if (stored === 0) notes.push('Bing answered but holds no data for this property yet');
+    return { status: 'OBSERVED', positionRowsStored: positionRows, linkRowsStored: linkRows, extra, notes };
   }
 
   /** Persisted-only. */
@@ -112,5 +161,19 @@ export class BingWebmasterCollector {
   public linkCounts(tenantId: string, siteUrl: string) {
     const rows = this.db.getLatestBingLinkCounts(tenantId, siteUrl);
     return { provenance: rows.length ? BING_LINKS_PROVENANCE : '[NOT AVAILABLE]', scope: 'inbound links to pages of our own site only', rows };
+  }
+
+  /** Persisted-only crawl/index/sitemap evidence. */
+  public crawlReport(tenantId: string, siteUrl: string) {
+    const get = (k: string) => this.db.getBingRaw(tenantId, siteUrl, k);
+    const [pages, crawl, issues, feeds, info] = ['PAGE_STATS', 'CRAWL_STATS', 'CRAWL_ISSUE', 'FEED', 'URL_INFO'].map(get);
+    const any = pages.length + crawl.length + issues.length + feeds.length + info.length;
+    return {
+      provenance: any ? BING_CRAWL_PROVENANCE : '[NOT AVAILABLE]',
+      note: any ? 'Rows are shown as Bing returned them.' : 'Bing has returned no page, crawl, issue, sitemap or URL data for this property yet.',
+      aiPerformance: { available: false, reason: 'Bing AI Performance (Copilot citations) has no API; it is only a Bing Webmaster Tools dashboard report with CSV export.' },
+      pageStats: pages.map(r => r.payload), crawlStats: crawl.map(r => r.payload), crawlIssues: issues.map(r => r.payload), sitemaps: feeds.map(r => r.payload),
+      urlInfo: info.map(r => ({ ...r.payload, DiscoveryDate: parseAspNetDate(r.payload.DiscoveryDate), LastCrawledDate: parseAspNetDate(r.payload.LastCrawledDate) }))
+    };
   }
 }

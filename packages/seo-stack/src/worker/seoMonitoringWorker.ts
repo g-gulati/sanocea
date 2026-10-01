@@ -746,9 +746,13 @@ export class SeoMonitoringWorker {
         name: 'bing-webmaster', intervalMs: DAY,
         run: async () => {
           if (!this.bing.configured) return { status: 'UNAVAILABLE', summary: 'BING_WEBMASTER_API_KEY is not configured' };
-          const r = await this.bing.collect(tenantId, `https://${this.config.domain}/`);
+          const site = await this.resolveBingSite();
+          if (!site) throw new Error(`no verified Bing Webmaster property matches ${this.config.domain}`);
+          const roster = this.db.getLatestAgentRoster(tenantId).find(a => a.agentId === 'agent-ai-content-auditor');
+          const urls: string[] = Array.isArray((roster?.details as any)?.pages) ? (roster!.details as any).pages.map((p: any) => p?.url).filter((u: any) => typeof u === 'string') : [];
+          const r = await this.bing.collect(tenantId, site, urls);
           if (r.status !== 'OBSERVED') throw new Error(r.unavailable?.reason ?? 'Bing collection failed');
-          return { status: 'OK', summary: `stored ${r.positionRowsStored} position rows, ${r.linkRowsStored} link rows`, output: r.notes };
+          return { status: 'OK', summary: `property ${site}: ${r.positionRowsStored} query rows, ${r.linkRowsStored} link rows, extra ${JSON.stringify(r.extra)}`, output: r.notes };
         }
       },
       {
@@ -805,14 +809,24 @@ export class SeoMonitoringWorker {
   /** Persisted GA4 landing-page behaviour, for the diagnosis engine. */
   public getGa4LandingPages() { return this.ga4.landingPages(this.config.tenantId); }
 
-  /** Persisted-only. Bing Webmaster (own property) query positions + inbound link counts. */
+  private bingSite: string | null = null;
+  /** The verified Bing property for our domain (apex or www), found through the API and remembered. */
+  private async resolveBingSite(): Promise<string | null> {
+    const r = await this.bing.resolveSite(this.config.domain);
+    if (r.siteUrl) this.bingSite = r.siteUrl;
+    return r.siteUrl;
+  }
+
+  /** Persisted-only. Bing Webmaster (own property) query positions, inbound links, crawl/index/sitemap evidence. */
   public getBingReport() {
-    const site = `https://${this.config.domain}/`;
+    const site = this.bingSite ?? `https://${this.config.domain.replace(/^www\./, '')}/`;
     const t = this.bing.trajectories(this.config.tenantId, site);
     return {
       configured: this.bing.configured,
       queryPositions: { provenance: t.length ? '[OBSERVED: BING WEBMASTER AVERAGE POSITION]' : '[NOT AVAILABLE]', trajectories: t },
-      linkCounts: this.bing.linkCounts(this.config.tenantId, site)
+      linkCounts: this.bing.linkCounts(this.config.tenantId, site),
+      property: site,
+      crawl: this.bing.crawlReport(this.config.tenantId, site)
     };
   }
 
