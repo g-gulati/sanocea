@@ -33,7 +33,7 @@ export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode
   const last = (re: RegExp) => [...history].reverse().find(e => re.test(e.note));
   const stages: LifecycleStage[] = [];
 
-  stages.push({ key: 'found', label: 'Found', state: 'done', headline: o.plainEnglish || o.reason, detail: o.reason !== o.plainEnglish ? o.reason : undefined, at: o.detectedAt });
+  stages.push({ key: 'found', label: 'Found', state: 'done', headline: o.diagnosis?.finding ?? (o.plainEnglish || o.reason), detail: !o.diagnosis && o.reason !== o.plainEnglish ? o.reason : undefined, at: o.detectedAt });
 
   const dn = o.diagnosis?.decision_needed ?? null;
   if (o.diagnosis) {
@@ -43,7 +43,7 @@ export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode
       headline: dn ? 'The evidence is split; the owner needs to choose' : d.sufficient ? d.conclusion : 'More evidence is needed before SANOCEA can conclude',
       detail: dn ? d.conclusion : d.sufficient ? (ruledOut ? 'The competing explanation was ruled out by the evidence.' : undefined) : (d.missing_evidence.length ? `Still gathering: ${d.missing_evidence.join('; ')}.` : d.conclusion), at: o.updatedAt });
   } else {
-    stages.push({ key: 'concluded', label: 'Concluded', state: 'done', headline: 'Observed directly: SANOCEA recorded what the page actually returns.', detail: 'No competing explanations were needed for this observation.', at: o.detectedAt });
+    stages.push({ key: 'concluded', label: 'Concluded', state: 'done', headline: /GOOGLE/i.test(o.source) ? "Taken from Google's own report, quoted as Google gave it." : 'Observed directly: SANOCEA recorded what the page actually returns.', detail: 'No competing explanations were needed for this observation.', at: o.detectedAt });
   }
 
   const plan = o.actionPlan;
@@ -53,14 +53,15 @@ export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode
     detail: dn ? undefined : (plan?.why ?? o.decision?.rationale) || undefined, at: o.updatedAt });
 
   const denied = last(/^POLICY_DENIED:/), appr = o.approval;
-  if (appr) {
+  const investigating = selectedAction === 'INVESTIGATE' || selectedAction === 'NO_ACTION' || !!dn;
+  if (investigating && !appr) {
+    stages.push({ key: 'policy', label: 'Policy decision', state: 'not_applicable', headline: 'Nothing to authorise yet', detail: 'SANOCEA does not need permission to investigate; it asks only once there is a change to make.' });
+  } else if (appr) {
     stages.push({ key: 'policy', label: 'Policy decision', state: 'done', at: appr.at,
       headline: appr.actorType === 'AUTONOMOUS_AGENT' ? 'Permitted automatically' : 'Approved by a person',
       detail: appr.actorType === 'AUTONOMOUS_AGENT' ? `This is a ${CLASS_WORDS[appr.actionClass] ?? 'change'}. ${MODE_WORDS[mode] ?? 'The tenant mode'} allows it, the evidence and decision were on record, and nothing about it needed a person.` : 'A person approved this action.' });
   } else if (denied) {
     stages.push({ key: 'policy', label: 'Policy decision', state: 'blocked', at: denied.at, headline: cls === 'C' ? 'Not permitted automatically: this always needs a person' : 'Not permitted automatically in the current mode', detail: strip(denied.note).replace(/\bClass [A-D]\b/g, 'This kind of change') });
-  } else if (selectedAction === 'INVESTIGATE' || dn) {
-    stages.push({ key: 'policy', label: 'Policy decision', state: 'not_applicable', headline: 'Nothing to authorise yet', detail: 'SANOCEA does not ask for permission to investigate; it asks only once there is an action to take.' });
   } else {
     const m = modeAllows(mode, classifyAction(selectedAction), selectedAction);
     stages.push({ key: 'policy', label: 'Policy decision', state: m.allowed ? 'current' : 'blocked', headline: m.allowed ? 'About to be authorised' : 'Not permitted automatically in the current mode',
