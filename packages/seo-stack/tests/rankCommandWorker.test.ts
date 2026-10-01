@@ -15,7 +15,7 @@ function roster(db: SeoDatabase, opts: { kwFetch?: typeof fetch; creds?: boolean
   const keywordEngine = new KeywordIntelligenceEngine(new DataForSeoKeywordAdapter({
     login: opts.creds ? 'l' : '', password: opts.creds ? 'p' : '', fetchImpl: opts.kwFetch ?? fakeFetch({}) }), db);
   const competitorEngine = new CompetitorIntelligenceEngine(COMP, db, { fetchImpl: opts.sitemapFetch ?? fakeFetch({}) });
-  return new AgentRosterManager(db, { domain: 'sanocea.com', queries: ['q one'], keywordEngine, competitorEngine,
+  return new AgentRosterManager(db, { domain: 'sanocea.com', fetchImpl: fakeFetch({}), queries: ['q one'], keywordEngine, competitorEngine,
     aeoEngine: new AeoIntelligenceEngine(new UnconfiguredAeoProvider(), db), geoEngine: new GeoCitationEngine(new UnconfiguredGeoProvider(), db) });
 }
 
@@ -105,7 +105,7 @@ test('worker: production defaults fail closed and GET readers never call provide
   const sitemapFetch = fakeFetch({ 'https://acme.test/sitemap.xml': { status: 200, body: urlset(['https://acme.test/a']) } });
   const worker = new SeoMonitoringWorker({ tenantId: 'sanocea', domain: 'www.sanocea.com', dbPath, enableTier1: false, enableTier2: false, enableTier3: false,
     rankCommand: { keywordProvider: new DataForSeoKeywordAdapter({ login: '', password: '', fetchImpl: kwFetch }), competitors: COMP,
-      competitorOptions: { fetchImpl: sitemapFetch }, trackedQueries: ['q one'] } });
+      competitorOptions: { fetchImpl: sitemapFetch }, pageFetch: fakeFetch({}), trackedQueries: ['q one'] } });
 
   const before = sitemapFetch.calls.length;
   const kw0 = await worker.getKeywordReport(); await worker.getAeoReport(); await worker.getGeoReport(); await worker.getCompetitorReport(); await worker.getAgentRoster();
@@ -141,7 +141,7 @@ test('worker+scheduler: one tick executes every scheduled job with honest outcom
   const REL = 'cc-main-test';
   const authorityFetch = fakeFetch({ [ccDomainRanksUrl(REL)]: { status: 200, body: gzipSync('#harmonicc_pos\t#harmonicc_val\t#pr_pos\t#pr_val\t#host_rev\t#n_hosts\n5\t1.0\t6\t0.1\ttest.acme\t3\n'), headers: { 'last-modified': 'x' } } });
   const worker = new SeoMonitoringWorker({ tenantId: 'sanocea', domain: 'www.sanocea.com', dbPath: ':memory:', enableTier1: false, enableTier2: false, enableTier3: false,
-    rankCommand: { keywordProvider: new DataForSeoKeywordAdapter({ login: '', password: '', fetchImpl: fakeFetch({}) }), competitors: COMP, competitorOptions: { fetchImpl: sitemapFetch },
+    rankCommand: { keywordProvider: new DataForSeoKeywordAdapter({ login: '', password: '', fetchImpl: fakeFetch({}) }), competitors: COMP, competitorOptions: { fetchImpl: sitemapFetch }, pageFetch: fakeFetch({}),
       trackedQueries: ['q one'], bingApiKey: '', authorityFetch, authorityRelease: REL, modelHarness: { model: '' } },
     scheduler: { retryBaseMs: 1 } });
   const t = await worker.scheduler.tick();
@@ -172,7 +172,7 @@ test('worker+scheduler: one tick executes every scheduled job with honest outcom
 
 test('worker+scheduler: a failing provider job is retried with backoff, not silently swallowed', async () => {
   const worker = new SeoMonitoringWorker({ tenantId: 'sanocea', domain: 'www.sanocea.com', dbPath: ':memory:', enableTier1: false, enableTier2: false, enableTier3: false,
-    rankCommand: { competitors: COMP, competitorOptions: { fetchImpl: fakeFetch({}) }, bingApiKey: 'K', bingFetch: fakeFetch({}), authorityRelease: 'cc-x', authorityFetch: fakeFetch({}) },
+    rankCommand: { competitors: COMP, competitorOptions: { fetchImpl: fakeFetch({}) }, pageFetch: fakeFetch({}), bingApiKey: 'K', bingFetch: fakeFetch({}), authorityRelease: 'cc-x', authorityFetch: fakeFetch({}) },
     scheduler: { retryBaseMs: 60000 } });
   const t = await worker.scheduler.tick();
   const by = Object.fromEntries(t.results.map(r => [r.job, r]));

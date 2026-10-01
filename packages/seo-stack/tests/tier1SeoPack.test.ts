@@ -81,8 +81,10 @@ test('1.1 Extended Structured Data — WebSite + SearchAction missing on homepag
   const websiteFinding = findings.find(f => f.detectionRule === 'WEBSITE_SEARCH_ACTION_SCHEMA_MISSING');
   assert.ok(websiteFinding, 'Homepage without WebSite SearchAction must trigger WEBSITE_SEARCH_ACTION_SCHEMA_MISSING');
   assert.equal(websiteFinding?.category, 'Structured Data');
-  assert.equal(websiteFinding?.severity, 'MEDIUM');
-  assert.equal(websiteFinding?.automaticallyFixable, true);
+  // Google retired the sitelinks search box (Nov 2024): informational only, no invented loss, no auto-fix.
+  assert.equal(websiteFinding?.severity, 'INFO');
+  assert.equal(websiteFinding?.automaticallyFixable, false);
+  assert.equal(websiteFinding?.commercialRisk, undefined);
 });
 
 test('1.2 Extended Structured Data — WebSite + SearchAction satisfied when properly declared', () => {
@@ -149,8 +151,11 @@ test('1.3 Extended Structured Data — FAQPage missing on route with FAQ markup'
   const faqFinding = findings.find(f => f.detectionRule === 'FAQPAGE_SCHEMA_MISSING');
   assert.ok(faqFinding, 'Page with visible FAQs but no JSON-LD must trigger FAQPAGE_SCHEMA_MISSING');
   assert.equal(faqFinding?.category, 'Structured Data');
-  assert.equal(faqFinding?.severity, 'MEDIUM');
-  assert.equal(faqFinding?.automaticallyFixable, true);
+  // Google no longer shows FAQ rich results: informational only, no invented loss, no auto-fix.
+  assert.equal(faqFinding?.severity, 'INFO');
+  assert.equal(faqFinding?.automaticallyFixable, false);
+  assert.equal(faqFinding?.commercialRisk, undefined);
+  assert.doesNotMatch(faqFinding!.businessImpact, /lowering organic CTR/);
 });
 
 test('1.4 Extended Structured Data — FAQPage malformed entity detection (empty answer/question)', () => {
@@ -188,7 +193,8 @@ test('1.4 Extended Structured Data — FAQPage malformed entity detection (empty
 
   const malformedFinding = findings.find(f => f.detectionRule === 'FAQPAGE_SCHEMA_MALFORMED');
   assert.ok(malformedFinding, 'FAQPage with empty Question name and Answer text must trigger FAQPAGE_SCHEMA_MALFORMED');
-  assert.equal(malformedFinding?.severity, 'HIGH');
+  assert.equal(malformedFinding?.severity, 'INFO');
+  assert.equal(malformedFinding?.commercialRisk, undefined);
 });
 
 test('1.5 Extended Structured Data — Article / BlogPosting missing on editorial route', () => {
@@ -493,7 +499,7 @@ test('4.2 Outbound Links — Probed dead link triggers OUTBOUND_BROKEN_LINK_DETE
 // 5. AUTONOMOUS REMEDIATION & VERIFICATION PIPELINE
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('5.1 AutonomousRemediator — Successfully remediates WebSite SearchAction schema on sanocea with WAL receipt', async () => {
+test('5.1 AutonomousRemediator — Refuses to auto-add WebSite SearchAction: the sitelinks search box is retired', async () => {
   const db = new SeoDatabase(':memory:');
   const remediator = new AutonomousRemediator(db);
 
@@ -522,15 +528,10 @@ test('5.1 AutonomousRemediator — Successfully remediates WebSite SearchAction 
   };
 
   const result = await remediator.remediateFinding('sanocea', finding);
-  assert.equal(result.status, 'verified');
-  assert.ok(result.verificationReceiptId?.startsWith('VRCP-ACT-SANOCEA-AUTO-'));
-  assert.ok(result.afterEvidence?.includes('SearchAction'));
-
-  // Ensure record is persisted in SQLite
-  const actions = db.getRemediationActions('sanocea');
-  assert.equal(actions.length, 1);
-  assert.equal(actions[0].status, 'verified');
-  db.close();
+  assert.equal(result.status, 'rejected');
+  assert.equal(result.actionType, 'RETIRED_GOOGLE_FEATURE_NO_ACTION');
+  assert.match(result.error ?? '', /retired/);
+  assert.equal(db.getRemediationActions('sanocea').filter(a => a.status === 'verified').length, 0, 'nothing may be applied');
 });
 
 test('5.2 AutonomousRemediator — Successfully strips combinatorial facet bloat to clean canonical with WAL receipt', async () => {

@@ -8,6 +8,7 @@
 
 import { PageAuditContext, SeoFinding } from '../core/types.js';
 import { classifyRouteIntent } from '../core/routeIntent.js';
+import { AiBotDirective } from '../core/aiCrawlerPolicy.js';
 
 export interface GeoObserverOptions {
   llmsTxtStatus?: {
@@ -16,7 +17,7 @@ export interface GeoObserverOptions {
     url: string;
     content?: string;
   };
-  aiBotDirectives?: Record<string, { allowed: boolean; rules: string[] }>;
+  aiBotDirectives?: Record<string, AiBotDirective>;
 }
 
 export function runGeoObserver(context: PageAuditContext, options: GeoObserverOptions = {}): SeoFinding[] {
@@ -83,6 +84,8 @@ export function runGeoObserver(context: PageAuditContext, options: GeoObserverOp
   }
 
   // ── 2. AI Bot Directives in robots.txt ─────────────────────────────
+  // The impact wording depends on what the crawler is FOR: blocking a training crawler does not stop the same
+  // vendor's search/citation crawler, and user-triggered fetchers are not always governed by robots.txt.
   if (options.aiBotDirectives) {
     const bots = Object.entries(options.aiBotDirectives);
     for (const [botName, status] of bots) {
@@ -95,16 +98,16 @@ export function runGeoObserver(context: PageAuditContext, options: GeoObserverOp
         category: 'GEO / AI Readiness',
         severity: 'INFO',
         evidenceClass: '[GEO] GEO Readiness',
-        observedValue: status.allowed ? `User-agent: ${botName} is allowed` : `User-agent: ${botName} is restricted (${status.rules.join(', ')})`,
+        observedValue: describeObserved(botName, status),
         expectedValue: 'Intentional policy decision on whether AI models may crawl site content',
         exactEvidence: {
           rawContext: status.rules.join(' | ') || 'No explicit disallows'
         },
-        reproductionMethod: `curl -sL '${new URL(page.url).origin}/robots.txt' | grep -i '${botName}'`,
-        businessImpact: status.allowed
-          ? `${botName} can index and synthesize site content for LLM answers.`
-          : `${botName} is blocked from using site content in AI models and search answers.`,
-        recommendedRemediation: `Confirm whether business policy intends for ${botName} to be ${status.allowed ? 'allowed' : 'restricted'}.`,
+        reproductionMethod: `curl -sL '${new URL(page.url).origin}/robots.txt' | grep -i -B2 -A4 '${botName}'`,
+        businessImpact: describeImpact(botName, status),
+        recommendedRemediation: status.purpose === 'SEARCH_CITATION' && !status.allowed
+          ? 'Confirm this is intended: blocking a search crawler removes the site from that product\'s answers.'
+          : 'Confirm this matches the intended AI-crawler policy.',
         automaticallyFixable: false,
         requiredAccess: 'robots.txt configuration',
         remediationStatus: 'INFORMATIONAL',
@@ -117,4 +120,39 @@ export function runGeoObserver(context: PageAuditContext, options: GeoObserverOp
   }
 
   return findings;
+}
+
+const PURPOSE_LABEL: Record<string, string> = {
+  SEARCH_CITATION: 'search / citation crawler',
+  TRAINING: 'model-training crawler',
+  USER_TRIGGERED: 'user-triggered fetcher'
+};
+
+function state(status: AiBotDirective): string {
+  if (!status.allowed) return 'blocked from the whole site';
+  if (status.access === 'PARTIAL') return `restricted on some paths (${status.rules.join(', ')})`;
+  return 'allowed';
+}
+
+function describeObserved(bot: string, status: AiBotDirective): string {
+  const kind = status.purpose ? ` (${PURPOSE_LABEL[status.purpose]}, ${status.operator})` : '';
+  const via = status.inherited ? ' via the User-agent: * group (no rule names it)' : '';
+  return `${bot}${kind} is ${state(status)}${via}`;
+}
+
+function describeImpact(bot: string, status: AiBotDirective): string {
+  const op = status.operator ?? 'its operator';
+  const caveat = status.basis === 'REPORTED' ? ' (purpose per public reporting, not yet checked against the vendor page)' : '';
+  if (status.purpose === 'SEARCH_CITATION') {
+    return (status.allowed
+      ? `${bot} may read the pages it is allowed to, so ${op}'s search product can cite them.`
+      : `${op}'s search product cannot read these pages, so they will not be cited there.`) + caveat;
+  }
+  if (status.purpose === 'TRAINING') {
+    return `Controls whether ${op} may collect content for model training only. It does not decide whether ${op}'s search product can cite the site; that crawler is controlled separately.` + caveat;
+  }
+  if (status.purpose === 'USER_TRIGGERED') {
+    return `Fetches pages when a person asks ${op}'s assistant about them. Vendors may not apply robots.txt to these requests, so this rule may have no effect.` + caveat;
+  }
+  return status.allowed ? `${bot} is not blocked.` : `${bot} is blocked from the site.`;
 }

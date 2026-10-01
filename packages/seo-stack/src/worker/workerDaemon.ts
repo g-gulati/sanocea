@@ -9,6 +9,7 @@
  * - Graceful SIGTERM/SIGINT shutdown handling
  */
 
+import { controlAuthorized } from './controlAuth.js';
 import http from 'node:http';
 import { SeoMonitoringWorker } from './seoMonitoringWorker.js';
 
@@ -140,6 +141,40 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === 'POST' && (req.url === '/opportunities/transition' || req.url === '/opportunities/link-result')) {
+    if (!controlAuthorized(req.headers['x-seo-control-token'] as string | undefined, process.env.SEO_WORKER_CONTROL_TOKEN)) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'control token required' }));
+      return;
+    }
+    try {
+      const chunks: Buffer[] = []; let size = 0;
+      for await (const c of req) { size += (c as Buffer).length; if (size > 16384) throw new Error('body too large'); chunks.push(c as Buffer); }
+      const b = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+      const out = req.url === '/opportunities/transition'
+        ? worker.transitionOpportunity(String(b.opportunityId), b.to, String(b.actor ?? ''), String(b.note ?? ''))
+        : worker.linkOpportunityResult(String(b.opportunityId), String(b.ref), String(b.actor ?? ''));
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(out));
+    } catch (e: any) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: String(e?.message ?? e).slice(0, 200) }));
+    }
+    return;
+  }
+
+  if (req.url === '/google-search-state') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(worker.getGoogleSearchState(), null, 2));
+    return;
+  }
+
+  if (req.url === '/opportunities') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(worker.getOpportunities(), null, 2));
+    return;
+  }
+
   if (req.url === '/agent-roster') {
     const roster = await worker.getAgentRoster();
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -206,6 +241,8 @@ const server = http.createServer(async (req, res) => {
       '/bing',
       '/model-visibility',
       '/agent-roster',
+      '/opportunities',
+      '/google-search-state',
       '/keyword-intel',
       '/aeo-intel',
       '/geo-intel',

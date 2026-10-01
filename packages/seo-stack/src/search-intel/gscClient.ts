@@ -39,6 +39,11 @@ export class GscClient {
     this.mockSnapshot = mockSnapshot;
   }
 
+  /** The auth manager this client signs requests with (read-only handle for sibling Google API modules). */
+  public get auth(): GscAuthManager {
+    return this.authManager;
+  }
+
   /** True when this client serves fixture data instead of the live GSC API. Fixture rows are never observations. */
   public get isFixtureMode(): boolean {
     return Boolean(this.mockSnapshot);

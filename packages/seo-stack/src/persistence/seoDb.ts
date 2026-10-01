@@ -130,6 +130,11 @@ export class SeoDatabase {
     this.initSchema();
   }
 
+  /** Narrow handle for modules that own their own tables (opportunities). Tenant scoping is the caller's duty. */
+  public get handle(): Database.Database {
+    return this.db;
+  }
+
   public getPath(): string {
     return this.dbPath;
   }
@@ -483,6 +488,89 @@ export class SeoDatabase {
         details_json TEXT
       );
 
+      CREATE TABLE IF NOT EXISTS seo_opportunities (
+        opportunity_id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        target TEXT NOT NULL,
+        dedupe_key TEXT NOT NULL,
+        status TEXT NOT NULL,
+        confidence TEXT NOT NULL,
+        source TEXT NOT NULL,
+        reason TEXT NOT NULL,
+        evidence_json TEXT NOT NULL,
+        recommended_action TEXT NOT NULL,
+        decision_json TEXT NOT NULL,
+        objective TEXT NOT NULL,
+        detected_at TEXT NOT NULL,
+        last_seen_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        resulting_action TEXT,
+        resulting_measurement TEXT,
+        UNIQUE (tenant_id, dedupe_key)
+      );
+
+      CREATE TABLE IF NOT EXISTS seo_opportunity_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        opportunity_id TEXT NOT NULL,
+        tenant_id TEXT NOT NULL,
+        at TEXT NOT NULL,
+        actor TEXT NOT NULL,
+        from_status TEXT,
+        to_status TEXT NOT NULL,
+        note TEXT NOT NULL,
+        FOREIGN KEY (opportunity_id) REFERENCES seo_opportunities(opportunity_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS search_connections (
+        tenant_id TEXT NOT NULL,
+        provider TEXT NOT NULL,
+        property TEXT NOT NULL,
+        state TEXT NOT NULL,
+        auth_method TEXT NOT NULL,
+        permission_level TEXT,
+        scopes TEXT,
+        last_checked_at TEXT NOT NULL,
+        last_success_at TEXT,
+        last_error TEXT,
+        PRIMARY KEY (tenant_id, provider, property)
+      );
+
+      CREATE TABLE IF NOT EXISTS gsc_sitemaps (
+        tenant_id TEXT NOT NULL,
+        site_url TEXT NOT NULL,
+        path TEXT NOT NULL,
+        type TEXT,
+        is_pending INTEGER,
+        is_sitemaps_index INTEGER,
+        last_submitted TEXT,
+        last_downloaded TEXT,
+        warnings INTEGER,
+        errors INTEGER,
+        fetched_at TEXT NOT NULL,
+        PRIMARY KEY (tenant_id, site_url, path)
+      );
+
+      CREATE TABLE IF NOT EXISTS gsc_url_inspections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tenant_id TEXT NOT NULL,
+        site_url TEXT NOT NULL,
+        url TEXT NOT NULL,
+        inspected_at TEXT NOT NULL,
+        verdict TEXT,
+        coverage_state TEXT,
+        indexing_state TEXT,
+        robots_txt_state TEXT,
+        page_fetch_state TEXT,
+        last_crawl_time TEXT,
+        google_canonical TEXT,
+        user_canonical TEXT,
+        crawled_as TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_url_insp ON gsc_url_inspections(tenant_id, site_url, url, id);
+      CREATE INDEX IF NOT EXISTS idx_opps_tenant ON seo_opportunities(tenant_id, status);
+      CREATE INDEX IF NOT EXISTS idx_opp_events ON seo_opportunity_events(tenant_id, opportunity_id);
       CREATE INDEX IF NOT EXISTS idx_heartbeats_tenant ON monitoring_heartbeats(tenant_id, timestamp);
       CREATE INDEX IF NOT EXISTS idx_gsc_snapshots_tenant ON gsc_snapshots(tenant_id, start_date);
       CREATE INDEX IF NOT EXISTS idx_detected_changes_tenant ON detected_changes(tenant_id, timestamp);

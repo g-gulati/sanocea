@@ -3,6 +3,8 @@
  * Hardened with Route Intent Classification
  */
 
+import { staticVisibleText, countWords } from '../core/staticText.js';
+import { RETIRED_RICH_RESULTS } from '../core/retiredRichResults.js';
 import { PageAuditContext, SeoFinding } from '../core/types.js';
 import { calculateTitlePixelWidth, calculateMetaDescPixelWidth, GOOGLE_SERP_LIMITS } from '../core/pixelWidth.js';
 import { estimateCommercialRisk } from '../core/businessImpact.js';
@@ -505,10 +507,8 @@ export function runTechnicalSeoObserver(context: PageAuditContext): SeoFinding[]
 
   // ── 5. Thin Content / Word Count Audit ─────────────────────────────
   if (!isUtilityOrNonIndexableIntent(routeIntent)) {
-    const bodyClone = $('body').clone();
-    bodyClone.find('script, style, nav, footer, header, noscript, svg').remove();
-    const cleanBodyText = bodyClone.text().replace(/\s+/g, ' ').trim();
-    const wordCount = cleanBodyText ? cleanBodyText.split(' ').filter(Boolean).length : 0;
+    const cleanBodyText = staticVisibleText($);
+    const wordCount = countWords(cleanBodyText);
 
     if (wordCount < 100 && page.status === 200) {
       findings.push({
@@ -744,30 +744,20 @@ export function runTechnicalSeoObserver(context: PageAuditContext): SeoFinding[]
       detectionRule: 'WEBSITE_SEARCH_ACTION_SCHEMA_MISSING',
       track: 'TRACK_A_CORE_SEO',
       category: 'Structured Data',
-      severity: 'MEDIUM',
+      severity: 'INFO',
       evidenceClass: '[O] Observed',
       observedValue: websiteEntity ? 'WebSite schema found but missing SearchAction potentialAction' : 'No WebSite schema found on homepage',
-      expectedValue: 'Schema.org/WebSite with SearchAction potentialAction for Google Sitelinks Searchbox',
+      expectedValue: 'None required: Google no longer shows a sitelinks search box, so this markup has no Google rich-result effect',
       exactEvidence: {
         domSelector: 'script[type="application/ld+json"]',
         schemaType: 'WebSite'
       },
       reproductionMethod: `curl -sL '${page.url}' | grep -i 'SearchAction'`,
-      businessImpact: 'Disqualifies domain from Google Sitelinks Searchbox rich result in brand navigational search.',
-      commercialRisk: {
-        riskType: 'SERP_CTR_LEAK',
-        title: 'Google Sitelinks Searchbox Ineligibility',
-        estimatedMonthlyLossInr: 10000,
-        currency: 'INR',
-        confidence: '[ESTIMATED]',
-        source: 'industry_benchmark_estimate',
-        severityScore: 2,
-        calculationFormula: 'Modeled lost brand navigation search volume: ₹10,000/mo'
-      },
-      recommendedRemediation: 'Inject WebSite JSON-LD with potentialAction of type SearchAction pointing to the internal search endpoint.',
-      automaticallyFixable: true,
+      businessImpact: `No measurable Google impact. ${RETIRED_RICH_RESULTS.SITELINKS_SEARCH_BOX.retired}. ${RETIRED_RICH_RESULTS.SITELINKS_SEARCH_BOX.stillUseful}`,
+      recommendedRemediation: `No action needed for Google. Source: ${RETIRED_RICH_RESULTS.SITELINKS_SEARCH_BOX.source}`,
+      automaticallyFixable: false,
       requiredAccess: 'HTML template source code',
-      remediationStatus: 'ACTION_REQUIRED',
+      remediationStatus: 'INFORMATIONAL',
       beforeEvidence: websiteEntity ? 'WebSite schema missing SearchAction' : 'Missing WebSite schema',
       afterEvidence: null,
       verificationResult: null,
@@ -791,30 +781,20 @@ export function runTechnicalSeoObserver(context: PageAuditContext): SeoFinding[]
       detectionRule: 'FAQPAGE_SCHEMA_MISSING',
       track: 'TRACK_A_CORE_SEO',
       category: 'Structured Data',
-      severity: 'MEDIUM',
+      severity: 'INFO',
       evidenceClass: '[O] Observed',
       observedValue: 'Visible FAQ content detected on page without Schema.org/FAQPage JSON-LD',
-      expectedValue: 'Schema.org FAQPage JSON-LD declaring Question and Answer entities',
+      expectedValue: 'None required: Google no longer shows FAQ rich results',
       exactEvidence: {
         domSelector: '.faq, details, [data-faq]',
         schemaType: 'FAQPage'
       },
       reproductionMethod: `Inspect ${page.url} for visible FAQ content and grep application/ld+json for FAQPage`,
-      businessImpact: 'Deprives page of expandable FAQ rich snippet accordion in Google SERP results, lowering organic CTR.',
-      commercialRisk: {
-        riskType: 'SERP_CTR_LEAK',
-        title: 'FAQ SERP Accordion Rich Result Ineligibility',
-        estimatedMonthlyLossInr: 15000,
-        currency: 'INR',
-        confidence: '[ESTIMATED]',
-        source: 'industry_benchmark_estimate',
-        severityScore: 3,
-        calculationFormula: 'Modeled CTR degradation on informational search queries: ₹15,000/mo'
-      },
-      recommendedRemediation: 'Extract FAQ questions and answers from the DOM and inject valid schema.org/FAQPage JSON-LD.',
-      automaticallyFixable: true,
+      businessImpact: `No measurable Google impact. ${RETIRED_RICH_RESULTS.FAQ.retired}. ${RETIRED_RICH_RESULTS.FAQ.stillUseful}`,
+      recommendedRemediation: `No action needed for Google. Keep the visible FAQ text; it is what readers and AI answer engines read. Source: ${RETIRED_RICH_RESULTS.FAQ.source}`,
+      automaticallyFixable: false,
       requiredAccess: 'HTML template source code',
-      remediationStatus: 'ACTION_REQUIRED',
+      remediationStatus: 'INFORMATIONAL',
       beforeEvidence: 'FAQ content present without FAQPage schema',
       afterEvidence: null,
       verificationResult: null,
@@ -838,7 +818,7 @@ export function runTechnicalSeoObserver(context: PageAuditContext): SeoFinding[]
         detectionRule: 'FAQPAGE_SCHEMA_MALFORMED',
         track: 'TRACK_A_CORE_SEO',
         category: 'Structured Data',
-        severity: 'HIGH',
+        severity: 'INFO',
         evidenceClass: '[O] Observed',
         observedValue: `FAQPage schema contains ${malformedQuestions.length} malformed Question/Answer entities (empty name or text)`,
         expectedValue: 'Every Question entity must have non-empty "name" and acceptedAnswer with non-empty "text"',
@@ -847,21 +827,11 @@ export function runTechnicalSeoObserver(context: PageAuditContext): SeoFinding[]
           schemaType: 'FAQPage'
         },
         reproductionMethod: `Validate schema.org/FAQPage JSON-LD syntax on ${page.url}`,
-        businessImpact: 'Google Search Console flags invalid FAQPage structured data and strips SERP rich snippets.',
-        commercialRisk: {
-          riskType: 'SERP_CTR_LEAK',
-          title: 'Invalid FAQ Structured Data GSC Rejection',
-          estimatedMonthlyLossInr: 12000,
-          currency: 'INR',
-          confidence: '[ESTIMATED]',
-          source: 'industry_benchmark_estimate',
-          severityScore: 3,
-          calculationFormula: 'Modeled CTR drop from structured data invalidation: ₹12,000/mo'
-        },
-        recommendedRemediation: 'Ensure all FAQ questions specify non-empty "name" and acceptedAnswer "text" properties.',
-        automaticallyFixable: true,
+        businessImpact: `Markup is invalid, but there is no Google rich-result consequence. ${RETIRED_RICH_RESULTS.FAQ.retired}.`,
+        recommendedRemediation: 'Optional: fix the empty name/text, or remove the unused FAQPage markup. No Google rich-result benefit either way.',
+        automaticallyFixable: false,
         requiredAccess: 'HTML template source code',
-        remediationStatus: 'ACTION_REQUIRED',
+        remediationStatus: 'INFORMATIONAL',
         beforeEvidence: JSON.stringify(faqEntity).slice(0, 120),
         afterEvidence: null,
         verificationResult: null,

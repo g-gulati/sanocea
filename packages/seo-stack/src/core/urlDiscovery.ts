@@ -7,6 +7,7 @@
  * - Faceted and tracking parameter normalization
  */
 
+import { AiBotDirective, buildAiBotDirectives, parseRobotsGroups } from './aiCrawlerPolicy.js';
 import * as zlib from 'zlib';
 import * as cheerio from 'cheerio';
 import { DiscoveredUrl, CrawlGraphNode, CrawlGraphSummary, RedirectTrace, CrawledPage, OutboundLinkTarget } from './types.js';
@@ -549,72 +550,30 @@ export function buildCrawlGraph(
 }
 
 /**
- * Parses robots.txt to discover declared sitemaps and AI bot directives
+ * Parses robots.txt to discover declared sitemaps, per-agent disallow rules and AI bot directives.
+ * Group semantics follow RFC 9309 (see aiCrawlerPolicy.ts): rules apply to every user-agent of their group.
  */
 export function parseRobotsTxt(robotsContent: string): {
   sitemaps: string[];
   disallowRules: Record<string, string[]>;
-  aiBotDirectives: Record<string, { allowed: boolean; rules: string[] }>;
+  aiBotDirectives: Record<string, AiBotDirective>;
 } {
   const sitemaps: string[] = [];
-  const disallowRules: Record<string, string[]> = {};
-  const aiBotDirectives: Record<string, { allowed: boolean; rules: string[] }> = {};
-
-  const lines = robotsContent.split('\n');
-  let currentUserAgent = '*';
-
-  const KNOWN_AI_BOTS = new Set([
-    'gptbot', 'chatgpt-user', 'claudebot', 'claude-web', 
-    'perplexitybot', 'ccbot', 'bytespider', 'google-extended', 'meta-externalagent'
-  ]);
-
-  for (let line of lines) {
-    line = line.split('#')[0].trim();
-    if (!line) continue;
-
+  for (const rawLine of robotsContent.split(/\r?\n/)) {
+    const line = rawLine.split('#')[0].trim();
     const colonIdx = line.indexOf(':');
-    if (colonIdx === -1) continue;
+    if (colonIdx === -1 || line.slice(0, colonIdx).trim().toLowerCase() !== 'sitemap') continue;
+    const normalized = normalizeUrl(line.slice(colonIdx + 1).trim());
+    if (normalized && !sitemaps.includes(normalized)) sitemaps.push(normalized);
+  }
 
-    const directive = line.slice(0, colonIdx).trim().toLowerCase();
-    const value = line.slice(colonIdx + 1).trim();
-
-    if (directive === 'sitemap') {
-      const normalized = normalizeUrl(value);
-      if (normalized && !sitemaps.includes(normalized)) {
-        sitemaps.push(normalized);
-      }
-    } else if (directive === 'user-agent') {
-      currentUserAgent = value.toLowerCase();
-      if (!disallowRules[currentUserAgent]) {
-        disallowRules[currentUserAgent] = [];
-      }
-    } else if (directive === 'disallow') {
-      if (!disallowRules[currentUserAgent]) {
-        disallowRules[currentUserAgent] = [];
-      }
-      disallowRules[currentUserAgent].push(value);
-
-      if (KNOWN_AI_BOTS.has(currentUserAgent)) {
-        if (!aiBotDirectives[currentUserAgent]) {
-          aiBotDirectives[currentUserAgent] = { allowed: true, rules: [] };
-        }
-        aiBotDirectives[currentUserAgent].rules.push(`Disallow: ${value}`);
-        if (value === '/' || value === '') {
-          aiBotDirectives[currentUserAgent].allowed = value !== '/';
-        }
-      }
-    } else if (directive === 'allow') {
-      if (KNOWN_AI_BOTS.has(currentUserAgent)) {
-        if (!aiBotDirectives[currentUserAgent]) {
-          aiBotDirectives[currentUserAgent] = { allowed: true, rules: [] };
-        }
-        aiBotDirectives[currentUserAgent].rules.push(`Allow: ${value}`);
-        if (value === '/') {
-          aiBotDirectives[currentUserAgent].allowed = true;
-        }
-      }
+  const disallowRules: Record<string, string[]> = {};
+  for (const group of parseRobotsGroups(robotsContent)) {
+    for (const agent of group.agents) {
+      disallowRules[agent] = disallowRules[agent] ?? [];
+      for (const rule of group.rules) if (rule.type === 'disallow') disallowRules[agent].push(rule.path);
     }
   }
 
-  return { sitemaps, disallowRules, aiBotDirectives };
+  return { sitemaps, disallowRules, aiBotDirectives: buildAiBotDirectives(robotsContent) };
 }

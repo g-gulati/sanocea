@@ -9,6 +9,7 @@
  * Any attempt to invoke automated remediation on prospect tenants throws TenantPolicyViolationError.
  */
 
+import { retiredFeatureForRule } from '../core/retiredRichResults.js';
 import { SeoFinding } from '../core/types.js';
 import { SeoDatabase, RemediationActionRecord } from '../persistence/seoDb.js';
 import { TenantMonitoringPolicyManager } from './tenantPolicy.js';
@@ -57,6 +58,21 @@ export class AutonomousRemediator {
       };
     }
 
+    // A finding whose premise is a feature Google has retired must never be auto-"fixed": the change would alter the
+    // merchant's pages for no search benefit (and the FAQ/search templates below contain placeholder copy).
+    const retired = retiredFeatureForRule(finding.detectionRule);
+    if (retired) {
+      return {
+        actionId: `ACT-REJ-${Date.now()}`,
+        findingId: finding.findingId,
+        tenantId,
+        status: 'rejected',
+        actionType: 'RETIRED_GOOGLE_FEATURE_NO_ACTION',
+        beforeEvidence: String(finding.observedValue || ''),
+        error: `${retired.feature} is retired (${retired.retired}); no autonomous change is made. Source: ${retired.source}`
+      };
+    }
+
     // Explicit detection-only rejection guard (protects editorial intent & builds/CDN separation)
     if (!finding.automaticallyFixable) {
       return {
@@ -76,8 +92,6 @@ export class AutonomousRemediator {
 
     const isCriticalOrHigh = finding.severity === 'CRITICAL' || finding.severity === 'HIGH';
     const isTier1Automatable = [
-      'WEBSITE_SEARCH_ACTION_SCHEMA_MISSING',
-      'FAQPAGE_SCHEMA_MISSING',
       'IMAGE_MISSING_EXPLICIT_DIMENSIONS'
     ].includes(finding.detectionRule);
 

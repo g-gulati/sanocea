@@ -17,12 +17,15 @@ import { KeywordIntelligenceEngine } from '../search-intel/keywordIntelligence.j
 import { AeoIntelligenceEngine } from '../search-intel/aeoIntelligence.js';
 import { GeoCitationEngine } from '../search-intel/geoCitationEngine.js';
 import { CompetitorIntelligenceEngine } from '../search-intel/competitorWorker.js';
+import { auditPublishedPages, THIN_STATIC_WORD_THRESHOLD } from '../core/publishedPageAudit.js';
 
 export interface AgentContext {
   tenantId: string;
   domain: string;
   /** GSC property URL, used to scope GSC position observations. */
   siteUrl?: string;
+  /** HTTP client for published-page checks (tests inject a fake; production uses global fetch). */
+  fetchImpl?: typeof fetch;
   queries: string[];
   db?: SeoDatabase;
   keywordEngine: KeywordIntelligenceEngine;
@@ -167,9 +170,35 @@ export const DEFAULT_AGENTS: AutonomousAgent[] = [
   },
   {
     id: 'agent-ai-content-auditor', name: 'AI Content Auditor', role: 'AI_CONTENT_AUDITOR',
-    async run() {
-      return awaiting('Draft factual-claim / thin-content / schema audit',
-        'NOT IMPLEMENTED: no content-draft audit is performed by this routine; it needs a content-engine draft input before it can report anything');
+    async run(ctx) {
+      const task = 'Reading published pages as a crawler without JavaScript: readable text, structured data, AI-crawler access';
+      const a = await auditPublishedPages(ctx.domain, { fetchImpl: ctx.fetchImpl });
+      if (a.pages.length === 0) {
+        return { status: 'ALERT', currentTask: task, provenance: '[NOT AVAILABLE]',
+          outputSummary: `No published page could be fetched (${a.failures.map(f => f.error).slice(0, 2).join('; ') || 'no response'}); nothing is reported`,
+          details: { failures: a.failures.length } };
+      }
+      const thin = a.pages.filter(p => p.staticWords < THIN_STATIC_WORD_THRESHOLD);
+      const noH1 = a.pages.filter(p => p.h1Count === 0);
+      const retired = a.pages.filter(p => p.retiredSchemaTypes.length > 0);
+      const search = a.robots.crawlers.filter(c => c.purpose === 'SEARCH_CITATION');
+      const searchOpen = search.filter(c => c.access !== 'BLOCKED').length;
+      const crawlerNote = a.robots.status === 'fetched'
+        ? `${searchOpen} of ${search.length} AI search crawlers are not blocked by robots.txt`
+        : `robots.txt ${a.robots.status}, so AI-crawler access was not assessed`;
+      return {
+        status: 'COMPLETED', currentTask: task, provenance: '[OBSERVED: LIVE PAGE FETCH]',
+        outputSummary: `Read ${a.pages.length} published page(s) as delivered by the server: ${thin.length} with under ${THIN_STATIC_WORD_THRESHOLD} readable words, ${noH1.length} without an h1, ${retired.length} using markup Google no longer shows; ${crawlerNote}` +
+          (a.failures.length ? `; ${a.failures.length} page(s) could not be fetched` : ''),
+        details: {
+          checkedAt: a.checkedAt,
+          pages: a.pages,
+          failures: a.failures,
+          robots: a.robots.status,
+          sitemap: a.sitemapStatus,
+          aiCrawlers: a.robots.crawlers.map(c => ({ crawler: c.token, operator: c.operator, purpose: c.purpose.toLowerCase().replace('_', ' '), access: c.access.toLowerCase(), via: c.basis_of_access === 'EXPLICIT_GROUP' ? 'own rule' : c.basis_of_access === 'INHERITED_WILDCARD' ? 'wildcard rule' : 'no rule' }))
+        }
+      };
     }
   }
 ];

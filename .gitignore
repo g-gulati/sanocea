@@ -45,3 +45,7 @@ references/
 # Separate, in-progress website redesign - not part of this consolidation
 sanocea-site-v2-preview/
 
+
+# Local OAuth credential/token files (Gmail outreach). Never commit.
+/gmail_credentials.json
+/gmail_outreach_token.pickle

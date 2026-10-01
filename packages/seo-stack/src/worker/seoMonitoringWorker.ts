@@ -30,6 +30,8 @@ import { AeoIntelligenceEngine, AeoSerpProvider, UnconfiguredAeoProvider } from 
 import { GeoCitationEngine, GeoCitationProvider, UnconfiguredGeoProvider } from '../search-intel/geoCitationEngine.js';
 import { CompetitorIntelligenceEngine, CompetitorEngineOptions, DEFAULT_COMPETITOR_ROSTER } from '../search-intel/competitorWorker.js';
 import { CompetitorConfig } from '../search-intel/rankCommandTypes.js';
+import { GscPropertyService } from '../search-intel/gscProperty.js';
+import { OpportunityEngine } from '../opportunities/opportunityEngine.js';
 import { AgentRosterManager } from '../agents/agentRoster.js';
 import { buildLiveSerpRankMovement, verifiedSerpTrajectories, LiveSerpRankMovement } from '../search-intel/serpRankMovement.js';
 import { GscPositionTracker, GscPositionCollectResult, GscPositionTrajectory } from '../search-intel/gscPositionTracker.js';
@@ -56,6 +58,12 @@ export interface SeoWorkerConfig {
   tier2IntervalMs?: number; // default: 86,400,000 (24 hours)
   tier3IntervalMs?: number; // default: 1,209,600,000 (14 days)
   criticalUrls?: string[];
+  /** HTTP client for tier-1 probes (tests inject a fake; production uses global fetch). */
+  probeFetch?: typeof fetch;
+  /** Wait before re-checking a failed critical URL; a P0 is only raised if the failure repeats. Default 5000ms. */
+  confirmDelayMs?: number;
+  /** HTTP client for Google property calls (sites/sitemaps/URL Inspection); tests inject a fake. */
+  googleFetch?: typeof fetch;
   gscClient?: GscClient;
   gscPropertyUrl?: string;
   gscServiceAccount?: ServiceAccountCredentials;
@@ -69,6 +77,8 @@ export interface SeoWorkerConfig {
     trackedQueries?: string[];
     bingApiKey?: string;
     bingFetch?: typeof fetch;
+    /** HTTP client for the AI Content Auditor's published-page checks. */
+    pageFetch?: typeof fetch;
     authorityFetch?: typeof fetch;
     authorityRelease?: string;
     modelHarness?: ModelHarnessOptions;
@@ -127,6 +137,8 @@ export class SeoMonitoringWorker {
   private geoEngine: GeoCitationEngine;
   private competitorEngine: CompetitorIntelligenceEngine;
   private agentRoster: AgentRosterManager;
+  private opportunities: OpportunityEngine;
+  private googleProperty: GscPropertyService;
   private bing: BingWebmasterCollector;
   private authority: CommonCrawlAuthorityCollector;
   private modelHarness: ModelVisibilityHarness;
@@ -199,6 +211,9 @@ export class SeoMonitoringWorker {
       tier1IntervalMs: config.tier1IntervalMs || 3600000,
       tier2IntervalMs: config.tier2IntervalMs || 86400000,
       tier3IntervalMs: config.tier3IntervalMs || 1209600000,
+      googleFetch: config.googleFetch || (((u: any, i: any) => fetch(u, i)) as typeof fetch),
+      probeFetch: config.probeFetch || (((u: any, i: any) => fetch(u, i)) as typeof fetch),
+      confirmDelayMs: config.confirmDelayMs ?? 5000,
       criticalUrls: config.criticalUrls || [
         'https://www.sanocea.com',
         'https://www.sanocea.com/robots.txt',
@@ -214,6 +229,8 @@ export class SeoMonitoringWorker {
 
     this.db = new SeoDatabase(this.config.dbPath || undefined);
     this.remediator = new AutonomousRemediator(this.db);
+    this.opportunities = new OpportunityEngine(this.db);
+    this.googleProperty = new GscPropertyService(this.db, { auth: this.config.gscClient?.auth, live: this.isLiveGsc, fetchImpl: config.googleFetch });
     this.gscSnapshotStore = new GscSnapshotStore(this.db, this.config.tenantId);
     const rc = config.rankCommand ?? {};
     if (rc.trackedQueries) this.trackedQueries = rc.trackedQueries;
@@ -223,6 +240,7 @@ export class SeoMonitoringWorker {
     this.competitorEngine = new CompetitorIntelligenceEngine(rc.competitors ?? DEFAULT_COMPETITOR_ROSTER, this.db, rc.competitorOptions);
     this.agentRoster = new AgentRosterManager(this.db, {
       domain: this.config.domain,
+      fetchImpl: rc.pageFetch,
       siteUrl: this.gscPropertyUrl,
       queries: this.trackedQueries,
       keywordEngine: this.keywordEngine,
@@ -669,6 +687,7 @@ export class SeoMonitoringWorker {
     // The agents are the executors: each one calls its engine exactly once and persists an execution record.
     // Reports below are then read from persisted state, so a sync never double-bills a provider.
     await this.agentRoster.executeAll(tenantId);
+    this.opportunities.refresh(tenantId);
     return {
       keywords: this.keywordEngine.latestReport(tenantId, this.trackedQueries),
       aeo: this.aeoEngine.latestSummary(tenantId, this.trackedQueries),
@@ -691,16 +710,19 @@ export class SeoMonitoringWorker {
           const runs = await this.agentRoster.executeAll(tenantId);
           const counts: Record<string, number> = {};
           for (const r of runs) counts[r.status] = (counts[r.status] ?? 0) + 1;
-          return { status: 'OK', summary: `ran ${runs.length} agents: ${Object.entries(counts).map(([k, v]) => `${k}=${v}`).join(', ')}`, output: counts };
+          const opp = this.opportunities.refresh(tenantId);
+          return { status: 'OK', summary: `ran ${runs.length} agents: ${Object.entries(counts).map(([k, v]) => `${k}=${v}`).join(', ')}; opportunities +${opp.created} new, ${opp.updated} re-seen`, output: { ...counts, opportunitiesCreated: opp.created } };
         }
       },
       {
         name: 'gsc-position', intervalMs: DAY,
         run: async () => {
-          if (!this.isLiveGsc) return { status: 'UNAVAILABLE', summary: 'GSC is not connected in live mode (no service account)' };
+          // Connection state is recorded on every run (including NOT_CONNECTED); sitemaps and URL Inspection only when CONNECTED.
+          const prop = await this.runGoogleProperty().catch((e: any) => `property check failed: ${String(e?.message ?? e).slice(0, 120)}`);
+          if (!this.isLiveGsc) return { status: 'UNAVAILABLE', summary: `GSC is not connected in live mode (no service account); ${prop}` };
           const r = await this.runGscPositionTracking();
           if (r.status !== 'OBSERVED') throw new Error(r.unavailable?.reason ?? 'GSC position collection failed');
-          return { status: 'OK', summary: `stored ${r.rowsStored} rows (site=${r.levels.SITE.rowsStored}, page=${r.levels.PAGE.rowsStored}, query=${r.levels.QUERY.rowsStored})`, output: r.levels };
+          return { status: 'OK', summary: `${prop}; stored ${r.rowsStored} rows (site=${r.levels.SITE.rowsStored}, page=${r.levels.PAGE.rowsStored}, query=${r.levels.QUERY.rowsStored})`, output: r.levels };
         }
       },
       {
@@ -774,6 +796,24 @@ export class SeoMonitoringWorker {
   /** Persisted-only. Model-specific AI visibility observations. */
   public getModelVisibility() { return this.modelHarness.summary(this.config.tenantId); }
 
+  /** Records connection state; when CONNECTED also persists the sitemap list and inspects the audited URLs (capped). Read-only against Google. */
+  public async runGoogleProperty(): Promise<string> {
+    const tenantId = this.config.tenantId; const site = this.gscPropertyUrl;
+    const conn = await this.googleProperty.refreshConnection(tenantId, site);
+    if (conn.state !== 'CONNECTED') return `connection ${conn.state}`;
+    const sm = await this.googleProperty.collectSitemaps(tenantId, site);
+    const auditor = this.db.getLatestAgentRoster(tenantId).find(a => a.agentId === 'agent-ai-content-auditor');
+    const pages: string[] = Array.isArray((auditor?.details as any)?.pages) ? (auditor!.details as any).pages.map((p: any) => p.url) : [`https://${this.config.domain}/`];
+    const insp = await this.googleProperty.inspectUrls(tenantId, site, pages);
+    this.opportunities.refresh(tenantId);
+    return `connection CONNECTED; sitemaps ${sm.status === 'OBSERVED' ? sm.count : 'unavailable'}; inspected ${insp.inspected}, skipped ${insp.skipped}, failed ${insp.failed.length}`;
+  }
+
+  /** Persisted-only. */
+  public getGoogleSearchState() {
+    return this.googleProperty.getState(this.config.tenantId, this.gscPropertyUrl);
+  }
+
   public async runGscPositionTracking(): Promise<GscPositionCollectResult> {
     return new GscPositionTracker(this.db, this.config.gscClient).collect(this.config.tenantId, this.gscPropertyUrl);
   }
@@ -812,6 +852,19 @@ export class SeoMonitoringWorker {
 
   public async getCompetitorReport(): Promise<CompetitiveIntelligenceReport> {
     return this.competitorEngine.latestReport(this.config.tenantId);
+  }
+
+  /** Control-plane mutations (authorised by the daemon before calling). */
+  public transitionOpportunity(opportunityId: string, to: any, actor: string, note: string) {
+    return this.opportunities.transition(this.config.tenantId, opportunityId, to, actor, note);
+  }
+  public linkOpportunityResult(opportunityId: string, ref: string, actor: string) {
+    return this.opportunities.linkResult(this.config.tenantId, opportunityId, ref, actor);
+  }
+
+  /** Persisted opportunities only; reading never fetches or refreshes. */
+  public getOpportunities() {
+    return this.opportunities.list(this.config.tenantId);
   }
 
   public async getAgentRoster(): Promise<AgentRosterSummary> {
@@ -893,6 +946,10 @@ export class SeoMonitoringWorker {
 
   // ── Helper Probe Methods ───────────────────────────────────────────────────
 
+  private probe(url: string, timeoutMs: number): Promise<Response> {
+    return this.config.probeFetch(url, { method: 'GET', signal: AbortSignal.timeout(timeoutMs) });
+  }
+
   private async checkRobotsEmergency(changes: DetectedChange[], timestamp: string): Promise<void> {
     const robotsUrl = `https://${this.config.domain}/robots.txt`;
     try {
@@ -951,21 +1008,44 @@ export class SeoMonitoringWorker {
   private async checkCriticalUrls(changes: DetectedChange[], timestamp: string): Promise<void> {
     const rootUrl = `https://${this.config.domain}`;
     try {
-      const res = await fetch(rootUrl, { method: 'GET', signal: AbortSignal.timeout(6000) });
+      let res = await this.probe(rootUrl, 6000);
       if (!res.ok) {
+        // Confirm before alerting: an hourly monitor must not raise a P0 for one failed request. Only a failure that
+        // repeats on a fresh request is recorded as P0; a recovery is still recorded (P2) so the blip stays visible.
+        const firstStatus = res.status;
+        await new Promise(resolve => setTimeout(resolve, this.config.confirmDelayMs));
+        let second: Response | null = null;
+        try { second = await this.probe(rootUrl, 6000); } catch { second = null; }
+        if (!second || !second.ok) {
+          const change: DetectedChange = {
+            tenantId: this.config.tenantId,
+            timestamp,
+            tier: 'tier1',
+            changeType: second ? 'CRITICAL_URL_HTTP_STATUS' : 'CRITICAL_URL_UNCONFIRMED',
+            severity: second ? 'P0' : 'P2',
+            url: rootUrl,
+            observedValue: second
+              ? `HTTP Status: ${second.status} (confirmed: HTTP ${firstStatus} on the first check, same on the re-check ${this.config.confirmDelayMs}ms later)`
+              : `HTTP Status: ${firstStatus} on the first check; the re-check could not complete, so this is unconfirmed`,
+            expectedValue: 'HTTP 200 OK'
+          };
+          changes.push(change);
+          this.db.recordDetectedChange(change);
+          return;
+        }
         const change: DetectedChange = {
           tenantId: this.config.tenantId,
           timestamp,
           tier: 'tier1',
-          changeType: 'CRITICAL_URL_HTTP_STATUS',
-          severity: 'P0',
+          changeType: 'CRITICAL_URL_TRANSIENT_FAILURE',
+          severity: 'P2',
           url: rootUrl,
-          observedValue: `HTTP Status: ${res.status}`,
-          expectedValue: 'HTTP 200 OK'
+          observedValue: `HTTP ${firstStatus} on the first check, HTTP ${second.status} on the re-check ${this.config.confirmDelayMs}ms later`,
+          expectedValue: 'HTTP 200 OK on both checks'
         };
         changes.push(change);
         this.db.recordDetectedChange(change);
-        return;
+        res = second;
       }
 
       const html = await res.text();

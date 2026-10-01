@@ -45,6 +45,8 @@ VIEWS: dict[str, str] = {
     "gsc_snapshots": "/gsc-snapshots",
     "heartbeats": "/heartbeats",
     "deltas": "/deltas",
+    "opportunities": "/opportunities",
+    "gsc_property": "/google-search-state",
 }
 
 # Worker-internal fields that must never reach a browser: process owner (hostname:pid) and filesystem/DB paths.
@@ -101,6 +103,12 @@ def _view_updated_at(name: str, data: Any) -> str | None:
         return max(stamps) if stamps else None
     if name == "gsc_snapshots" and isinstance(data, list):
         stamps = [r.get("capturedAt") for r in data if isinstance(r, dict) and r.get("capturedAt")]
+        return max(stamps) if stamps else None
+    if name == "gsc_property" and isinstance(data, dict):
+        c = data.get("connection")
+        return c.get("lastCheckedAt") if isinstance(c, dict) else None
+    if name == "opportunities" and isinstance(data, dict):
+        stamps = [o.get("lastSeenAt") for o in (data.get("opportunities") or []) if isinstance(o, dict) and o.get("lastSeenAt")]
         return max(stamps) if stamps else None
     if name == "authority" and isinstance(data, dict):
         stamps = [r.get("fetchedAt") for r in (data.get("rows") or []) if isinstance(r, dict) and r.get("fetchedAt")]

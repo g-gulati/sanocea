@@ -1,6 +1,7 @@
-import React from 'react'
+import React, {useState} from 'react'
 import {view, gscNumbers, latestHeartbeat, fmtTime} from '../useSeoOverview.js'
 import {NotAvailable} from './SeoShared.jsx'
+import {opportunitiesFrom, STATUS_GUIDE} from '../seoOpportunities.js'
 
 // The customer-facing PRIMARY layer of SEO & Commerce Audit. Reading order:
 //   measured reality -> interpretation -> attention -> autonomous monitoring -> limitations; technical evidence is a
@@ -42,9 +43,77 @@ const ROLE_LABEL = {
   GEO_SPECIALIST: ['Checking whether AI assistants like ChatGPT mention you', 'We would show whether they name your site when shoppers ask them.'],
   LINK_BUILDING_MANAGER: ['Finding other sites that link to you', 'We would show who links to you and how trusted your site looks.'],
   CONTENT_OPTIMIZER: ['Improving the headline and summary shown for each page', 'We would suggest better wording for how your pages appear in Google.'],
-  AI_CONTENT_AUDITOR: ['Reviewing your page content', 'We would flag thin or unclear pages.'],
+  AI_CONTENT_AUDITOR: ['Reading your pages the way a crawler without JavaScript does', 'We would flag pages that show little text before JavaScript runs.'],
 }
-const RUN_ORDER = ['TECHNICAL_SEO', 'ANALYTICS_MANAGER', 'COMPETITIVE_INTELLIGENCE', 'SEO_STRATEGIST']
+// Plain-English line built only from the numbers the worker measured; says nothing if it measured no pages.
+function auditorText(x) {
+  const pages = x && x.details && Array.isArray(x.details.pages) ? x.details.pages : null
+  if (!pages || !pages.length) return x && x.outputSummary ? x.outputSummary : ''
+  const thin = pages.filter((p) => p.staticWords < 100).length
+  const retired = pages.filter((p) => (p.retiredSchemaTypes || []).length).length
+  return `Read ${pages.length} of your pages as the server sends them, before any JavaScript runs. ${thin} of ${pages.length} contain almost no readable text that way, which is all that crawlers skipping JavaScript can read.${retired ? ` ${retired} carry FAQ or how-to markup that Google no longer shows (harmless).` : ''}`
+}
+const RUN_ORDER = ['TECHNICAL_SEO', 'ANALYTICS_MANAGER', 'COMPETITIVE_INTELLIGENCE', 'AI_CONTENT_AUDITOR', 'SEO_STRATEGIST']
+
+// Section 5 operational view: the real opportunities from the worker (views.opportunities), one expandable row each.
+// No priority, severity or score is shown: the order is the worker's deterministic order and means nothing about importance.
+function OpportunityQueue({items, updatedAt}) {
+  const [open, setOpen] = useState(() => new Set())
+  const toggle = (key) => setOpen((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next })
+  const needReview = items.filter((i) => i.status === 'Needs review').length
+  const label = {fontSize: 11, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: '#64748B', marginBottom: 2}
+  if (!items.length) {
+    return <div style={{...mut, fontSize: 13}}>SANOCEA has not found anything to review in its latest checks{updatedAt ? ` (last checked ${when(updatedAt)})` : ''}.</div>
+  }
+  return (
+    <div id="seo-opportunities">
+      <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px 14px', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4}}>
+        <b style={{fontSize: 17}}>{items.length === 1 ? '1 thing needs attention' : `${items.length} things need attention`}</b>
+        <span style={{...mut, fontSize: 12}}>{needReview === items.length ? (items.length === 1 ? 'It needs' : `All ${items.length} need`) + ' your review' : `${needReview} need your review`}{updatedAt ? ` · last checked ${when(updatedAt)}` : ''}</span>
+      </div>
+      <div style={{...mut, fontSize: 12, marginBottom: 4}}>Open one to see the evidence. Nothing on this page changes your website.</div>
+      {items.map((it, idx) => {
+        const isOpen = open.has(it.key)
+        const bodyId = `opp-body-${idx}`
+        return (
+          <div key={it.key} style={{borderTop: idx ? '1px solid #E2E8F0' : 'none'}}>
+            <button type="button" aria-expanded={isOpen} aria-controls={bodyId} onClick={() => toggle(it.key)}
+              style={{all: 'unset', boxSizing: 'border-box', width: '100%', cursor: 'pointer', padding: '10px 0', display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '4px 10px', alignItems: 'start'}}>
+              <span style={{fontWeight: 700}}>{it.title}</span>
+              <span style={{fontSize: 11.5, fontWeight: 700, color: '#475569', background: '#F1F5F9', borderRadius: 99, padding: '2px 10px', whiteSpace: 'nowrap'}}>{it.status}</span>
+              <span aria-hidden="true" style={{color: '#64748B', alignSelf: 'center', display: 'inline-block', transform: isOpen ? 'rotate(90deg)' : 'none'}}>›</span>
+              {it.sub ? <span style={{gridColumn: '1 / 2', color: '#64748B', fontSize: 12}}>{it.checkedAt ? `${it.observedVerb} ${it.checkedAt} · ` : ''}{it.sub}</span> : null}
+            </button>
+            {isOpen ? (
+              <div id={bodyId} style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '10px 18px', padding: '2px 0 14px'}}>
+                <div><div style={label}>Opportunity</div><div>{it.what}</div></div>
+                <div><div style={label}>Evidence</div><div>{it.evidence}</div></div>
+                <div><div style={label}>Why it matters</div><div>{it.why}</div></div>
+                <div><div style={label}>Status</div><div>{it.status}{it.status === 'Needs review' ? ' · nothing has been changed' : ''}</div></div>
+                <div style={{gridColumn: '1 / -1', background: '#ECFDF5', color: '#047857', borderRadius: 6, padding: '7px 11px'}}><b>Recommended action:</b> {it.action}</div>
+                {it.checkedAt ? <div><div style={label}>Last checked</div><div>{it.checkedAt}</div></div> : null}
+                {it.tech.length ? (
+                  <details style={{gridColumn: '1 / -1', borderTop: '1px dashed #E2E8F0', paddingTop: 6}}>
+                    <summary style={{cursor: 'pointer', fontSize: 12, color: '#64748B'}}>Technical details</summary>
+                    <dl style={{margin: '6px 0 0', display: 'grid', gridTemplateColumns: 'max-content 1fr', gap: '3px 12px', fontSize: 12}}>
+                      {it.tech.map(([k, v]) => (<React.Fragment key={k}><dt style={{color: '#64748B'}}>{k}</dt><dd style={{margin: 0, overflowWrap: 'anywhere'}}>{v}</dd></React.Fragment>))}
+                    </dl>
+                  </details>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        )
+      })}
+      <details style={{marginTop: 12, borderTop: '1px solid #E2E8F0', paddingTop: 8}}>
+        <summary style={{cursor: 'pointer', fontSize: 12, color: '#64748B'}}>What the statuses mean</summary>
+        <dl style={{margin: '8px 0 0', display: 'grid', gridTemplateColumns: 'max-content 1fr', gap: '6px 12px', fontSize: 12, alignItems: 'center'}}>
+          {STATUS_GUIDE.map(([k, v]) => (<React.Fragment key={k}><dt><span style={{fontSize: 11.5, fontWeight: 700, color: '#475569', background: '#F1F5F9', borderRadius: 99, padding: '2px 10px'}}>{k}</span></dt><dd style={{margin: 0, color: '#64748B'}}>{v}</dd></React.Fragment>))}
+        </dl>
+      </details>
+    </div>
+  )
+}
 
 export default function SeoPlainOverview({overview, status, error}) {
   if (!overview) {
@@ -68,6 +137,11 @@ export default function SeoPlainOverview({overview, status, error}) {
   const serpV = view(overview, 'serp_rank_movement')
   const sFoot = sigOf(overview, 'SERP_FOOTPRINT'); const sVel = sigOf(overview, 'SEARCH_VELOCITY'); const sPriv = sigOf(overview, 'PRIVACY_THRESHOLD')
   const page = unsurfacedPage(sFoot)
+  const opps = opportunitiesFrom(overview)
+  // The same fact reported by Google's URL Inspection is already an opportunity above; do not list it twice.
+  const googleCoversPage = opps.ok && opps.items.some((i) => i.key.startsWith('GOOGLE_INDEX_STATUS_ISSUE|'))
+  const hasPageSignal = Boolean(sFoot && sFoot.calculatedMetrics.unsurfacedCommercialRoutesCount > 0 && !googleCoversPage)
+  const hasPrivSignal = Boolean(sPriv && sPriv.calculatedMetrics.queryRowsAvailable === 0)
   const pts = site ? site.points || [] : []
   const maxShown = pts.reduce((m, p) => Math.max(m, p.impressions), 1)
   // Every roster entry is counted exactly once: known roles get plain-English labels, any other role still appears
@@ -75,7 +149,7 @@ export default function SeoPlainOverview({overview, status, error}) {
   const completed = roster.filter((x) => x.status === 'COMPLETED')
   const done = [...RUN_ORDER.map((r) => completed.find((x) => x.role === r)).filter(Boolean), ...completed.filter((x) => !RUN_ORDER.includes(x.role))]
   const waiting = roster.filter((x) => x.status !== 'COMPLETED')
-  const labelOf = (x) => (typeof ROLE_LABEL[x.role] === 'string' ? ROLE_LABEL[x.role] : 'Another check')
+  const labelOf = (x) => (typeof ROLE_LABEL[x.role] === 'string' ? ROLE_LABEL[x.role] : Array.isArray(ROLE_LABEL[x.role]) ? ROLE_LABEL[x.role][0] : 'Another check')
   const waitLabel = (x) => (Array.isArray(ROLE_LABEL[x.role]) ? ROLE_LABEL[x.role] : ['Another check', 'This check is not switched on yet.'])
   const nextReview = roster.reduce((m, x) => (x.nextScheduledAt && x.nextScheduledAt > m ? x.nextScheduledAt : m), '')
   const okSites = ciV.ok ? (ciV.data.sitemapObservations || []).filter((o) => o.status === 'POLL_OK').length : null
@@ -85,6 +159,7 @@ export default function SeoPlainOverview({overview, status, error}) {
     TECHNICAL_SEO: hb ? `Last check ${when(hb.timestamp)}: ${hb.status === 'ok' ? 'everything responded normally' : 'a problem was reported'}, ${hb.changeCount} changes found.` : 'No check result is available yet.',
     ANALYTICS_MANAGER: g ? `Read the latest Google figures for your site: ${g.impressions} times shown and ${g.clicks} visits.` : 'No Google figures are available yet.',
     COMPETITIVE_INTELLIGENCE: okSites === null ? 'No competitor result is available yet.' : `Read the public page lists of ${okSites} of ${totalSites} competitors.${okSites < totalSites ? ` ${totalSites - okSites} blocked the check.` : ''}`,
+    AI_CONTENT_AUDITOR: auditorText(roster.find((x) => x.role === 'AI_CONTENT_AUDITOR')),
     SEO_STRATEGIST: 'Pulled the findings together and marked which parts are measured, which are worked out from measured numbers, and which are our reasoning.',
   }
 
@@ -97,7 +172,7 @@ export default function SeoPlainOverview({overview, status, error}) {
     rosterOff('AEO_SPECIALIST') && ['Whether Google highlights your content', 'Google sometimes shows one answer in a highlighted box above all results.', 'Needs a service we have not added yet.'],
     ciV.ok && ciV.data.keywordGapsStatus === 'NOT_AVAILABLE' && ['How you rank against competitors', 'It would show which searches competitors win that you do not.', 'We can see how big their sites are, but where they rank needs a paid service.'],
     ciV.ok && ciV.data.backlinkStatus && ciV.data.backlinkStatus.status === 'NOT AVAILABLE' && ['Who links to you, and how trusted your site looks', 'Links from trusted sites help you rank.', 'Needs a paid service we have not added.'],
-    (rosterOff('AI_CONTENT_AUDITOR') || rosterOff('CONTENT_OPTIMIZER')) && ['How good your page content is', 'It would flag pages that are thin or unclear.', 'The check is not switched on yet.'],
+    rosterOff('CONTENT_OPTIMIZER') && ['The wording of your page titles and summaries', 'It would suggest better wording for how your pages appear in Google.', 'The check is not switched on yet.'],
   ].filter(Boolean)
 
   return (
@@ -161,17 +236,23 @@ export default function SeoPlainOverview({overview, status, error}) {
         {sVel ? <div style={card}><b>Your presence is still small</b><p style={{...mut, margin: '4px 0 0', fontSize: 13}}>About {Math.round(sVel.calculatedMetrics.dailyAverageImpressions) === 1 ? 'one appearance' : `${Math.round(sVel.calculatedMetrics.dailyAverageImpressions)} appearances`} a day over the last 28 days. It is early days.</p></div> : null}
       </div>
 
-      {/* 5. What needs attention? */}
+      {/* 5. What needs attention? Real opportunities first (no priority labels), existing signals kept below. */}
       <div style={secTitle}>5. What needs attention?</div>
       <div style={card}>
-        {sFoot && sFoot.calculatedMetrics.unsurfacedCommercialRoutesCount > 0 ? (
-          <div style={{paddingBottom: 10}}><Pill tone="opp">We found a page that needs attention</Pill><b>{page ? `Your ${page.name} page (${page.address}) is not appearing in search` : 'One of your main pages is not appearing in search'}</b>
-            <div style={{fontSize: 13, background: '#ECFDF5', color: '#047857', borderRadius: 6, padding: '6px 10px', marginTop: 6}}><b>What to do:</b> Ask your web team to check three things: that Google has picked up this page, that your site tells Google the page exists, and that your homepage links to it.</div></div>
+        {opps.ok ? <OpportunityQueue items={opps.items} updatedAt={opps.updatedAt} /> : null}
+        {hasPageSignal || sVel || hasPrivSignal ? (
+          <div style={opps.ok && opps.items.length ? {borderTop: '1px solid #E2E8F0', marginTop: 12, paddingTop: 12} : null}>
+            {opps.ok && opps.items.length ? <div style={{fontSize: 12, fontWeight: 800, color: '#64748B', marginBottom: 4}}>Also worth knowing</div> : null}
+            {hasPageSignal ? (
+              <div style={{paddingBottom: 10}}><Pill tone="opp">We found a page that needs attention</Pill><b>{page ? `Your ${page.name} page (${page.address}) is not appearing in search` : 'One of your main pages is not appearing in search'}</b>
+                <div style={{fontSize: 13, background: '#ECFDF5', color: '#047857', borderRadius: 6, padding: '6px 10px', marginTop: 6}}><b>What to do:</b> Ask your web team to check three things: that Google has picked up this page, that your site tells Google the page exists, and that your homepage links to it.</div></div>
+            ) : null}
+            {sVel ? <div style={{borderTop: hasPageSignal ? '1px solid #E2E8F0' : 'none', padding: '10px 0'}}><Pill tone="att">Keep watching</Pill><b>Your presence on Google is still small</b>
+              <div style={{fontSize: 13, background: '#ECFDF5', color: '#047857', borderRadius: 6, padding: '6px 10px', marginTop: 6}}><b>What to do:</b> We will track it week by week. When you add new pages, make sure your web team tells Google about them.</div></div> : null}
+            {hasPrivSignal ? <div style={{borderTop: hasPageSignal || sVel ? '1px solid #E2E8F0' : 'none', paddingTop: 10}}><Pill tone="att">Good to know</Pill><b>You cannot see which searches find you yet</b>
+              <div style={{fontSize: 13, background: '#ECFDF5', color: '#047857', borderRadius: 6, padding: '6px 10px', marginTop: 6}}><b>What to do:</b> Use page and device trends for now. The exact phrases will appear as your numbers grow.</div></div> : null}
+          </div>
         ) : null}
-        {sVel ? <div style={{borderTop: '1px solid #E2E8F0', padding: '10px 0'}}><Pill tone="att">Keep watching</Pill><b>Your presence on Google is still small</b>
-          <div style={{fontSize: 13, background: '#ECFDF5', color: '#047857', borderRadius: 6, padding: '6px 10px', marginTop: 6}}><b>What to do:</b> We will track it week by week. When you add new pages, make sure your web team tells Google about them.</div></div> : null}
-        {sPriv && sPriv.calculatedMetrics.queryRowsAvailable === 0 ? <div style={{borderTop: '1px solid #E2E8F0', paddingTop: 10}}><Pill tone="att">Good to know</Pill><b>You cannot see which searches find you yet</b>
-          <div style={{fontSize: 13, background: '#ECFDF5', color: '#047857', borderRadius: 6, padding: '6px 10px', marginTop: 6}}><b>What to do:</b> Use page and device trends for now. The exact phrases will appear as your numbers grow.</div></div> : null}
       </div>
 
       {/* 6. What is SANOCEA doing about it? (the product differentiator: kept prominent) */}
