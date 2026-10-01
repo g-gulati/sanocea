@@ -26,7 +26,7 @@ FACTS = [
 ]
 
 
-def opp(type_="QUERY_PAGE_MATCH_GAP", action="CREATE_NEW_PAGE", status="APPROVED", by="human:asha", target="amazon payout mismatch", oid="OPP-1", ev=None):
+def opp(type_="QUERY_PAGE_MATCH_GAP", action="CREATE_SEO_PAGE", status="APPROVED", by="human:asha", target="amazon payout mismatch", oid="OPP-1", ev=None):
     ev = ev if ev is not None else {"query": target, "impressions": 80, "clicks": 0, "bestMatchUrl": PAGES[0]["url"], "bestMatchOverlap": 0.0, "pagesCompared": 2, "limitation": "Only audited pages were compared."}
     return {"opportunityId": oid, "type": type_, "target": target, "status": status, "source": "[OBSERVED: PERSISTED GSC SNAPSHOT]", "reason": "Search Console reports 80 impressions.",
             "detectedAt": "2026-10-01T00:00:00Z", "recommendedAction": action, "evidence": ev,
@@ -53,9 +53,9 @@ def store(tmp_path):
 
 def test_only_content_opportunities_are_eligible_and_every_real_technical_one_is_refused():
     assert content_eligibility(opp())[0] is True
-    assert content_eligibility(opp("HIGH_IMPRESSIONS_LOW_CTR", "IMPROVE_TITLE_META", target="https://www.sanocea.com/", ev={"page": "https://www.sanocea.com/"}))[0] is True
+    assert content_eligibility(opp("HIGH_IMPRESSIONS_LOW_CTR", "UPDATE_TITLE_META", target="https://www.sanocea.com/", ev={"page": "https://www.sanocea.com/"}))[0] is True
     for t in ["SERVER_RENDERED_CONTENT_GAP", "MISSING_STATIC_H1", "SITEMAP_URL_REDIRECTS", "GOOGLE_INDEX_STATUS_ISSUE", "SITEMAP_REPORTED_ISSUES"]:
-        for a in ["FIX_TECHNICAL_SEO", "CREATE_NEW_PAGE", "UPDATE_EXISTING_PAGE"]:
+        for a in ["FIX_TECHNICAL_SEO", "CREATE_SEO_PAGE", "UPDATE_EXISTING_PAGE"]:
             assert content_eligibility(opp(t, a))[0] is False, (t, a)
         with pytest.raises(ContentWorkflowError) as e:
             build_brief(opp(t, "FIX_TECHNICAL_SEO"), TENANT, PAGES)
@@ -69,7 +69,7 @@ def test_python_eligibility_matches_the_workers_rule():
     if not shutil.which("node") or not os.path.exists(dist):
         pytest.skip("seo-stack is not built")
     types = ["SERVER_RENDERED_CONTENT_GAP", "MISSING_STATIC_H1", "SITEMAP_URL_REDIRECTS", "GOOGLE_INDEX_STATUS_ISSUE", "SITEMAP_REPORTED_ISSUES", "HIGH_IMPRESSIONS_LOW_CTR", "QUERY_PAGE_MATCH_GAP"]
-    acts = ["CREATE_NEW_PAGE", "CREATE_SUPPORTING_CONTENT", "UPDATE_EXISTING_PAGE", "IMPROVE_TITLE_META", "FIX_TECHNICAL_SEO", "NO_ACTION", "ADD_INTERNAL_LINKS"]
+    acts = ["CREATE_SEO_PAGE", "CREATE_SUPPORTING_CONTENT", "UPDATE_EXISTING_PAGE", "UPDATE_TITLE_META", "FIX_TECHNICAL_SEO", "NO_ACTION", "ADD_INTERNAL_LINK"]
     js = f"import('./{dist}').then(m=>{{const o={{}};for(const t of {json.dumps(types)})for(const a of {json.dumps(acts)})o[t+'|'+a]=m.contentEligibility(t,a).eligible;console.log(JSON.stringify(o))}})"
     ts = json.loads(subprocess.run(["node", "-e", js], capture_output=True, text=True, check=True).stdout)
     for t in types:
@@ -142,7 +142,7 @@ def test_internal_links_each_carry_a_semantic_justification():
 
 
 def test_title_meta_brief_for_an_existing_page_states_what_is_missing_instead_of_guessing(store):
-    o = opp("HIGH_IMPRESSIONS_LOW_CTR", "IMPROVE_TITLE_META", target="https://www.sanocea.com/", ev={"page": "https://www.sanocea.com/", "impressions": 400, "clicks": 2, "ctr": 0.005})
+    o = opp("HIGH_IMPRESSIONS_LOW_CTR", "UPDATE_TITLE_META", target="https://www.sanocea.com/", ev={"page": "https://www.sanocea.com/", "impressions": 400, "clicks": 2, "ctr": 0.005})
     b = wf.create_brief(o, TENANT, PAGES, store)
     assert b.existing_page_assessment.basis == "OBSERVED" and b.existing_page_assessment.value["current_h1"] == "AI-assisted ecommerce operations"
     assert b.proposed_title.value is None and b.proposed_title.basis == "REQUIRES_VERIFICATION"
@@ -300,7 +300,7 @@ def test_qa_blocks_a_heading_structure_with_two_h1s(tmp_path):
 
 
 def test_title_meta_draft_has_no_body_and_needs_a_title_source(store):
-    o = opp("HIGH_IMPRESSIONS_LOW_CTR", "IMPROVE_TITLE_META", target="https://www.sanocea.com/", ev={"page": "https://www.sanocea.com/", "impressions": 400, "clicks": 2, "ctr": 0.005})
+    o = opp("HIGH_IMPRESSIONS_LOW_CTR", "UPDATE_TITLE_META", target="https://www.sanocea.com/", ev={"page": "https://www.sanocea.com/", "impressions": 400, "clicks": 2, "ctr": 0.005})
     b = wf.create_brief(o, TENANT, PAGES, store)
     d = wf.generate_draft(b, o, FACTS, PAGES, store)
     assert d.status == "GENERATION_FAILED" and "no grounded title" in d.error  # the brief has none and the writer will not invent one
@@ -316,7 +316,7 @@ def test_explain_answers_from_stored_records_only(store):
         r = wf.explain(store, "sanocea", item)
         assert "QUERY_PAGE_MATCH_GAP" in r["why"] and "human:asha" in r["why"] and "[OBSERVED: PERSISTED GSC SNAPSHOT]" in r["why"]
         assert r["chain"]["evidence"]["query"] == "marketplace payouts mismatch"
-        assert r["chain"]["decision"]["action"] == "CREATE_NEW_PAGE" and r["chain"]["approval"]["by"] == "human:asha"
+        assert r["chain"]["decision"]["action"] == "CREATE_SEO_PAGE" and r["chain"]["approval"]["by"] == "human:asha"
         assert r["chain"]["brief"]["field_basis"]["proposed_title"] == "GENERATED_RECOMMENDATION"
     assert wf.explain(store, "sanocea", d.draft_id)["chain"]["draft"]["fact_ids_used"] == d.fact_ids_used
 

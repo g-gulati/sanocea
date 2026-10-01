@@ -18,7 +18,7 @@ test('live finding shape: a page with 0 server-delivered words becomes an observ
   const c = detectOpportunities({ pages: [page('https://s.test/', { staticWords: 0, h1Count: 0 })], gscPages: [], gscQueries: [] });
   const gap = c.find(x => x.type === 'SERVER_RENDERED_CONTENT_GAP')!;
   assert.equal(gap.confidence, 'OBSERVED');
-  assert.equal(gap.decision.action, 'FIX_TECHNICAL_SEO');
+  assert.equal(gap.decision.action, 'CHANGE_SERVER_RENDERING');
   assert.equal(gap.decision.requiresApproval, true);
   assert.match(gap.reason, /was not measured/);
   assert.doesNotMatch(gap.reason + gap.plainEnglish, /cannot read|can't read|invisible|penal/i);
@@ -30,7 +30,7 @@ test('no GSC rows => no search opportunities (never fabricated); with rows, thre
   assert.equal(detectOpportunities({ pages: [page('https://s.test/')], gscPages: [], gscQueries: [] }).length, 0);
   const c = detectOpportunities({ pages: [page('https://s.test/')], gscPages: [{ page: 'https://s.test/', clicks: 1, impressions: 500, ctr: 0.002, position: 7 }], gscQueries: [] });
   assert.equal(c[0].type, 'HIGH_IMPRESSIONS_LOW_CTR');
-  assert.equal(c[0].decision.action, 'IMPROVE_TITLE_META');
+  assert.equal(c[0].decision.action, 'UPDATE_TITLE_META');
   assert.match(String(c[0].evidence.rule), /impressions >= 100/);
   assert.equal('expectedTraffic' in c[0].evidence, false);
 });
@@ -41,7 +41,7 @@ test('decision: a query that shares words with an existing page updates it; a to
   const partial = detectOpportunities({ pages, gscPages: [], gscQueries: [{ query: 'amazon marketplace payouts', clicks: 0, impressions: 80, ctr: 0, position: 12 }] });
   assert.equal(partial[0].decision.action, 'UPDATE_EXISTING_PAGE');
   const miss = detectOpportunities({ pages, gscPages: [], gscQueries: [{ query: 'gst invoice format', clicks: 0, impressions: 80, ctr: 0, position: 12 }] });
-  assert.equal(miss[0].decision.action, 'CREATE_NEW_PAGE');
+  assert.equal(miss[0].decision.action, 'CREATE_SEO_PAGE');
   assert.ok(miss[0].decision.checks.length > 0);
   assert.match(String(miss[0].evidence.limitation), /unaudited page/);
   const covered = detectOpportunities({ pages, gscPages: [], gscQueries: [{ query: 'marketplace reconciliation', clicks: 5, impressions: 80, ctr: 0.06, position: 3 }] });
@@ -132,12 +132,12 @@ import { contentEligibility } from '../src/opportunities/opportunityEngine.js';
 import { controlAuthorized } from '../src/worker/controlAuth.js';
 
 test('content eligibility: only search-wording/page-content opportunities with a content action; every technical type is refused whatever its action', () => {
-  assert.equal(contentEligibility('QUERY_PAGE_MATCH_GAP', 'CREATE_NEW_PAGE').eligible, true);
+  assert.equal(contentEligibility('QUERY_PAGE_MATCH_GAP', 'CREATE_SEO_PAGE').eligible, true);
   assert.equal(contentEligibility('QUERY_PAGE_MATCH_GAP', 'UPDATE_EXISTING_PAGE').eligible, true);
-  assert.equal(contentEligibility('HIGH_IMPRESSIONS_LOW_CTR', 'IMPROVE_TITLE_META').eligible, true);
+  assert.equal(contentEligibility('HIGH_IMPRESSIONS_LOW_CTR', 'UPDATE_TITLE_META').eligible, true);
   for (const t of ['SERVER_RENDERED_CONTENT_GAP', 'MISSING_STATIC_H1', 'SITEMAP_URL_REDIRECTS', 'GOOGLE_INDEX_STATUS_ISSUE', 'SITEMAP_REPORTED_ISSUES'] as const)
-    for (const a of ['CREATE_NEW_PAGE', 'UPDATE_EXISTING_PAGE', 'FIX_TECHNICAL_SEO'] as const) assert.equal(contentEligibility(t, a).eligible, false, `${t}/${a}`);
-  assert.equal(contentEligibility('QUERY_PAGE_MATCH_GAP', 'FIX_TECHNICAL_SEO').eligible, false);
+    for (const a of ['CREATE_SEO_PAGE', 'UPDATE_EXISTING_PAGE', 'CHANGE_SERVER_RENDERING'] as const) assert.equal(contentEligibility(t, a).eligible, false, `${t}/${a}`);
+  assert.equal(contentEligibility('QUERY_PAGE_MATCH_GAP', 'CHANGE_SERVER_RENDERING').eligible, false);
 });
 
 test('every opportunity the real crawler/Google detectors produce is content-ineligible; the listing exposes eligibility and approval', () => {

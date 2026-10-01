@@ -95,7 +95,7 @@ def test_real_lifecycle_to_draft_with_a_fixture_opportunity(worker, tmp_path):
     assert [o["type"] for o in elig] == ["QUERY_PAGE_MATCH_GAP"], "exactly the fixture opportunity is content-eligible"
     assert all(not o["contentEligible"] for o in opps if o["type"] != "QUERY_PAGE_MATCH_GAP"), "technical opportunities are never eligible"
     o = elig[0]
-    assert o["status"] == "DISCOVERED" and o["approval"] is None and o["decision"]["action"] == "CREATE_NEW_PAGE"
+    assert o["status"] == "DISCOVERED" and o["approval"] is None and o["decision"]["action"] == "CREATE_SEO_PAGE"
 
     wf.submit_for_approval(o, control)  # agent steps only
     o = src.get(o["opportunityId"])

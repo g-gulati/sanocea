@@ -20,36 +20,42 @@ export const AUTONOMOUS_ACTOR = `autonomous:${POLICY_REF}`;
 export const AUTONOMY_MODES = ['AUTONOMY_DISABLED', 'RECOMMEND_ONLY', 'AUTONOMOUS_SEO', 'AUTONOMOUS_CONTENT', 'AUTONOMOUS_DISTRIBUTION'] as const;
 export type AutonomyMode = typeof AUTONOMY_MODES[number];
 export const DEFAULT_MODE: AutonomyMode = 'RECOMMEND_ONLY';
-export type ActionClass = 'A' | 'B' | 'C';
+export type ActionClass = 'A' | 'B' | 'C' | 'D';
 
-/** Class A: routine, low-risk SEO maintenance. */
-export const CLASS_A: ReadonlySet<string> = new Set(['IMPROVE_TITLE_META', 'ADD_INTERNAL_LINKS', 'IMPROVE_SCHEMA', 'DISTRIBUTE_EXISTING_CONTENT']);
-/** Class B: new or substantially changed content; autonomous only if every publish gate passes. */
-export const CLASS_B: ReadonlySet<string> = new Set(['CREATE_NEW_PAGE', 'CREATE_SUPPORTING_CONTENT', 'UPDATE_EXISTING_PAGE']);
-/** Class C: explicit human authorisation only. Listed for documentation; anything unlisted is also C. */
+/** Class A: low-risk SEO maintenance. Never distribution, never delivery/infrastructure changes. */
+export const CLASS_A: ReadonlySet<string> = new Set(['UPDATE_TITLE_META', 'ADD_INTERNAL_LINK', 'UPDATE_SCHEMA', 'FIX_SITEMAP_ENTRY']);
+/** Class B: substantive website content or search behaviour; autonomous only if every publish gate passes. */
+export const CLASS_B: ReadonlySet<string> = new Set(['CREATE_SEO_PAGE', 'CREATE_SUPPORTING_CONTENT', 'UPDATE_EXISTING_PAGE', 'CHANGE_CANONICAL', 'CHANGE_INDEXABILITY']);
+/** Class D: external distribution (publication outside the website). */
+export const CLASS_D: ReadonlySet<string> = new Set(['DISTRIBUTE_EXISTING_CONTENT', 'PUBLISH_SOCIAL_DERIVATIVE', 'OTHER_EXTERNAL_CHANNEL_PUBLICATION']);
+/** Class C: prohibited autonomously. Listed for documentation; anything unlisted (including the retired FIX_TECHNICAL_SEO) is also C. */
 export const CLASS_C_PROHIBITED: ReadonlySet<string> = new Set([
-  'DELETE_PAGE', 'DELETE_DATA', 'CHANGE_DNS', 'CHANGE_DOMAIN_OWNERSHIP', 'CHANGE_CREDENTIALS', 'CHANGE_ACCESS', 'CHANGE_SECURITY',
-  'CHANGE_PAYMENT', 'DESTRUCTIVE_DATABASE', 'CHANGE_INFRASTRUCTURE', 'OUT_OF_SCOPE', 'FIX_TECHNICAL_SEO'
+  'CHANGE_REDIRECT', 'CHANGE_SERVER_RENDERING', 'CHANGE_DNS', 'CHANGE_DOMAIN_OWNERSHIP', 'CHANGE_CREDENTIALS', 'CHANGE_ACCESS', 'CHANGE_SECURITY',
+  'CHANGE_PAYMENT', 'DESTRUCTIVE_DATABASE', 'CHANGE_INFRASTRUCTURE', 'DELETE_PAGE', 'DELETE_DATA', 'OUT_OF_SCOPE', 'INVESTIGATE'
 ]);
-const DISTRIBUTION_ACTIONS: ReadonlySet<string> = new Set(['DISTRIBUTE_EXISTING_CONTENT']);
 
 export function classifyAction(action: string): ActionClass {
   if (CLASS_C_PROHIBITED.has(action)) return 'C';
   if (CLASS_A.has(action)) return 'A';
   if (CLASS_B.has(action)) return 'B';
+  if (CLASS_D.has(action)) return 'D';
   return 'C'; // unknown => fail closed
 }
 
 export function isAutonomyMode(m: string): m is AutonomyMode { return (AUTONOMY_MODES as readonly string[]).includes(m); }
 
+/** Matrix: DISABLED/RECOMMEND_ONLY nothing; SEO = A; CONTENT = A+B; DISTRIBUTION = A+B+D. No mode authorises C. */
 export function modeAllows(mode: AutonomyMode, cls: ActionClass, action: string): { allowed: boolean; reason: string } {
   if (cls === 'C') return { allowed: false, reason: `Class C action (${action}) requires explicit human authorisation in every mode.` };
   if (mode === 'AUTONOMY_DISABLED') return { allowed: false, reason: 'Autonomy is disabled for this tenant.' };
   if (mode === 'RECOMMEND_ONLY') return { allowed: false, reason: 'This tenant is recommend-only: SANOCEA proposes, it does not authorise.' };
-  if (DISTRIBUTION_ACTIONS.has(action) && mode !== 'AUTONOMOUS_DISTRIBUTION') return { allowed: false, reason: `Distribution needs mode AUTONOMOUS_DISTRIBUTION (tenant mode is ${mode}).` };
   if (cls === 'A') return { allowed: true, reason: `Class A action permitted in ${mode}.` };
-  if (mode === 'AUTONOMOUS_SEO') return { allowed: false, reason: 'Class B (new or substantial content) needs mode AUTONOMOUS_CONTENT or higher.' };
-  return { allowed: true, reason: `Class B action permitted in ${mode}; publication still requires every publish gate.` };
+  if (cls === 'B') return mode === 'AUTONOMOUS_SEO'
+    ? { allowed: false, reason: 'Class B (substantive content or search behaviour) needs mode AUTONOMOUS_CONTENT or higher.' }
+    : { allowed: true, reason: `Class B action permitted in ${mode}; publication still requires every publish gate.` };
+  return mode === 'AUTONOMOUS_DISTRIBUTION'
+    ? { allowed: true, reason: `Class D (external distribution) permitted in ${mode}.` }
+    : { allowed: false, reason: `Class D (external distribution) needs mode AUTONOMOUS_DISTRIBUTION (tenant mode is ${mode}).` };
 }
 
 export interface Gate { gate: string; passed: boolean; detail: string }
@@ -70,7 +76,7 @@ export function evaluateAuthorization(mode: AutonomyMode, o: PolicyOpportunity):
   gates.push({ gate: 'evidence_backed_opportunity', passed: Object.keys(o.evidence ?? {}).length > 0 && !!o.source, detail: o.source ? `source ${o.source}` : 'no evidence source' });
   const decisionOk = !!o.decision?.rationale && action === o.recommendedAction && Array.isArray(o.decision.checks) && o.decision.checks.length > 0;
   gates.push({ gate: 'valid_decision', passed: decisionOk, detail: decisionOk ? `action ${action} with recorded rationale and checks` : 'decision missing rationale/checks or disagrees with the recommended action' });
-  const overlap = o.type === 'QUERY_PAGE_MATCH_GAP' && action === 'CREATE_NEW_PAGE' ? Number(o.evidence?.bestMatchOverlap ?? 1) : null;
+  const overlap = o.type === 'QUERY_PAGE_MATCH_GAP' && action === 'CREATE_SEO_PAGE' ? Number(o.evidence?.bestMatchOverlap ?? 1) : null;
   gates.push({ gate: 'no_page_overlap', passed: overlap === null || overlap < 0.5, detail: overlap === null ? 'not a new-page opportunity' : `best existing page overlaps ${(overlap * 100).toFixed(0)}% of the query (limit 50%)` });
   const m = modeAllows(mode, cls, action);
   gates.push({ gate: 'tenant_authorization', passed: m.allowed, detail: m.reason });

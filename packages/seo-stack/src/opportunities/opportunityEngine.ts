@@ -33,8 +33,9 @@ export type OpportunityType =
   | 'SITEMAP_URL_REDIRECTS' | 'GOOGLE_INDEX_STATUS_ISSUE' | 'SITEMAP_REPORTED_ISSUES' | 'HIGH_IMPRESSIONS_LOW_CTR' | 'QUERY_PAGE_MATCH_GAP';
 
 export type DecisionAction =
-  | 'UPDATE_EXISTING_PAGE' | 'CREATE_NEW_PAGE' | 'CREATE_SUPPORTING_CONTENT' | 'IMPROVE_TITLE_META'
-  | 'ADD_INTERNAL_LINKS' | 'FIX_TECHNICAL_SEO' | 'IMPROVE_SCHEMA' | 'DISTRIBUTE_EXISTING_CONTENT' | 'NO_ACTION';
+  | 'UPDATE_EXISTING_PAGE' | 'CREATE_SEO_PAGE' | 'CREATE_SUPPORTING_CONTENT' | 'UPDATE_TITLE_META'
+  | 'ADD_INTERNAL_LINK' | 'UPDATE_SCHEMA' | 'FIX_SITEMAP_ENTRY' | 'CHANGE_CANONICAL' | 'CHANGE_INDEXABILITY' | 'CHANGE_REDIRECT' | 'CHANGE_SERVER_RENDERING'
+  | 'DISTRIBUTE_EXISTING_CONTENT' | 'PUBLISH_SOCIAL_DERIVATIVE' | 'OTHER_EXTERNAL_CHANNEL_PUBLICATION' | 'INVESTIGATE' | 'NO_ACTION';
 
 /** Allowed lifecycle moves. REJECTED is terminal; COMPLETED may be reopened only by re-detection (see engine). */
 const TRANSITIONS: Record<OpportunityStatus, OpportunityStatus[]> = {
@@ -58,7 +59,7 @@ const TRANSITIONS: Record<OpportunityStatus, OpportunityStatus[]> = {
  * Technical opportunities (redirects, missing static H1, server-rendered content, Google index status, sitemap issues)
  * are never eligible, whatever action they carry.
  */
-export const CONTENT_ACTIONS: ReadonlySet<DecisionAction> = new Set<DecisionAction>(['CREATE_NEW_PAGE', 'CREATE_SUPPORTING_CONTENT', 'UPDATE_EXISTING_PAGE', 'IMPROVE_TITLE_META']);
+export const CONTENT_ACTIONS: ReadonlySet<DecisionAction> = new Set<DecisionAction>(['CREATE_SEO_PAGE', 'CREATE_SUPPORTING_CONTENT', 'UPDATE_EXISTING_PAGE', 'UPDATE_TITLE_META']);
 export const CONTENT_OPPORTUNITY_TYPES: ReadonlySet<OpportunityType> = new Set<OpportunityType>(['HIGH_IMPRESSIONS_LOW_CTR', 'QUERY_PAGE_MATCH_GAP']);
 export function contentEligibility(type: OpportunityType, action: DecisionAction): { eligible: boolean; reason: string } {
   if (!CONTENT_OPPORTUNITY_TYPES.has(type)) return { eligible: false, reason: 'Technical opportunity: handled as a technical fix, never as content.' };
@@ -158,7 +159,7 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
           : 'Requested without running JavaScript, this page sends no text at all. Anything the page shows is added by JavaScript after it loads.',
         evidence: { url: p.url, staticWords: p.staticWords, bodyWords: p.bodyWords ?? null, threshold: THIN_STATIC_WORD_THRESHOLD, method: 'HTTP GET, no JavaScript', observedAt: checkedAt, h1InStaticHtml: p.h1Count },
         objective: 'Re-fetch without JavaScript after the change and compare readable words; then watch indexing and impressions for this URL in Search Console, if connected.',
-        decision: { action: 'FIX_TECHNICAL_SEO', requiresApproval: true,
+        decision: { action: 'CHANGE_SERVER_RENDERING', requiresApproval: true,
           rationale: 'The text exists only after JavaScript runs. The fix is how the page is delivered (server-side or static rendering), not new content.',
           checks: ['Observed readable words in server-delivered HTML', 'Existing page: yes (URL fetched with HTTP 200)'] }
       });
@@ -170,7 +171,7 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
         plainEnglish: 'The main heading of this page is not in the HTML the server sends.',
         evidence: { url: p.url, h1Count: p.h1Count, method: 'HTTP GET, no JavaScript', observedAt: checkedAt },
         objective: 'Re-fetch without JavaScript and confirm one <h1> is present.',
-        decision: { action: 'FIX_TECHNICAL_SEO', requiresApproval: true,
+        decision: { action: 'CHANGE_SERVER_RENDERING', requiresApproval: true,
           rationale: 'A heading is a page-delivery matter; no new page is needed.', checks: ['Observed <h1> count in server-delivered HTML'] }
       });
     }
@@ -184,8 +185,8 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
         plainEnglish: 'A web address listed in the sitemap sends visitors on to a different address. The sitemap should list the final address.',
         evidence: { listedUrl: p.url, finalUrl: p.finalUrl, method: 'HTTP GET following redirects', observedAt: checkedAt },
         objective: 'Re-fetch the sitemap entry and confirm it returns HTTP 200 without a redirect.',
-        decision: { action: 'FIX_TECHNICAL_SEO', requiresApproval: true,
-          rationale: 'Listing the final URL in the sitemap is a configuration change; no content is needed.', checks: ['Observed redirect on the sitemap-listed URL'] }
+        decision: { action: 'FIX_SITEMAP_ENTRY', requiresApproval: true,
+          rationale: 'Replace the sitemap entry with the final address. The redirect itself is NOT changed (that is a Class C server change).', checks: ['Observed redirect on the sitemap-listed URL', 'Before execution: verify the destination returns HTTP 200 and is its own canonical, on the same host', 'Before execution: verify the sitemap publisher is authorised for this tenant', 'Capture before/after sitemap state and rollback information; run sitemap QA before publication'] }
       });
     }
   }
@@ -199,7 +200,7 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
       plainEnglish: `Google's own report for this page says: ${i.coverageState ?? 'no status given'}.`,
       evidence: { url: i.url, verdict: i.verdict, coverageState: i.coverageState, indexingState: i.indexingState, robotsTxtState: i.robotsTxtState, pageFetchState: i.pageFetchState, lastCrawlTime: i.lastCrawlTime, googleCanonical: i.googleCanonical, userCanonical: i.userCanonical, inspectedAt: i.inspectedAt },
       objective: 'Inspect the URL again after any change and confirm Google reports a passing verdict.',
-      decision: { action: 'FIX_TECHNICAL_SEO', requiresApproval: true,
+      decision: { action: 'INVESTIGATE', requiresApproval: true,
         rationale: 'Google states the current index status; the cause is not known from this data alone, so the first step is to review the reported state, the canonical and robots results with the web team.',
         checks: ['Google URL Inspection result stored as returned', 'No inference made from the status text'] }
     });
@@ -212,7 +213,7 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
       plainEnglish: `Google reports problems with your sitemap (${m.errors ?? 0} errors, ${m.warnings ?? 0} warnings).`,
       evidence: { sitemap: m.path, errors: m.errors, warnings: m.warnings, lastDownloaded: m.lastDownloaded, fetchedAt: m.fetchedAt },
       objective: 'Re-read the sitemap report in Search Console and confirm the counts fall to zero.',
-      decision: { action: 'FIX_TECHNICAL_SEO', requiresApproval: true, rationale: 'The sitemap itself needs correcting; Google\'s report lists the affected entries.', checks: ['Counts taken directly from the Search Console sitemaps API'] }
+      decision: { action: 'INVESTIGATE', requiresApproval: true, rationale: 'The sitemap itself needs correcting; Google\'s report lists the affected entries.', checks: ['Counts taken directly from the Search Console sitemaps API'] }
     });
   }
 
@@ -225,7 +226,7 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
         plainEnglish: `This page is shown often in Google but rarely clicked (${g.clicks} clicks from ${g.impressions} views).`,
         evidence: { page: g.page, impressions: g.impressions, clicks: g.clicks, ctr: g.ctr, averagePosition: g.position, rule: `impressions >= ${HIGH_IMPRESSIONS_MIN} and ctr < ${LOW_CTR_MAX}`, capturedAt: input.gscCapturedAt ?? null },
         objective: 'After a title/description change, compare this page\'s CTR in Search Console over a comparable window; causation is not established by a before/after comparison.',
-        decision: { action: 'IMPROVE_TITLE_META', requiresApproval: true,
+        decision: { action: 'UPDATE_TITLE_META', requiresApproval: true,
           rationale: 'The page already earns impressions, so the title and description shown for it are the first thing to review. Google may choose to display different text.',
           checks: ['Existing URL with observed impressions'] }
       });
@@ -245,7 +246,7 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
       evidence: { query: q.query, impressions: q.impressions, clicks: q.clicks, bestMatchUrl: best.p.url, bestMatchOverlap: best.o, minOverlap: QUERY_MATCH_MIN_OVERLAP, pagesCompared: input.pages.length, capturedAt: input.gscCapturedAt ?? null, limitation: 'Only pages in the latest bounded audit were compared; an unaudited page may already cover this query.' },
       objective: 'Confirm whether a page covers this query, then measure that page\'s impressions and clicks for it in Search Console.',
       decision: {
-        action: best.o > 0 ? 'UPDATE_EXISTING_PAGE' : 'CREATE_NEW_PAGE', requiresApproval: true,
+        action: best.o > 0 ? 'UPDATE_EXISTING_PAGE' : 'CREATE_SEO_PAGE', requiresApproval: true,
         rationale: best.o > 0
           ? `A page shares some of the query's words (${best.p.url}); extending it is preferred over creating a competing page.`
           : 'No audited page shares any of the query\'s words. A new page is proposed only after a human confirms no unaudited page covers it.',

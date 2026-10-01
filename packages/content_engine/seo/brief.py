@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Tuple
 from packages.content_engine.dedup.engine import DeduplicationEngine
 from packages.content_engine.seo.models import InternalLink, OpportunityRef, SeoBrief, Sourced, TenantProfile
 
-CONTENT_ACTIONS = {"CREATE_NEW_PAGE", "CREATE_SUPPORTING_CONTENT", "UPDATE_EXISTING_PAGE", "IMPROVE_TITLE_META"}
+CONTENT_ACTIONS = {"CREATE_SEO_PAGE", "CREATE_SUPPORTING_CONTENT", "UPDATE_EXISTING_PAGE", "UPDATE_TITLE_META"}
 CONTENT_TYPES = {"HIGH_IMPRESSIONS_LOW_CTR", "QUERY_PAGE_MATCH_GAP"}  # mirrors the worker's rule (opportunityEngine.ts)
 QUERY_OVERLAP_MIN = 0.5  # same threshold the worker uses to call a page a match
 LINK_OVERLAP_MIN = 1  # shared meaningful words needed to justify an internal link
@@ -123,7 +123,7 @@ def build_brief(opp: Dict[str, Any], tenant: TenantProfile, pages: List[Dict[str
             scored.append({"url": p["url"], "overlap": round(o, 3), "shared_words": shared})
     scored.sort(key=lambda r: (-r["overlap"], r["url"]))
     covering = [s for s in scored if s["overlap"] >= QUERY_OVERLAP_MIN]
-    if is_query and action == "CREATE_NEW_PAGE" and covering:
+    if is_query and action == "CREATE_SEO_PAGE" and covering:
         raise ContentWorkflowError("CANNIBALIZATION_RISK", f"{covering[0]['url']} already shares {covering[0]['overlap']:.0%} of the query's words; update it instead of creating a competing page.")
 
     existing = next((p for p in pages if p["url"] == target_url or p["url"].rstrip("/") == (target_url or "").rstrip("/")), None)
@@ -137,8 +137,8 @@ def build_brief(opp: Dict[str, Any], tenant: TenantProfile, pages: List[Dict[str
                                   basis="OBSERVED" if existing else "NOT_AVAILABLE", evidence_refs=["published-page audit"], note=None if existing else "The page is not in the latest published-page audit.")
         overlap_res = Sourced(value={"covering_pages": [], "ranked": []}, basis="NOT_AVAILABLE", note="No query is available (Google withholds queries at this volume), so query overlap cannot be computed.")
 
-    content_type = {"CREATE_NEW_PAGE": "new page", "CREATE_SUPPORTING_CONTENT": "supporting content", "UPDATE_EXISTING_PAGE": "update to an existing page", "IMPROVE_TITLE_META": "title and description update"}[action]
-    canonical_val = (f"/{_slug(topic)}" if (is_query and action == "CREATE_NEW_PAGE") else (best["url"] if is_query and scored and action == "UPDATE_EXISTING_PAGE" else target_url))
+    content_type = {"CREATE_SEO_PAGE": "new page", "CREATE_SUPPORTING_CONTENT": "supporting content", "UPDATE_EXISTING_PAGE": "update to an existing page", "UPDATE_TITLE_META": "title and description update"}[action]
+    canonical_val = (f"/{_slug(topic)}" if (is_query and action == "CREATE_SEO_PAGE") else (best["url"] if is_query and scored and action == "UPDATE_EXISTING_PAGE" else target_url))
     links: List[InternalLink] = []
     if is_query:
         for s in scored:

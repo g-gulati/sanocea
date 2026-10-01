@@ -20,12 +20,12 @@ PAGES = [{"url": "https://www.sanocea.com/", "title": "SANOCEA", "h1Text": "Ecom
 FACTS = [ApprovedFact(id="f1", text="Marketplace payouts rarely match order totals because fees, returns and delays are netted off separately.", source="owner"),
          ApprovedFact(id="f2", text="Payout reconciliation compares each payout line with its order before the books are closed.", source="owner")]
 AUTO = {"by": "autonomous:sanocea-autonomy-policy@1.0.0", "at": "2026-10-02T00:00:00Z", "actorType": "AUTONOMOUS_AGENT", "policy": "sanocea-autonomy-policy@1.0.0",
-        "reason": "All authorisation gates passed under sanocea-autonomy-policy@1.0.0: Class B permitted in AUTONOMOUS_CONTENT.", "actionClass": "B", "approvedAction": "CREATE_NEW_PAGE"}
-HUMAN = {"by": "human:asha", "at": "2026-10-02T00:00:00Z", "actorType": "HUMAN", "policy": "human-manual", "reason": "ok", "actionClass": "B", "approvedAction": "CREATE_NEW_PAGE"}
+        "reason": "All authorisation gates passed under sanocea-autonomy-policy@1.0.0: Class B permitted in AUTONOMOUS_CONTENT.", "actionClass": "B", "approvedAction": "CREATE_SEO_PAGE"}
+HUMAN = {"by": "human:asha", "at": "2026-10-02T00:00:00Z", "actorType": "HUMAN", "policy": "human-manual", "reason": "ok", "actionClass": "B", "approvedAction": "CREATE_SEO_PAGE"}
 TARGET = PublishTarget(tenant_id="sanocea", base_url="https://www.sanocea.com", path_prefixes=["/"])
 
 
-def opp(action="CREATE_NEW_PAGE", approval=AUTO, status="APPROVED", target="marketplace payouts mismatch", oid="OPP-1", type_="QUERY_PAGE_MATCH_GAP", ev=None):
+def opp(action="CREATE_SEO_PAGE", approval=AUTO, status="APPROVED", target="marketplace payouts mismatch", oid="OPP-1", type_="QUERY_PAGE_MATCH_GAP", ev=None):
     ev = ev if ev is not None else {"query": target, "impressions": 80, "clicks": 0, "bestMatchUrl": PAGES[0]["url"], "bestMatchOverlap": 0.0, "pagesCompared": 1, "limitation": "Only audited pages were compared."}
     return {"opportunityId": oid, "type": type_, "target": target, "status": status, "source": "[OBSERVED: PERSISTED GSC SNAPSHOT]", "reason": "r", "detectedAt": "2026-10-01T00:00:00Z",
             "recommendedAction": action, "evidence": ev, "decision": {"action": action, "rationale": "No audited page shares the query's words.", "checks": ["compared"], "requiresApproval": True}, "approval": approval}
@@ -68,8 +68,9 @@ def test_python_policy_matches_the_workers_policy():
     dist = "packages/seo-stack/dist/src/opportunities/autonomyPolicy.js"
     if not shutil.which("node") or not os.path.exists(dist):
         pytest.skip("seo-stack is not built")
-    acts = ["IMPROVE_TITLE_META", "ADD_INTERNAL_LINKS", "IMPROVE_SCHEMA", "DISTRIBUTE_EXISTING_CONTENT", "CREATE_NEW_PAGE", "CREATE_SUPPORTING_CONTENT", "UPDATE_EXISTING_PAGE",
-            "FIX_TECHNICAL_SEO", "DELETE_PAGE", "CHANGE_DNS", "CHANGE_CREDENTIALS", "NO_ACTION", "WHATEVER"]
+    acts = ["UPDATE_TITLE_META", "ADD_INTERNAL_LINK", "UPDATE_SCHEMA", "FIX_SITEMAP_ENTRY", "CREATE_SEO_PAGE", "CREATE_SUPPORTING_CONTENT", "UPDATE_EXISTING_PAGE", "CHANGE_CANONICAL",
+            "CHANGE_INDEXABILITY", "DISTRIBUTE_EXISTING_CONTENT", "PUBLISH_SOCIAL_DERIVATIVE", "OTHER_EXTERNAL_CHANNEL_PUBLICATION", "CHANGE_REDIRECT", "CHANGE_SERVER_RENDERING",
+            "FIX_TECHNICAL_SEO", "DELETE_PAGE", "CHANGE_DNS", "CHANGE_CREDENTIALS", "INVESTIGATE", "NO_ACTION", "WHATEVER"]
     modes = ["AUTONOMY_DISABLED", "RECOMMEND_ONLY", "AUTONOMOUS_SEO", "AUTONOMOUS_CONTENT", "AUTONOMOUS_DISTRIBUTION"]
     js = f"import('./{dist}').then(m=>{{const o={{}};for(const a of {json.dumps(acts)}){{o[a]=m.classifyAction(a);for(const md of {json.dumps(modes)})o[a+'|'+md]=m.modeAllows(md,m.classifyAction(a),a).allowed}}console.log(JSON.stringify(o))}})"
     ts = json.loads(subprocess.run(["node", "-e", js], capture_output=True, text=True, check=True).stdout)
@@ -195,7 +196,7 @@ def test_approval_withdrawn_or_overlap_found_blocks(tmp_path):
 
 # ── Class C ──────────────────────────────────────────────────────────────────
 
-@pytest.mark.parametrize("action", ["DELETE_PAGE", "DELETE_DATA", "CHANGE_DNS", "CHANGE_DOMAIN_OWNERSHIP", "CHANGE_CREDENTIALS", "CHANGE_ACCESS", "CHANGE_PAYMENT", "DESTRUCTIVE_DATABASE", "CHANGE_INFRASTRUCTURE", "OUT_OF_SCOPE", "FIX_TECHNICAL_SEO", "SOMETHING_NEW"])
+@pytest.mark.parametrize("action", ["CHANGE_REDIRECT", "CHANGE_SERVER_RENDERING", "DELETE_PAGE", "DELETE_DATA", "CHANGE_DNS", "CHANGE_DOMAIN_OWNERSHIP", "CHANGE_CREDENTIALS", "CHANGE_ACCESS", "CHANGE_PAYMENT", "DESTRUCTIVE_DATABASE", "CHANGE_INFRASTRUCTURE", "OUT_OF_SCOPE", "INVESTIGATE", "FIX_TECHNICAL_SEO", "SOMETHING_NEW"])
 def test_class_c_is_never_eligible_even_if_every_other_gate_passes(action, tmp_path):
     st, o, b, d = ready(tmp_path)
     forged = b.model_copy(update={"lineage": b.lineage.model_copy(update={"recommended_action": action, "decision": dict(b.lineage.decision, action=action)})})
@@ -240,3 +241,14 @@ def test_tenant_isolation_audit_and_ledger_are_per_tenant(tmp_path):
     for bad in ["../sanocea", "A/b", ""]:
         with pytest.raises(ValueError):
             st.audit_events(bad)
+
+
+def test_python_matrix_is_nothing_nothing_A_AB_ABD_and_class_d_is_distribution_only():
+    A, B, D, C = "UPDATE_TITLE_META", "CREATE_SEO_PAGE", "DISTRIBUTE_EXISTING_CONTENT", "CHANGE_REDIRECT"
+    expect = {"AUTONOMY_DISABLED": (0, 0, 0), "RECOMMEND_ONLY": (0, 0, 0), "AUTONOMOUS_SEO": (1, 0, 0), "AUTONOMOUS_CONTENT": (1, 1, 0), "AUTONOMOUS_DISTRIBUTION": (1, 1, 1)}
+    for m, (a, b, d) in expect.items():
+        assert mode_allows(m, classify_action(A), A)[0] is bool(a), m
+        assert mode_allows(m, classify_action(B), B)[0] is bool(b), m
+        assert mode_allows(m, classify_action(D), D)[0] is bool(d), m
+        assert mode_allows(m, classify_action(C), C)[0] is False, m
+    assert [classify_action(x) for x in ("FIX_SITEMAP_ENTRY", "CHANGE_CANONICAL", "PUBLISH_SOCIAL_DERIVATIVE", "CHANGE_SERVER_RENDERING", "FIX_TECHNICAL_SEO")] == ["A", "B", "D", "C", "C"]

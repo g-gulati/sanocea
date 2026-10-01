@@ -23,10 +23,11 @@ from packages.content_engine.seo.models import SeoBrief, SeoDraft
 from packages.content_engine.seo.store import SeoContentStore
 
 POLICY_REF = "sanocea-autonomy-policy@1.0.0"
-CLASS_A = {"IMPROVE_TITLE_META", "ADD_INTERNAL_LINKS", "IMPROVE_SCHEMA", "DISTRIBUTE_EXISTING_CONTENT"}
-CLASS_B = {"CREATE_NEW_PAGE", "CREATE_SUPPORTING_CONTENT", "UPDATE_EXISTING_PAGE"}
-CLASS_C = {"DELETE_PAGE", "DELETE_DATA", "CHANGE_DNS", "CHANGE_DOMAIN_OWNERSHIP", "CHANGE_CREDENTIALS", "CHANGE_ACCESS", "CHANGE_SECURITY", "CHANGE_PAYMENT",
-           "DESTRUCTIVE_DATABASE", "CHANGE_INFRASTRUCTURE", "OUT_OF_SCOPE", "FIX_TECHNICAL_SEO"}
+CLASS_A = {"UPDATE_TITLE_META", "ADD_INTERNAL_LINK", "UPDATE_SCHEMA", "FIX_SITEMAP_ENTRY"}
+CLASS_B = {"CREATE_SEO_PAGE", "CREATE_SUPPORTING_CONTENT", "UPDATE_EXISTING_PAGE", "CHANGE_CANONICAL", "CHANGE_INDEXABILITY"}
+CLASS_D = {"DISTRIBUTE_EXISTING_CONTENT", "PUBLISH_SOCIAL_DERIVATIVE", "OTHER_EXTERNAL_CHANNEL_PUBLICATION"}
+CLASS_C = {"CHANGE_REDIRECT", "CHANGE_SERVER_RENDERING", "CHANGE_DNS", "CHANGE_DOMAIN_OWNERSHIP", "CHANGE_CREDENTIALS", "CHANGE_ACCESS", "CHANGE_SECURITY", "CHANGE_PAYMENT",
+           "DESTRUCTIVE_DATABASE", "CHANGE_INFRASTRUCTURE", "DELETE_PAGE", "DELETE_DATA", "OUT_OF_SCOPE", "INVESTIGATE"}
 
 
 def classify_action(action: str) -> str:
@@ -36,23 +37,24 @@ def classify_action(action: str) -> str:
         return "A"
     if action in CLASS_B:
         return "B"
-    return "C"  # unknown => fail closed
+    if action in CLASS_D:
+        return "D"
+    return "C"  # unknown (including the retired FIX_TECHNICAL_SEO) => fail closed
 
 
 def mode_allows(mode: str, cls: str, action: str) -> tuple[bool, str]:
+    """DISABLED/RECOMMEND_ONLY nothing; SEO = A; CONTENT = A+B; DISTRIBUTION = A+B+D. No mode authorises C."""
     if cls == "C":
         return False, f"Class C action ({action}) requires explicit human authorisation in every mode."
     if mode == "AUTONOMY_DISABLED":
         return False, "Autonomy is disabled for this tenant."
     if mode == "RECOMMEND_ONLY":
         return False, "This tenant is recommend-only."
-    if action == "DISTRIBUTE_EXISTING_CONTENT" and mode != "AUTONOMOUS_DISTRIBUTION":
-        return False, f"Distribution needs AUTONOMOUS_DISTRIBUTION (tenant mode is {mode})."
     if cls == "A":
         return True, f"Class A permitted in {mode}."
-    if mode == "AUTONOMOUS_SEO":
-        return False, "Class B needs AUTONOMOUS_CONTENT or higher."
-    return True, f"Class B permitted in {mode}."
+    if cls == "B":
+        return (False, "Class B needs AUTONOMOUS_CONTENT or higher.") if mode == "AUTONOMOUS_SEO" else (True, f"Class B permitted in {mode}.")
+    return (True, f"Class D permitted in {mode}.") if mode == "AUTONOMOUS_DISTRIBUTION" else (False, f"Class D needs AUTONOMOUS_DISTRIBUTION (tenant mode is {mode}).")
 
 
 class PublishTarget(BaseModel):
@@ -128,7 +130,7 @@ def evaluate_publish_eligibility(brief: SeoBrief, draft: SeoDraft, opp_now: Dict
     ok_ap, why_ap = valid_approval(approval)
     g("standing_approval", ok_ap and opp_now.get("status") in ("APPROVED", "IN_PROGRESS"), f"{why_ap}; status {opp_now.get('status')}")
     overl = (brief.overlap.value or {}).get("covering_pages", []) if brief.overlap.basis == "CALCULATED" else []
-    g("no_page_overlap", not (action == "CREATE_NEW_PAGE" and overl), f"{len(overl)} existing page(s) at or above {QUERY_OVERLAP_MIN:.0%} overlap" if overl else "no covering page")
+    g("no_page_overlap", not (action == "CREATE_SEO_PAGE" and overl), f"{len(overl)} existing page(s) at or above {QUERY_OVERLAP_MIN:.0%} overlap" if overl else "no covering page")
     for name, label in (("evidence_grounding", "content_grounding"), ("claims_gate", "claims_gate")):
         r = _qa(draft, name)
         g(label, r is True, "passed" if r is True else "failed or not evaluated")

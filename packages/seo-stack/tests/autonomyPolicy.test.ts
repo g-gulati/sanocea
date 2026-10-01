@@ -8,7 +8,7 @@ const GSC = (q: string) => ({ snapshotId: 'S', siteUrl: 'sc-domain:a.test', date
   queryRows: [{ query: q, clicks: 0, impressions: 80, ctr: 0, position: 12 }], pageRows: [{ page: 'https://a.test/', clicks: 2, impressions: 400, ctr: 0.005, position: 9 }], capturedAt: '2026-09-29T00:00:00Z' });
 const PAGES = [{ url: 'https://a.test/', status: 200, staticWords: 400, bodyWords: 420, title: 'Acme', h1Text: 'Acme ops', h1Count: 1, jsonLdTypes: [], retiredSchemaTypes: [], finalUrl: 'https://a.test/', redirected: false }];
 
-/** Seeds a tenant with a content opportunity (query with no matching page => CREATE_NEW_PAGE) and a title/meta one (IMPROVE_TITLE_META). */
+/** Seeds a tenant with a content opportunity (query with no matching page => CREATE_SEO_PAGE) and a title/meta one (UPDATE_TITLE_META). */
 function setup(tenant = 'a') {
   const db = new SeoDatabase(':memory:');
   db.recordAgentTaskExecution({ taskId: `t-${tenant}`, tenantId: tenant, agentId: 'agent-ai-content-auditor', agentName: 'x', role: 'AI_CONTENT_AUDITOR', status: 'COMPLETED', currentTask: 'x', outputSummary: 'x', provenance: '[OBSERVED: LIVE PAGE FETCH]', executedAt: new Date().toISOString(), nextScheduledAt: '', details: { checkedAt: new Date().toISOString(), pages: PAGES } } as any);
@@ -19,22 +19,23 @@ function setup(tenant = 'a') {
   return { db, eng, by, toAwaiting };
 }
 
-test('action classes: A/B/C, every prohibited action and every unknown action is Class C', () => {
-  for (const a of ['IMPROVE_TITLE_META', 'ADD_INTERNAL_LINKS', 'IMPROVE_SCHEMA']) assert.equal(classifyAction(a), 'A');
-  for (const a of ['CREATE_NEW_PAGE', 'CREATE_SUPPORTING_CONTENT', 'UPDATE_EXISTING_PAGE']) assert.equal(classifyAction(a), 'B');
+test('action classes: A / B / C / D exactly as decided; every prohibited and every unrecognised action (incl. the retired FIX_TECHNICAL_SEO) is Class C', () => {
+  for (const a of ['UPDATE_TITLE_META', 'ADD_INTERNAL_LINK', 'UPDATE_SCHEMA', 'FIX_SITEMAP_ENTRY']) assert.equal(classifyAction(a), 'A', a);
+  for (const a of ['CREATE_SEO_PAGE', 'CREATE_SUPPORTING_CONTENT', 'UPDATE_EXISTING_PAGE', 'CHANGE_CANONICAL', 'CHANGE_INDEXABILITY']) assert.equal(classifyAction(a), 'B', a);
+  for (const a of ['DISTRIBUTE_EXISTING_CONTENT', 'PUBLISH_SOCIAL_DERIVATIVE', 'OTHER_EXTERNAL_CHANNEL_PUBLICATION']) assert.equal(classifyAction(a), 'D', a);
   for (const a of CLASS_C_PROHIBITED) assert.equal(classifyAction(a), 'C', a);
-  for (const a of ['DELETE_PAGE', 'CHANGE_DNS', 'CHANGE_CREDENTIALS', 'WHATEVER_NEW_ACTION', '']) assert.equal(classifyAction(a), 'C', a);
+  for (const a of ['CHANGE_REDIRECT', 'CHANGE_SERVER_RENDERING', 'DELETE_PAGE', 'CHANGE_DNS', 'CHANGE_CREDENTIALS', 'FIX_TECHNICAL_SEO', 'WHATEVER_NEW_ACTION', '']) assert.equal(classifyAction(a), 'C', a);
 });
 
-test('mode matrix: Class C never allowed; disabled/recommend-only never authorise; SEO = A; CONTENT = A+B; DISTRIBUTION adds distribution', () => {
-  for (const m of ['AUTONOMY_DISABLED', 'RECOMMEND_ONLY', 'AUTONOMOUS_SEO', 'AUTONOMOUS_CONTENT', 'AUTONOMOUS_DISTRIBUTION'] as const) assert.equal(modeAllows(m, 'C', 'DELETE_PAGE').allowed, false, m);
-  assert.equal(modeAllows('AUTONOMY_DISABLED', 'A', 'IMPROVE_TITLE_META').allowed, false);
-  assert.equal(modeAllows('RECOMMEND_ONLY', 'A', 'IMPROVE_TITLE_META').allowed, false);
-  assert.equal(modeAllows('AUTONOMOUS_SEO', 'A', 'IMPROVE_TITLE_META').allowed, true);
-  assert.equal(modeAllows('AUTONOMOUS_SEO', 'B', 'CREATE_NEW_PAGE').allowed, false);
-  assert.equal(modeAllows('AUTONOMOUS_CONTENT', 'B', 'CREATE_NEW_PAGE').allowed, true);
-  assert.equal(modeAllows('AUTONOMOUS_CONTENT', 'A', 'DISTRIBUTE_EXISTING_CONTENT').allowed, false);
-  assert.equal(modeAllows('AUTONOMOUS_DISTRIBUTION', 'A', 'DISTRIBUTE_EXISTING_CONTENT').allowed, true);
+test('mode matrix: nothing / nothing / A / A+B / A+B+D, and no mode authorises C; distribution is no longer reachable from AUTONOMOUS_SEO', () => {
+  const A = 'UPDATE_TITLE_META', B = 'CREATE_SEO_PAGE', D = 'DISTRIBUTE_EXISTING_CONTENT', C = 'CHANGE_REDIRECT';
+  const expect: Record<string, [boolean, boolean, boolean]> = { AUTONOMY_DISABLED: [false, false, false], RECOMMEND_ONLY: [false, false, false], AUTONOMOUS_SEO: [true, false, false], AUTONOMOUS_CONTENT: [true, true, false], AUTONOMOUS_DISTRIBUTION: [true, true, true] };
+  for (const [m, [a, b, d]] of Object.entries(expect)) {
+    assert.equal(modeAllows(m as any, classifyAction(A), A).allowed, a, `${m}/A`);
+    assert.equal(modeAllows(m as any, classifyAction(B), B).allowed, b, `${m}/B`);
+    assert.equal(modeAllows(m as any, classifyAction(D), D).allowed, d, `${m}/D`);
+    assert.equal(modeAllows(m as any, classifyAction(C), C).allowed, false, `${m}/C`);
+  }
 });
 
 test('autonomous approval: recorded as AUTONOMOUS_AGENT under the policy, with evidence, gates and reason; never labelled human', () => {
@@ -46,7 +47,7 @@ test('autonomous approval: recorded as AUTONOMOUS_AGENT under the policy, with e
   assert.equal(r.decision.allowed, true); assert.equal(r.decision.actionClass, 'B');
   assert.equal(r.opportunity.status, 'APPROVED');
   const ap = r.opportunity.approval!;
-  assert.deepEqual({ t: ap.actorType, by: ap.by, pol: ap.policy, at: ap.at, act: ap.approvedAction }, { t: 'AUTONOMOUS_AGENT', by: AUTONOMOUS_ACTOR, pol: POLICY_REF, at: '2026-10-02T00:00:00Z', act: 'CREATE_NEW_PAGE' });
+  assert.deepEqual({ t: ap.actorType, by: ap.by, pol: ap.policy, at: ap.at, act: ap.approvedAction }, { t: 'AUTONOMOUS_AGENT', by: AUTONOMOUS_ACTOR, pol: POLICY_REF, at: '2026-10-02T00:00:00Z', act: 'CREATE_SEO_PAGE' });
   assert.match(ap.reason, /All authorisation gates passed/);
   assert.equal(by('QUERY_PAGE_MATCH_GAP').approval!.by.startsWith('human:'), false);
   const row: any = (eng as any).db.handle.prepare(`SELECT * FROM seo_approvals`).get();
@@ -66,15 +67,28 @@ test('policy denial: recommend-only, disabled, and Class B in SEO mode are denie
 });
 
 test('Class C is refused even in the most permissive mode, and a technical fix is Class C', () => {
-  const { eng, by, toAwaiting } = setup(); eng.setAutonomyMode('a', 'AUTONOMOUS_DISTRIBUTION', 'human:owner');
-  const o = by('SERVER_RENDERED_CONTENT_GAP') ?? by('MISSING_STATIC_H1');
-  assert.ok(o === undefined || o.recommendedAction === 'FIX_TECHNICAL_SEO');
+  const { eng } = setup(); eng.setAutonomyMode('a', 'AUTONOMOUS_DISTRIBUTION', 'human:owner');
   const d = evaluateAuthorization('AUTONOMOUS_DISTRIBUTION', { status: 'AWAITING_APPROVAL', type: 'X', source: 's', target: 't', recommendedAction: 'DELETE_PAGE', evidence: { a: 1 }, decision: { action: 'DELETE_PAGE', rationale: 'r', checks: ['c'] } });
   assert.equal(d.allowed, false); assert.equal(d.actionClass, 'C'); assert.match(d.reason, /Class C/);
 });
 
+test('technical opportunities carry the most specific supported action: server rendering = Class C, sitemap entry = Class A, unknown cause = INVESTIGATE (Class C)', () => {
+  const db = new SeoDatabase(':memory:');
+  db.recordAgentTaskExecution({ taskId: 'tt', tenantId: 'a', agentId: 'agent-ai-content-auditor', agentName: 'x', role: 'AI_CONTENT_AUDITOR', status: 'COMPLETED', currentTask: 'x', outputSummary: 'x', provenance: '[OBSERVED: LIVE PAGE FETCH]', executedAt: new Date().toISOString(), nextScheduledAt: '', details: { checkedAt: 'x', pages: [{ ...PAGES[0], url: 'https://a.test/s', staticWords: 0, bodyWords: 0, h1Count: 0, redirected: true, finalUrl: 'https://a.test/s/' }] } } as any);
+  const eng = new OpportunityEngine(db); eng.refresh('a');
+  const act = (t: string) => eng.list('a').opportunities.find(o => o.type === t)!.recommendedAction;
+  assert.equal(act('SERVER_RENDERED_CONTENT_GAP'), 'CHANGE_SERVER_RENDERING');
+  assert.equal(act('MISSING_STATIC_H1'), 'CHANGE_SERVER_RENDERING');
+  assert.equal(act('SITEMAP_URL_REDIRECTS'), 'FIX_SITEMAP_ENTRY');
+  assert.equal(classifyAction('FIX_SITEMAP_ENTRY'), 'A');
+  assert.equal(classifyAction('CHANGE_REDIRECT'), 'C', 'the redirect itself is never changed autonomously');
+  const sm = eng.list('a').opportunities.find(o => o.type === 'SITEMAP_URL_REDIRECTS')!;
+  assert.ok(sm.decision.checks.some(c => /verify the destination/i.test(c)) && sm.decision.checks.some(c => /before\/after/i.test(c)), 'pre-execution verification is recorded in the decision');
+  assert.match(sm.decision.rationale, /redirect itself is NOT changed/);
+});
+
 test('gates: no evidence, a decision that disagrees with the action, or an overlapping page each block authorisation', () => {
-  const ok = { status: 'AWAITING_APPROVAL', type: 'QUERY_PAGE_MATCH_GAP', source: 's', target: 'q', recommendedAction: 'CREATE_NEW_PAGE', evidence: { query: 'q', bestMatchOverlap: 0 }, decision: { action: 'CREATE_NEW_PAGE', rationale: 'r', checks: ['c'] } };
+  const ok = { status: 'AWAITING_APPROVAL', type: 'QUERY_PAGE_MATCH_GAP', source: 's', target: 'q', recommendedAction: 'CREATE_SEO_PAGE', evidence: { query: 'q', bestMatchOverlap: 0 }, decision: { action: 'CREATE_SEO_PAGE', rationale: 'r', checks: ['c'] } };
   assert.equal(evaluateAuthorization('AUTONOMOUS_CONTENT', ok).allowed, true);
   assert.equal(evaluateAuthorization('AUTONOMOUS_CONTENT', { ...ok, evidence: {} }).allowed, false);
   assert.equal(evaluateAuthorization('AUTONOMOUS_CONTENT', { ...ok, decision: { ...ok.decision, action: 'UPDATE_EXISTING_PAGE' } }).allowed, false);
