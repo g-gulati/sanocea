@@ -19,6 +19,19 @@ QUERY_OVERLAP_MIN = 0.5  # same threshold the worker uses to call a page a match
 LINK_OVERLAP_MIN = 1  # shared meaningful words needed to justify an internal link
 
 
+def valid_approval(approval: Dict[str, Any] | None) -> Tuple[bool, str]:
+    """An approval stands only if its actor type and actor identity agree: a HUMAN approval has a `human:` actor, an
+    AUTONOMOUS_AGENT approval has an `autonomous:` actor and a named policy. A mismatch (an agent claiming to be human,
+    or a human record under an autonomous label) is refused: autonomous decisions are never relabelled as human."""
+    a = approval or {}
+    by, kind, policy = str(a.get("by", "")), a.get("actorType"), str(a.get("policy", ""))
+    if kind == "HUMAN" and by.startswith("human:") and len(by) > 6:
+        return True, "human approval"
+    if kind == "AUTONOMOUS_AGENT" and by.startswith("autonomous:") and "@" in policy:
+        return True, f"autonomous approval under {policy}"
+    return False, "No valid approval: actor type and identity must agree (HUMAN/human: or AUTONOMOUS_AGENT/autonomous: with a policy)."
+
+
 class ContentWorkflowError(Exception):
     def __init__(self, code: str, message: str):
         super().__init__(f"{code}: {message}")
@@ -89,14 +102,15 @@ def build_brief(opp: Dict[str, Any], tenant: TenantProfile, pages: List[Dict[str
     if not ok:
         raise ContentWorkflowError("NOT_CONTENT_ELIGIBLE", why)
     approval = opp.get("approval") or {}
-    if opp.get("status") != "APPROVED" or not str(approval.get("by", "")).startswith("human:"):
-        raise ContentWorkflowError("NOT_HUMAN_APPROVED", "A brief is only created from an opportunity a human has approved.")
+    ok_ap, why_ap = valid_approval(approval)
+    if opp.get("status") != "APPROVED" or not ok_ap:
+        raise ContentWorkflowError("NOT_APPROVED", "A brief is only created from an approved opportunity (human, or autonomous under the policy). " + why_ap)
     now = now or datetime.now(timezone.utc).isoformat()
     ev: Dict[str, Any] = opp.get("evidence") or {}
     decision: Dict[str, Any] = opp.get("decision") or {}
     action = decision.get("action") or opp.get("recommendedAction")
     ref = OpportunityRef(opportunity_id=opp["opportunityId"], type=opp["type"], target=opp["target"], status=opp["status"], detected_at=opp["detectedAt"], source=opp["source"],
-                         recommended_action=action, reason=opp.get("reason", ""), evidence=ev, decision=decision, approval={"by": approval["by"], "at": approval["at"]})
+                         recommended_action=action, reason=opp.get("reason", ""), evidence=ev, decision=decision, approval=dict(approval))
     is_query = opp["type"] == "QUERY_PAGE_MATCH_GAP"
     topic = ev.get("query") if is_query else None
     target_url = None if is_query else (ev.get("page") or opp["target"])

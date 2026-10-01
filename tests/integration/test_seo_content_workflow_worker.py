@@ -138,3 +138,63 @@ def test_technical_opportunities_cannot_enter_the_content_workflow(worker, tmp_p
             wf.submit_for_approval(o, control)
         assert e.value.code == "NOT_CONTENT_ELIGIBLE"
         assert src.get(o["opportunityId"])["status"] == "DISCOVERED", "refused before any state change"
+
+
+def test_real_autonomous_path_policy_decides_and_records_autonomous_approval(worker, tmp_path):
+    """Real worker + fixture opportunity: default tenant is recommend-only (denied); a human sets AUTONOMOUS_CONTENT; the policy
+    then approves as AUTONOMOUS_AGENT (not human); brief/draft follow; publish eligibility is evaluated (nothing is published)."""
+    from packages.content_engine.seo.policy import PublishTarget, build_rollback, evaluate_publish_eligibility
+    base, token = worker
+    src, control, store = OpportunitySource(_get(base)), OpportunityControl(_post(base, token)), SeoContentStore(str(tmp_path / "content"))
+    post = _post(base, token)
+    assert src.autonomy()["mode"] == "RECOMMEND_ONLY", "no configuration => recommend-only"
+    o = [x for x in src.list()["opportunities"] if x["contentEligible"]][0]
+
+    denied = wf.authorize_autonomously(o, control)["decision"]
+    assert denied["allowed"] is False and "recommend-only" in denied["reason"].lower()
+    assert src.get(o["opportunityId"])["status"] == "AWAITING_APPROVAL" and src.get(o["opportunityId"])["approval"] is None
+
+    with pytest.raises(RuntimeError, match="only a human"):
+        post("/autonomy/mode", {"mode": "AUTONOMOUS_CONTENT", "actor": "autonomous:sanocea-autonomy-policy@1.0.0"})
+    with pytest.raises(RuntimeError, match="only a human"):
+        post("/autonomy/mode", {"mode": "AUTONOMOUS_CONTENT", "actor": "agent:content-workflow"})
+    assert src.autonomy()["mode"] == "RECOMMEND_ONLY"
+    post("/autonomy/mode", {"mode": "AUTONOMOUS_CONTENT", "actor": "human:owner"})
+    assert src.autonomy()["mode"] == "AUTONOMOUS_CONTENT"
+
+    out = wf.authorize_autonomously(src.get(o["opportunityId"]), control)
+    assert out["decision"]["allowed"] is True and out["decision"]["actionClass"] == "B"
+    o = src.get(o["opportunityId"])
+    ap = o["approval"]
+    assert o["status"] == "APPROVED" and ap["actorType"] == "AUTONOMOUS_AGENT" and ap["by"].startswith("autonomous:") and ap["policy"] == "sanocea-autonomy-policy@1.0.0" and "gates passed" in ap["reason"]
+    again = wf.authorize_autonomously(o, control)
+    assert again["decision"]["allowed"] is True, "idempotent"
+
+    pages = src.site_pages()
+    brief = wf.create_brief(o, TENANT, pages, store, control)
+    draft = wf.generate_draft(brief, src.get(o["opportunityId"]), FACTS, pages, store, control=control)
+    assert draft.status == "DRAFT_READY" and draft.lineage["approval_actor_type"] == "AUTONOMOUS_AGENT"
+    rb = build_rollback(brief, draft)
+    d = evaluate_publish_eligibility(brief, draft, src.get(o["opportunityId"]), src.autonomy()["mode"], PublishTarget(tenant_id="sanocea", base_url="https://www.sanocea.com", path_prefixes=["/"]), store, rb)
+    assert d.eligible and d.action_class == "B"
+    assert store.get_publication("sanocea", rb.target) is None, "eligibility is not publication"
+    assert "AUTONOMOUS_AGENT" in wf.explain(store, "sanocea", draft.draft_id)["why"]
+
+    # a human halts it: the autonomous approval stays on record, the human act is recorded as HUMAN, publication is blocked
+    wf.human_override(src.get(o["opportunityId"]), control, "human:asha", "Not now")
+    after = src.get(o["opportunityId"])
+    assert after["status"] == "REJECTED" and after["approval"]["actorType"] == "AUTONOMOUS_AGENT"
+    blocked = evaluate_publish_eligibility(brief, draft, after, src.autonomy()["mode"], PublishTarget(tenant_id="sanocea", base_url="https://www.sanocea.com", path_prefixes=["/"]), store, rb)
+    assert not blocked.eligible and "standing_approval" in blocked.blocked_by
+
+
+def test_technical_opportunities_are_class_c_and_never_authorised_even_in_the_most_permissive_mode(worker):
+    base, token = worker
+    src, control, post = OpportunitySource(_get(base)), OpportunityControl(_post(base, token)), _post(base, token)
+    post("/autonomy/mode", {"mode": "AUTONOMOUS_DISTRIBUTION", "actor": "human:owner"})
+    for o in [x for x in src.list()["opportunities"] if not x["contentEligible"]]:
+        for to in ("QUALIFIED", "ACTIONABLE", "AWAITING_APPROVAL"):
+            control.transition(o["opportunityId"], to, "agent:test", "prep")
+        r = control.authorize(o["opportunityId"])
+        assert r["decision"]["allowed"] is False and r["decision"]["actionClass"] == "C", o["type"]
+        assert src.get(o["opportunityId"])["approval"] is None

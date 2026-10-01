@@ -31,7 +31,7 @@ def opp(type_="QUERY_PAGE_MATCH_GAP", action="CREATE_NEW_PAGE", status="APPROVED
     return {"opportunityId": oid, "type": type_, "target": target, "status": status, "source": "[OBSERVED: PERSISTED GSC SNAPSHOT]", "reason": "Search Console reports 80 impressions.",
             "detectedAt": "2026-10-01T00:00:00Z", "recommendedAction": action, "evidence": ev,
             "decision": {"action": action, "rationale": "No audited page shares the query's words.", "checks": ["compared"], "requiresApproval": True},
-            "approval": {"by": by, "at": "2026-10-01T01:00:00Z"} if by else None}
+            "approval": ({"by": by, "at": "2026-10-01T01:00:00Z", "actorType": "HUMAN" if by.startswith("human:") else "AUTONOMOUS_AGENT" if by.startswith("autonomous:") else "UNKNOWN", "policy": "human-manual" if by.startswith("human:") else "p@1", "reason": "approved"} if by else None)}
 
 
 class FakeControl(OpportunityControl):
@@ -105,7 +105,7 @@ def test_submit_for_approval_only_runs_agent_steps_and_never_approves():
 def test_no_brief_without_a_standing_human_approval(o, store):
     with pytest.raises(ContentWorkflowError) as e:
         wf.create_brief(o, TENANT, PAGES, store)
-    assert e.value.code == "NOT_HUMAN_APPROVED"
+    assert e.value.code == "NOT_APPROVED"
 
 
 # ── brief: provenance, no invented metrics ────────────────────────────────────
@@ -198,7 +198,7 @@ def test_draft_uses_only_approved_facts_and_passes_qa_with_no_score(store):
     assert set(d.fact_ids_used) <= {"f1", "f2"}
     paragraphs = [p for s in d.sections for p in s.paragraphs]
     assert paragraphs and all(p.fact_ids and p.text in {f.text for f in FACTS} for p in paragraphs), "no sentence exists that is not an approved fact"
-    assert d.lineage == {"brief_id": b.brief_id, "opportunity_id": "OPP-1", "approved_by": "human:asha"}
+    assert d.lineage == {"brief_id": b.brief_id, "opportunity_id": "OPP-1", "approved_by": "human:asha", "approval_actor_type": "HUMAN", "approval_policy": "human-manual"}
     names = {c.check_name for c in d.qa.checks}
     assert {"evidence_grounding", "claims_gate", "no_unsourced_numbers", "duplication", "cannibalization", "intended_audience", "search_intent", "internal_links", "title", "meta_description", "heading_structure"} <= names
     assert not any(k in d.model_dump_json().lower() for k in ["seo_score", "citability", "priority"])
@@ -209,7 +209,7 @@ def test_draft_is_refused_unless_a_human_approval_still_stands(store):
     for o in [opp(by="agent:x"), opp(status="REJECTED"), opp(status="AWAITING_APPROVAL", by=None)]:
         with pytest.raises(ContentWorkflowError) as e:
             wf.generate_draft(b, o, FACTS, PAGES, store)
-        assert e.value.code == "NOT_HUMAN_APPROVED"
+        assert e.value.code == "NOT_APPROVED"
     with pytest.raises(ContentWorkflowError) as e:
         wf.generate_draft(b, opp(oid="OPP-OTHER"), FACTS, PAGES, store)
     assert e.value.code == "LINEAGE_MISMATCH"

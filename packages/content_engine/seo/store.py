@@ -79,3 +79,38 @@ class SeoContentStore:
                 if item and item.get("tenant_id") == tenant_id:
                     out.append(SeoDraft(**item))
         return out
+
+
+    # ── audit trail and publication ledger (append-only / write-once) ──────────
+    def append_audit(self, tenant_id: str, event_id: str, event: dict) -> bool:
+        """Append one audit event; an event id already present is not written twice (idempotent). Returns True if written."""
+        path = os.path.join(self._dir(tenant_id), "audit.jsonl")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                if any(json.loads(line).get("event_id") == event_id for line in f if line.strip()):
+                    return False
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"event_id": event_id, "tenant_id": tenant_id, **event}, sort_keys=True) + "\n")
+        return True
+
+    def audit_events(self, tenant_id: str) -> list:
+        path = os.path.join(self._dir(tenant_id), "audit.jsonl")
+        if not os.path.exists(path):
+            return []
+        with open(path, "r", encoding="utf-8") as f:
+            return [json.loads(line) for line in f if line.strip()]
+
+    def _pub_path(self, tenant_id: str, key: str) -> str:
+        import hashlib
+        return os.path.join(self._dir(tenant_id), "publications", hashlib.sha1(key.encode()).hexdigest()[:16] + ".json")
+
+    def get_publication(self, tenant_id: str, key: str) -> Optional[dict]:
+        return self._read(self._pub_path(tenant_id, key))
+
+    def record_publication(self, tenant_id: str, key: str, record: dict) -> None:
+        """Write-once ledger entry for a published item (called by the future publisher). A second write for the same key is refused."""
+        path = self._pub_path(tenant_id, key)
+        if os.path.exists(path):
+            raise FileExistsError("already published")
+        self._write(path, {"key": key, "tenant_id": tenant_id, **record})

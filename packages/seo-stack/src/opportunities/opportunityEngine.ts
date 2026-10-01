@@ -17,6 +17,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { AUTONOMOUS_ACTOR, AuthorizationDecision, AutonomyMode, DEFAULT_MODE, POLICY_REF, classifyAction, evaluateAuthorization, isAutonomyMode } from './autonomyPolicy.js';
 import { SeoDatabase } from '../persistence/seoDb.js';
 import { GscPropertyService, InspectionRecord, SitemapRecord } from '../search-intel/gscProperty.js';
 import { PublishedPageObservation, THIN_STATIC_WORD_THRESHOLD } from '../core/publishedPageAudit.js';
@@ -95,8 +96,11 @@ export interface Opportunity {
   contentEligible: boolean;
   contentEligibilityReason: string;
   /** Who approved it, from the audit trail (null until a human approves). */
-  approval: { by: string; at: string } | null;
+  approval: ApprovalRecord | null;
 }
+
+/** Persisted authorisation record. actorType distinguishes HUMAN from AUTONOMOUS_AGENT and is never inferred from free text. */
+export interface ApprovalRecord { by: string; at: string; actorType: 'HUMAN' | 'AUTONOMOUS_AGENT'; policy: string; reason: string; actionClass: string; approvedAction: string }
 
 export interface Candidate {
   type: OpportunityType; target: string; confidence: Opportunity['confidence']; source: string;
@@ -272,9 +276,56 @@ export class OpportunityEngine {
     } as Opportunity & typeof c;
   }
 
-  private approvalOf(tenantId: string, id: string): { by: string; at: string } | null {
-    const e = this.db.handle.prepare(`SELECT actor, at FROM seo_opportunity_events WHERE tenant_id = ? AND opportunity_id = ? AND to_status = 'APPROVED' AND from_status IS NOT NULL AND from_status != to_status ORDER BY id DESC LIMIT 1`).get(tenantId, id) as any;
-    return e ? { by: e.actor, at: e.at } : null;
+  private approvalOf(tenantId: string, id: string): ApprovalRecord | null {
+    const e = this.db.handle.prepare(`SELECT * FROM seo_approvals WHERE tenant_id = ? AND opportunity_id = ? ORDER BY rowid DESC LIMIT 1`).get(tenantId, id) as any;
+    return e ? { by: e.actor, at: e.approved_at, actorType: e.approval_actor_type, policy: e.approval_policy, reason: e.approval_reason, actionClass: e.action_class, approvedAction: e.approved_action } : null;
+  }
+
+  // ── autonomy: tenant mode and policy-governed authorisation ────────────────
+  public getAutonomyMode(tenantId: string): AutonomyMode {
+    const r = this.db.handle.prepare(`SELECT mode FROM tenant_autonomy WHERE tenant_id = ?`).get(tenantId) as any;
+    return r && isAutonomyMode(r.mode) ? r.mode : DEFAULT_MODE;
+  }
+
+  /** Changing what SANOCEA may do on its own is an access/security decision: human only. */
+  public setAutonomyMode(tenantId: string, mode: string, actor: string, now = new Date().toISOString()): AutonomyMode {
+    if (!actor.startsWith('human:') || actor.length <= 6) throw new Error('only a human actor can change a tenant autonomy mode');
+    if (!isAutonomyMode(mode)) throw new Error(`unknown autonomy mode ${mode}`);
+    this.db.handle.prepare(`INSERT INTO tenant_autonomy (tenant_id, mode, updated_at, updated_by) VALUES (?,?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET mode=excluded.mode, updated_at=excluded.updated_at, updated_by=excluded.updated_by`).run(tenantId, mode, now, actor);
+    return mode;
+  }
+
+  private insertApproval(tenantId: string, r: any, type: 'HUMAN' | 'AUTONOMOUS_AGENT', actor: string, policy: string, reason: string, gates: unknown, now: string): void {
+    this.db.handle.prepare(`INSERT INTO seo_approvals (approval_id, tenant_id, opportunity_id, approval_actor_type, actor, approval_policy, approval_reason, approved_at, approved_action, action_class, target, evidence_json, decision_json, gates_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      .run(`APR-${randomUUID()}`, tenantId, r.opportunity_id, type, actor, policy, reason, now, r.recommended_action, classifyAction(r.recommended_action), r.target, r.evidence_json, r.decision_json, JSON.stringify(gates));
+  }
+
+  /**
+   * Policy-governed authorisation. Evaluates the tenant's mode and every authorisation gate; if all pass, records an
+   * AUTONOMOUS_AGENT approval and moves AWAITING_APPROVAL -> APPROVED. If not, status is unchanged and the denial is audited.
+   * Idempotent: an opportunity that already holds an approval returns it without a second record.
+   */
+  public authorize(tenantId: string, opportunityId: string, now = new Date().toISOString()): { decision: AuthorizationDecision; opportunity: Opportunity } {
+    const r = this.db.handle.prepare(`SELECT * FROM seo_opportunities WHERE tenant_id = ? AND opportunity_id = ?`).get(tenantId, opportunityId) as any;
+    if (!r) throw new Error('opportunity not found for this tenant');
+    const existing = this.approvalOf(tenantId, opportunityId);
+    const mode = this.getAutonomyMode(tenantId);
+    const base = this.rowToOpp(r);
+    if (existing && ['APPROVED', 'IN_PROGRESS', 'COMPLETED', 'MEASURING', 'LEARNED'].includes(r.status)) {
+      return { decision: { allowed: true, actionClass: classifyAction(r.recommended_action), action: r.recommended_action, mode, policy: existing.policy, gates: [], reason: `Already authorised (${existing.actorType}) at ${existing.at}.` }, opportunity: base };
+    }
+    const decision = evaluateAuthorization(mode, { status: r.status, type: r.type, source: r.source, target: r.target, recommendedAction: r.recommended_action, evidence: JSON.parse(r.evidence_json), decision: JSON.parse(r.decision_json) });
+    if (!decision.allowed) {
+      this.event(tenantId, opportunityId, r.status, r.status, AUTONOMOUS_ACTOR, `POLICY_DENIED: ${decision.reason}`, now);
+      return { decision, opportunity: base };
+    }
+    const tx = this.db.handle.transaction(() => {
+      this.insertApproval(tenantId, r, 'AUTONOMOUS_AGENT', AUTONOMOUS_ACTOR, POLICY_REF, decision.reason, decision.gates, now);
+      this.db.handle.prepare(`UPDATE seo_opportunities SET status = 'APPROVED', updated_at = ? WHERE tenant_id = ? AND opportunity_id = ?`).run(now, tenantId, opportunityId);
+      this.event(tenantId, opportunityId, r.status, 'APPROVED', AUTONOMOUS_ACTOR, `AUTONOMOUS_AGENT approval under ${POLICY_REF}: ${decision.reason}`, now);
+    });
+    tx();
+    return { decision, opportunity: this.get(tenantId, opportunityId)! };
   }
 
   /** Records the artefact (brief/draft reference) an approved opportunity produced. Never changes status. */
@@ -346,8 +397,11 @@ export class OpportunityEngine {
     if (!TRANSITIONS[r.status as OpportunityStatus].includes(to)) throw new Error(`illegal transition ${r.status} -> ${to}`);
     // Approval is a human act: an agent can never move an opportunity into APPROVED, and work (IN_PROGRESS) can only
     // start from APPROVED, so no path reaches work without a human approval recorded in the audit trail.
-    if (to === 'APPROVED' && !actor.startsWith('human:')) throw new Error('only a human actor can approve work (AWAITING_APPROVAL -> APPROVED)');
+    // APPROVED is reached only by a human (recorded HUMAN) or by authorize() (recorded AUTONOMOUS_AGENT under a policy).
+    // Nothing else, and no label, can produce an approval.
+    if (to === 'APPROVED' && !(actor.startsWith('human:') && actor.length > 6)) throw new Error('only a human actor can approve work directly; autonomous approval goes through authorize() under the policy');
     this.db.handle.prepare(`UPDATE seo_opportunities SET status = ?, updated_at = ? WHERE tenant_id = ? AND opportunity_id = ?`).run(to, now, tenantId, opportunityId);
+    if (to === 'APPROVED') this.insertApproval(tenantId, r, 'HUMAN', actor, 'human-manual', note || 'Approved by a human', [], now);
     this.event(tenantId, opportunityId, r.status, to, actor, note, now);
     return this.get(tenantId, opportunityId)!;
   }

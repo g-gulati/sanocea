@@ -44,6 +44,10 @@ class OpportunitySource:
     def get(self, opportunity_id: str) -> Optional[Dict[str, Any]]:
         return next((o for o in self.list().get("opportunities", []) if o.get("opportunityId") == opportunity_id), None)
 
+    def autonomy(self) -> Dict[str, Any]:
+        """The tenant's autonomy mode as the worker holds it (default RECOMMEND_ONLY when unconfigured)."""
+        return self._get("/autonomy")
+
     def site_pages(self) -> List[Dict[str, Any]]:
         """Pages from the latest published-page audit (url/title/h1). Empty when the audit has not completed."""
         roster = self._get("/agent-roster").get("roster", [])
@@ -60,6 +64,10 @@ class OpportunityControl:
 
     def transition(self, opportunity_id: str, to: str, actor: str, note: str) -> Dict[str, Any]:
         return self._post("/opportunities/transition", {"opportunityId": opportunity_id, "to": to, "actor": actor, "note": note})
+
+    def authorize(self, opportunity_id: str) -> Dict[str, Any]:
+        """Ask the worker's policy to authorise (AUTONOMOUS_AGENT) an opportunity awaiting approval."""
+        return self._post("/opportunities/authorize", {"opportunityId": opportunity_id})
 
     def link_result(self, opportunity_id: str, ref: str, actor: str) -> Dict[str, Any]:
         return self._post("/opportunities/link-result", {"opportunityId": opportunity_id, "ref": ref, "actor": actor})

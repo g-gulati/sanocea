@@ -31,6 +31,7 @@ import { GeoCitationEngine, GeoCitationProvider, UnconfiguredGeoProvider } from 
 import { CompetitorIntelligenceEngine, CompetitorEngineOptions, DEFAULT_COMPETITOR_ROSTER } from '../search-intel/competitorWorker.js';
 import { CompetitorConfig } from '../search-intel/rankCommandTypes.js';
 import { GscPropertyService } from '../search-intel/gscProperty.js';
+import { AUTONOMY_MODES, POLICY_REF } from '../opportunities/autonomyPolicy.js';
 import { OpportunityEngine } from '../opportunities/opportunityEngine.js';
 import { AgentRosterManager } from '../agents/agentRoster.js';
 import { buildLiveSerpRankMovement, verifiedSerpTrajectories, LiveSerpRankMovement } from '../search-intel/serpRankMovement.js';
@@ -858,6 +859,9 @@ export class SeoMonitoringWorker {
   public transitionOpportunity(opportunityId: string, to: any, actor: string, note: string) {
     return this.opportunities.transition(this.config.tenantId, opportunityId, to, actor, note);
   }
+  public authorizeOpportunity(opportunityId: string) { return this.opportunities.authorize(this.config.tenantId, opportunityId); }
+  public setAutonomyMode(mode: string, actor: string) { return this.opportunities.setAutonomyMode(this.config.tenantId, mode, actor); }
+  public getAutonomy() { return { tenantId: this.config.tenantId, mode: this.opportunities.getAutonomyMode(this.config.tenantId), policy: POLICY_REF, modes: AUTONOMY_MODES }; }
   public linkOpportunityResult(opportunityId: string, ref: string, actor: string) {
     return this.opportunities.linkResult(this.config.tenantId, opportunityId, ref, actor);
   }

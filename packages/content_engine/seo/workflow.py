@@ -10,7 +10,7 @@ import hashlib
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from packages.content_engine.seo.brief import ContentWorkflowError, build_brief, content_eligibility, brief_id_for
+from packages.content_engine.seo.brief import ContentWorkflowError, build_brief, content_eligibility, brief_id_for, valid_approval
 from packages.content_engine.seo.draft import DraftWriter, FactsOnlyWriter
 from packages.content_engine.seo.models import ApprovedFact, SeoBrief, SeoDraft, TenantProfile
 from packages.content_engine.seo.qa import evaluate_draft
@@ -69,15 +69,15 @@ def generate_draft(brief: SeoBrief, opp_now: Dict[str, Any], facts: List[Approve
     """Only while the opportunity is still human-approved. Idempotent; a failed generation is recorded, never half-saved."""
     if opp_now.get("opportunityId") != brief.lineage.opportunity_id:
         raise ContentWorkflowError("LINEAGE_MISMATCH", "The opportunity does not belong to this brief.")
-    if opp_now.get("status") not in ("APPROVED", "IN_PROGRESS") or not str((opp_now.get("approval") or {}).get("by", "")).startswith("human:"):
-        raise ContentWorkflowError("NOT_HUMAN_APPROVED", "A draft is only generated while a human approval stands.")
+    if opp_now.get("status") not in ("APPROVED", "IN_PROGRESS") or not valid_approval(opp_now.get("approval"))[0]:
+        raise ContentWorkflowError("NOT_APPROVED", "A draft is only generated while a valid approval stands (human, or autonomous under the policy).")
     did = "draft_" + hashlib.sha1(brief.brief_id.encode()).hexdigest()[:12]
     prior = store.get_draft(brief.tenant_id, did)
     if prior and not (retry and prior.status != "DRAFT_READY"):
         return prior
     writer = writer or FactsOnlyWriter()
     now = now or _now()
-    lineage = {"brief_id": brief.brief_id, "opportunity_id": brief.lineage.opportunity_id, "approved_by": brief.lineage.approval["by"]}
+    lineage = {"brief_id": brief.brief_id, "opportunity_id": brief.lineage.opportunity_id, "approved_by": brief.lineage.approval["by"], "approval_actor_type": brief.lineage.approval.get("actorType"), "approval_policy": brief.lineage.approval.get("policy")}
     try:
         payload = writer.write(brief, facts)
     except Exception as exc:  # recorded as a failure so it is visible and not silently retried
@@ -107,10 +107,28 @@ def explain(store: SeoContentStore, tenant_id: str, item_id: str) -> Dict[str, A
         "opportunity": {"type": l.type, "target": l.target, "detected_at": l.detected_at, "source": l.source, "reason": l.reason},
         "evidence": l.evidence,
         "decision": l.decision,
-        "approval": l.approval,
+        "approval": l.approval,  # includes actorType (HUMAN | AUTONOMOUS_AGENT), policy and the evidence-backed reason
         "brief": {"brief_id": brief.brief_id, "created_at": brief.created_at, "field_basis": fields, "not_available": brief.not_available},
         "draft": ({"draft_id": draft.draft_id, "status": draft.status, "writer": draft.writer, "fact_ids_used": draft.fact_ids_used, "qa_passed": bool(draft.qa and draft.qa.passed)} if draft else None),
     }
     why = (f"SANOCEA observed {l.type} for {l.target} (source {l.source}, detected {l.detected_at}). Recommended action: {l.recommended_action} ({l.decision.get('rationale')}). "
-           f"{l.approval['by']} approved it at {l.approval['at']}. The brief {brief.brief_id} was built from that evidence" + (f" and the draft {draft.draft_id} was written by {draft.writer} using only approved facts {', '.join(draft.fact_ids_used)}." if draft else "."))
+           f"It was approved by {l.approval['by']} ({l.approval.get('actorType')}, policy {l.approval.get('policy')}) at {l.approval['at']}: {l.approval.get('reason')} The brief {brief.brief_id} was built from that evidence" + (f" and the draft {draft.draft_id} was written by {draft.writer} using only approved facts {', '.join(draft.fact_ids_used)}." if draft else "."))
     return {"why": why, "chain": chain}
+
+
+def authorize_autonomously(opp: Dict[str, Any], control: OpportunityControl) -> Dict[str, Any]:
+    """Qualify (agent steps), then ask the worker's policy to authorise. Returns the worker's decision with every gate.
+    Never writes an approval itself: only the policy can, and it records AUTONOMOUS_AGENT, never a human label."""
+    oid = opp["opportunityId"]
+    if opp.get("status") not in ("AWAITING_APPROVAL", "APPROVED", "IN_PROGRESS"):  # already-approved work is returned as such (idempotent)
+        submit_for_approval(opp, control)
+    return control.authorize(oid)
+
+
+def human_override(opp: Dict[str, Any], control: OpportunityControl, human: str, note: str) -> Dict[str, Any]:
+    """A human halts work the policy approved (or declines to approve). Recorded as HUMAN; the autonomous approval stays on record."""
+    if not human or not human.startswith("human:") or len(human) <= len("human:"):
+        raise ContentWorkflowError("HUMAN_REQUIRED", "A human override must be made by a human actor (human:<name>).")
+    if opp.get("status") not in ("AWAITING_APPROVAL", "APPROVED", "IN_PROGRESS"):
+        raise ContentWorkflowError("BAD_STATE", f"Opportunity is {opp.get('status')}; there is nothing to override.")
+    return control.transition(opp["opportunityId"], "REJECTED", human, note)

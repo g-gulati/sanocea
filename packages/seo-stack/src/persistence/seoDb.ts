@@ -569,6 +569,34 @@ export class SeoDatabase {
       );
 
       CREATE INDEX IF NOT EXISTS idx_url_insp ON gsc_url_inspections(tenant_id, site_url, url, id);
+      CREATE TABLE IF NOT EXISTS tenant_autonomy (
+        tenant_id TEXT PRIMARY KEY,
+        mode TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        updated_by TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS seo_approvals (
+        approval_id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL,
+        opportunity_id TEXT NOT NULL,
+        approval_actor_type TEXT NOT NULL CHECK (approval_actor_type IN ('HUMAN','AUTONOMOUS_AGENT')),
+        actor TEXT NOT NULL,
+        approval_policy TEXT NOT NULL,
+        approval_reason TEXT NOT NULL,
+        approved_at TEXT NOT NULL,
+        approved_action TEXT NOT NULL,
+        action_class TEXT NOT NULL,
+        target TEXT NOT NULL,
+        evidence_json TEXT NOT NULL,
+        decision_json TEXT NOT NULL,
+        gates_json TEXT NOT NULL,
+        qa_results_json TEXT,
+        rollback_json TEXT,
+        FOREIGN KEY (opportunity_id) REFERENCES seo_opportunities(opportunity_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_approvals_opp ON seo_approvals(tenant_id, opportunity_id);
       CREATE INDEX IF NOT EXISTS idx_opps_tenant ON seo_opportunities(tenant_id, status);
       CREATE INDEX IF NOT EXISTS idx_opp_events ON seo_opportunity_events(tenant_id, opportunity_id);
       CREATE INDEX IF NOT EXISTS idx_heartbeats_tenant ON monitoring_heartbeats(tenant_id, timestamp);

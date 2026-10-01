@@ -40,7 +40,7 @@ class OpportunityRef(BaseModel):
     reason: str
     evidence: Dict[str, Any]
     decision: Dict[str, Any]
-    approval: Dict[str, str]  # {"by": "human:...", "at": iso}
+    approval: Dict[str, Any]  # {by, at, actorType: HUMAN|AUTONOMOUS_AGENT, policy, reason, actionClass, approvedAction}
 
 
 class InternalLink(BaseModel):

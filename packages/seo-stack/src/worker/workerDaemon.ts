@@ -141,7 +141,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === 'POST' && (req.url === '/opportunities/transition' || req.url === '/opportunities/link-result')) {
+  if (req.method === 'POST' && (req.url === '/opportunities/transition' || req.url === '/opportunities/link-result' || req.url === '/opportunities/authorize' || req.url === '/autonomy/mode')) {
     if (!controlAuthorized(req.headers['x-seo-control-token'] as string | undefined, process.env.SEO_WORKER_CONTROL_TOKEN)) {
       res.writeHead(403, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'control token required' }));
@@ -153,13 +153,23 @@ const server = http.createServer(async (req, res) => {
       const b = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
       const out = req.url === '/opportunities/transition'
         ? worker.transitionOpportunity(String(b.opportunityId), b.to, String(b.actor ?? ''), String(b.note ?? ''))
-        : worker.linkOpportunityResult(String(b.opportunityId), String(b.ref), String(b.actor ?? ''));
+        : req.url === '/opportunities/authorize'
+          ? worker.authorizeOpportunity(String(b.opportunityId))
+          : req.url === '/autonomy/mode'
+            ? { mode: worker.setAutonomyMode(String(b.mode), String(b.actor ?? '')) }
+            : worker.linkOpportunityResult(String(b.opportunityId), String(b.ref), String(b.actor ?? ''));
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(out));
     } catch (e: any) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: String(e?.message ?? e).slice(0, 200) }));
     }
+    return;
+  }
+
+  if (req.url === '/autonomy') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(worker.getAutonomy(), null, 2));
     return;
   }
 
@@ -243,6 +253,7 @@ const server = http.createServer(async (req, res) => {
       '/agent-roster',
       '/opportunities',
       '/google-search-state',
+      '/autonomy',
       '/keyword-intel',
       '/aeo-intel',
       '/geo-intel',
