@@ -1,0 +1,184 @@
+diff --git a/apps/command_center/app.js b/apps/command_center/app.js
+index 9ff34e0..fc5e9be 100644
+--- a/apps/command_center/app.js
++++ b/apps/command_center/app.js
+@@ -1220,34 +1220,49 @@ function renderExceptions() {
+ // (a prospect's exceptions are about orders/payments/fulfilment, not one tracked product draft).
+ function renderExceptionsProspect() {
+   const container = document.getElementById('tab-exceptions');
+-  const count = STATE.exceptions.length;
++  const openExceptions = STATE.exceptions.filter(e => e.status === 'open');
++  const openCount = openExceptions.length;
++  const totalCount = STATE.exceptions.length;
++
+   container.innerHTML = `
+     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+       <div>
+         <h2 style="font-size:18px; font-weight:700;">Exceptions Queue</h2>
+-        <div style="font-size:13px; color:var(--text-muted);">Open backend exception records for ${STATE.profile?.display_name || STATE.merchantId}.</div>
++        <div style="font-size:13px; color:var(--text-muted);">Authoritative exception records for ${STATE.profile?.display_name || STATE.merchantId}.</div>
+       </div>
+-      <span class="status-pill ${count > 0 ? 'warning' : 'success'}">${count} Open Exception Record${count === 1 ? '' : 's'}</span>
++      <span class="status-pill ${openCount > 0 ? 'warning' : 'success'}">${openCount} Open / ${totalCount} Total Record${totalCount === 1 ? '' : 's'}</span>
+     </div>
+-    ${count === 0 ? `
++    ${totalCount === 0 ? `
+       <div class="card" style="text-align:center; padding:40px;">
+-        <h3 style="font-size:16px; font-weight:600;">No Open Exceptions</h3>
+-        <p style="color:var(--text-muted); font-size:13px;">No open exception records for this tenant.</p>
++        <h3 style="font-size:16px; font-weight:600;">No Exceptions Found</h3>
++        <p style="color:var(--text-muted); font-size:13px;">No exception records recorded for this tenant.</p>
+       </div>
+     ` : `
+       <div class="table-container">
+         <table>
+-          <thead><tr><th>Category</th><th>Message</th><th>Severity</th><th>Status</th><th>Object</th></tr></thead>
++          <thead><tr><th>Category</th><th>Message</th><th>Severity</th><th>Status</th><th>Linked Governance</th></tr></thead>
+           <tbody>
+-            ${STATE.exceptions.map(exc => `
+-              <tr>
++            ${STATE.exceptions.map(exc => {
++              const linkedApp = STATE.approvals.find(a => (a.workflow_id && a.workflow_id === exc.id) || (a.object_id && a.object_id === exc.object_id) || (a.reference && exc.message && exc.message.includes(a.reference)));
++              const isResolved = exc.status === 'resolved';
++              return `
++              <tr style="${isResolved ? 'opacity:0.75;' : ''}">
+                 <td><strong>${(exc.category || '').replace(/_/g, ' ')}</strong></td>
+                 <td style="max-width:420px; font-size:13px;">${exc.message || ''}</td>
+                 <td><span class="status-pill ${exc.severity === 'critical' || exc.severity === 'error' ? 'danger' : 'warning'}">${exc.severity}</span></td>
+-                <td><span class="status-pill ${exc.status === 'open' ? 'warning' : 'success'}">${exc.status}</span></td>
+-                <td><span class="code-inline">${exc.object_id || ''}</span></td>
++                <td><span class="status-pill ${isResolved ? 'success' : 'warning'}">${isResolved ? 'RESOLVED' : 'OPEN'}</span></td>
++                <td>
++                  ${linkedApp ? `
++                    <div style="display:flex; flex-direction:column; gap:4px;">
++                      <span class="code-inline" style="font-size:11px;">${linkedApp.reference || linkedApp.id}</span>
++                      ${linkedApp.status === 'pending'
++                        ? `<button class="btn btn-outline btn-xs" onclick="switchTab('publication')">Review Action &rarr;</button>`
++                        : `<span class="status-pill success" style="font-size:10px;">ACTION APPROVED</span>`}
++                    </div>
++                  ` : `<span class="code-inline">${exc.object_id || '—'}</span>`}
++                </td>
+               </tr>
+-            `).join('')}
++            `;}).join('')}
+           </tbody>
+         </table>
+       </div>
+@@ -1907,7 +1922,21 @@ function renderPublicationProspect() {
+   // channel-ops rows but a real pending order-flow approval - e.g. an inventory-shortage approval from
+   // a real Shopify order - would hit that early return and the approval card would never render at
+   // all, silently hiding a real, actionable approval from the operator).
+-  const ORDER_FLOW_APPROVAL_ACTIONS = new Set(['channel_operation_correction', 'resolve_inventory_shortage', 'cancel_order', 'create_return', 'refund']);
++  const ORDER_FLOW_APPROVAL_ACTIONS = new Set([
++    'channel_operation_correction',
++    'resolve_inventory_shortage',
++    'cancel_order',
++    'create_return',
++    'refund',
++    'replenish_blinkit_stock',
++    'quarantine_and_gate_free_gift',
++    'purge_ghost_variation',
++    'remediate_image_metadata',
++    'onboard_blinkit_5l_assortment',
++    'reconcile_cross_channel_price',
++    'update_flipkart_packshots',
++    'publish_fssai_nutrition_panels',
++  ]);
+   const pendingApprovals = STATE.approvals.filter(a => a.status === 'pending' && ORDER_FLOW_APPROVAL_ACTIONS.has(a.action));
+ 
+   if ((knownChannels.length === 0 || STATE.channelOperations.length === 0) && pendingApprovals.length === 0) {
+@@ -2166,44 +2195,80 @@ function renderOrdersInventory() {
+ // produced - see packages/prospect_demo/scenarios.py).
+ function renderOrdersInventoryProspect() {
+   const container = document.getElementById('tab-inventory');
++  const locLabels = {
++    loc_bhiwadi_hub: 'Bhiwadi Central Plant (D2C)',
++    loc_blinkit_hub: 'Blinkit Dark Store Hub (Delhi-NCR)',
++    loc_jiomart_hub: 'JioMart Regional RFC (Delhi)',
++    loc_flipkart_hub: 'Flipkart NDH1 Fulfillment Hub',
++    loc_amazon_hub: 'Amazon DEL4 Fulfillment Center (FBA)',
++    loc_default_hub: 'Default Fulfillment Hub',
++  };
++
++  function humanizeLoc(ref) {
++    return locLabels[ref] || ref || '—';
++  }
++
++  function humanizeOrderChannel(chId) {
++    if (!chId) return '—';
++    if (chId.includes('own_website')) return 'Own Website (D2C)';
++    if (chId.includes('jiomart')) return 'JioMart';
++    if (chId.includes('blinkit')) return 'Blinkit Quick-Commerce';
++    if (chId.includes('flipkart')) return 'Flipkart';
++    if (chId.includes('amazon_in')) return 'Amazon India';
++    return chId;
++  }
++
+   container.innerHTML = `
+     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+       <div>
+-        <h2 style="font-size:18px; font-weight:700;">Orders & Inventory</h2>
+-        <div style="font-size:13px; color:var(--text-muted);">Real backend state for ${STATE.profile?.display_name || STATE.merchantId}.</div>
++        <h2 style="font-size:18px; font-weight:700;">Orders & Multi-Channel Inventory</h2>
++        <div style="font-size:13px; color:var(--text-muted);">Real-time inventory balances, dark store coverage, and channel orders for ${STATE.profile?.display_name || STATE.merchantId}.</div>
+       </div>
+     </div>
+     <div class="card" style="margin-bottom:20px;">
+-      <div class="card-header"><div class="card-title">Inventory Balances</div></div>
++      <div class="card-header">
++        <div class="card-title">Multi-Location Inventory Balances</div>
++      </div>
+       <div class="table-container">
+         <table>
+-          <thead><tr><th>SKU</th><th>Location</th><th>Quantity</th><th>Available</th></tr></thead>
++          <thead><tr><th>SKU</th><th>Location</th><th>On-Hand Qty</th><th>Available-to-Promise (ATS)</th><th>Status</th></tr></thead>
+           <tbody>
+-            ${STATE.inventory.length === 0 ? '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:16px;">No inventory records.</td></tr>' : STATE.inventory.map(i => `
++            ${STATE.inventory.length === 0 ? '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:16px;">No inventory records.</td></tr>' : STATE.inventory.map(i => {
++              const isOos = i.available === 0 || i.sellable === 0;
++              return `
+               <tr>
+                 <td><code>${i.sku}</code></td>
+-                <td>${i.location_ref}</td>
++                <td><strong>${humanizeLoc(i.location_ref)}</strong><br><span class="code-inline" style="font-size:11px;">${i.location_ref}</span></td>
+                 <td>${i.quantity}</td>
+-                <td><strong>${i.available}</strong></td>
++                <td>
++                  ${isOos
++                    ? `<span style="color:var(--danger); font-weight:700;">0 (100% OOS)</span>`
++                    : `<strong style="color:var(--success); font-size:14px;">${i.available}</strong>`}
++                </td>
++                <td>
++                  ${isOos
++                    ? `<span class="status-pill danger">STOCK EXHAUSTED</span>`
++                    : `<span class="status-pill success">HEALTHY</span>`}
++                </td>
+               </tr>
+-            `).join('')}
++            `;}).join('')}
+           </tbody>
+         </table>
+       </div>
+     </div>
+     <div class="card">
+-      <div class="card-header"><div class="card-title">Orders</div></div>
++      <div class="card-header"><div class="card-title">Multi-Channel Orders</div></div>
+       <div class="table-container">
+         <table>
+-          <thead><tr><th>Order</th><th>Channel</th><th>Status</th><th>Payment</th><th>Amount</th></tr></thead>
++          <thead><tr><th>Order Number</th><th>Channel</th><th>Order Status</th><th>Payment Settlement</th><th>Total Amount</th></tr></thead>
+           <tbody>
+             ${STATE.orders.length === 0 ? '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:16px;">No orders.</td></tr>' : STATE.orders.map(o => `
+               <tr>
+                 <td><strong>${o.order_number}</strong></td>
+-                <td>${o.channel_id}</td>
+-                <td><span class="status-pill neutral">${o.status}</span></td>
+-                <td>${o.payment_status || '—'}</td>
+-                <td>${(o.total_amount / 100).toFixed(2)} ${o.currency}</td>
++                <td><strong>${humanizeOrderChannel(o.channel_id)}</strong><br><span class="code-inline" style="font-size:11px;">${o.channel_id}</span></td>
++                <td><span class="status-pill ${o.status === 'confirmed' ? 'success' : 'neutral'}">${o.status}</span></td>
++                <td><span class="status-pill ${o.payment_status === 'paid' ? 'success' : 'warning'}">${o.payment_status || '—'}</span></td>
++                <td style="font-weight:700;">${(o.total_amount / 100).toFixed(2)} ${o.currency}</td>
+               </tr>
+             `).join('')}
+           </tbody>

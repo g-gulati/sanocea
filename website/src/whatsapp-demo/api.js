@@ -1,5 +1,5 @@
 // Shared by both the interactive walkthrough and the chat screen - one API_BASE, one fetch convention.
-export const API_BASE = (import.meta.env.VITE_SANOCEA_API_BASE || 'https://api.sanocea.com').replace(/\/$/, '')
+export const API_BASE = ((import.meta.env && import.meta.env.VITE_SANOCEA_API_BASE) || 'https://api.sanocea.com').replace(/\/$/, '')
 
 async function parseError(res) {
   let detail = res.statusText

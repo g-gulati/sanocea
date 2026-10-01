@@ -18,6 +18,18 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
     />
     <title>SANOCEA — Commerce Command Center</title>
+    <script>
+      (function() {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          if (!params.has('tab')) {
+            params.set('tab', 'whatsapp');
+          }
+          var target = 'demo.html?' + params.toString();
+          window.location.replace(target);
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

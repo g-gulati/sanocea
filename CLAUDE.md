@@ -114,3 +114,27 @@ decision (an ADR under `docs/adr/`) rather than silently overriding it here.
 This rule exists to **reduce** research and coding time, not increase it. A focused OSS check should
 answer: *"Has this already been solved well enough that we can reuse it or learn from it?"* Then make
 the decision and move on. Do not turn every implementation task into another competitive audit.
+
+## Canonical UI rule
+
+**CANONICAL UI RULE: /demo.html is the single SANOCEA Command Centre. Do not create parallel Command Centre UIs,
+internal copies, admin copies, SEO copies, or alternative presentation surfaces. All product UI capabilities must be
+implemented in the existing /demo.html application. Backend services may remain separated architecturally, but there
+must be one canonical frontend.**
+
+Before implementing any future UI capability, an agent must search the existing /demo.html application first
+(`website/demo.html` → `website/src/whatsapp-demo/`) and extend the existing component rather than creating another
+surface.
+
+Consequences already enacted (2026-10-01):
+
+- The API-served `/ui` Command Centre (`apps/command_center/`) and the `/console.html` Operations Console were retired.
+  The API serves no UI; its root redirects to /demo.html. Their backend endpoints remain; capabilities that existed
+  only in those UIs are API-only and tracked in `docs/architecture/retired-ui/FUTURE_UI_MIGRATION_BACKLOG.md`.
+- SEO intelligence has ONE data path: SEO worker (persisted state) → `GET /demo/seo/overview` (packages/seo_bridge,
+  authorized by the existing demo-session key) → the shared loader `website/src/whatsapp-demo/useSeoOverview.js` → the
+  SEO & Commerce Audit tab and the Dashboard's SEO sections. Do not add a second loader, a snapshot file, a
+  second login, or hard-coded copies of live telemetry. A value the worker does not supply renders NOT AVAILABLE with the
+  worker's reason, never a zero or a fixture. Worker provenance labels and timestamps are shown exactly as supplied.
+- Static case-study material (for example the September 2026 intervention record) must be labelled
+  `[HISTORICAL · STATIC]`, or live in documentation (`docs/case-studies/`), never presented as live telemetry.

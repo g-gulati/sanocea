@@ -1,8 +1,12 @@
+> **Updated 2026-10-01:** the `/ui` Command Center was retired. Wherever this runbook says "Command Center", use the
+> website demo at `/demo.html`. Operator-only views that existed only in `/ui` (exceptions, conflict review,
+> publication, inventory, refunds, audit) are API-only until they are migrated into `/demo.html`.
+
 # SANOCEA REFERENCE MERCHANT PROSPECT DEMO RUNBOOK (COMMAND CENTER EDITION)
 
 **Audience:** Prospective Enterprise Merchants, D2C Founders, E-Commerce VPs of Supply Chain, Technical Due Diligence Teams  
 **Duration:** 5 to 10 Minutes  
-**Presentation Interface:** SANOCEA Operations Command Center (`http://127.0.0.1:8080/ui`)  
+**Presentation Interface:** SANOCEA Operations Command Center (`/demo.html` (the website demo))  
 **External Verification Target:** Live Shopify Dev Store (`sanocea-commerce-os-dev.myshopify.com/admin/products`)  
 **Reference Tenant:** `ref_anchal_heritage` (*Anchal Heritage Organics*)  
 **Date:** September 2026  
@@ -33,7 +37,7 @@ Every capability demonstrated is tagged with its formal operational classificati
 ## 3. Pre-Demo Setup Checklist (2 Minutes Before Demo)
 
 Ensure the following 3 windows/tabs are pre-staged on the presenter's screen:
-1. **Browser Tab 1:** SANOCEA Operations Command Center (`http://127.0.0.1:8080/ui`) — Open to **Operations Overview**.
+1. **Browser Tab 1:** SANOCEA Operations Command Center (`/demo.html` (the website demo)) — Open to **Operations Overview**.
 2. **Browser Tab 2:** Live Shopify Admin portal (`sanocea-commerce-os-dev.myshopify.com/admin/products`).
 3. **Application 1 (Microsoft Excel):** Open `tests/fixtures/reference_merchant/supplier_price_list_messy.xlsx` showing cell `C5` with formula `=130*1.20`.
 
@@ -76,7 +80,7 @@ Ensure the following 3 windows/tabs are pre-staged on the presenter's screen:
 
 #### What the Prospect Sees:
 1. **Excel Display:** Presenter shows `supplier_price_list_messy.xlsx`. Points to cell `C5` containing the formula `=130*1.20`, and points to the hidden worksheet `Internal_Costing`.
-2. **Command Center Overview:** Presenter switches to Browser Tab 1 (`http://127.0.0.1:8080/ui`).
+2. **Command Center Overview:** Presenter switches to Browser Tab 1 (`/demo.html` (the website demo)).
    - The top banner displays the merchant identity: *Anchal Heritage Organics*, GSTIN `07AAAAA0000A1Z5`, Currency `INR (₹)`, and active live Shopify store.
    - The **7-Stage Lifecycle Tracker** shows:
      - `1. Observe`: XLSX & PDF Ingested (Green).
@@ -219,7 +223,7 @@ Ensure the following 3 windows/tabs are pre-staged on the presenter's screen:
 | Time | Step | Screen / View | Key Message |
 |---|---|---|---|
 | **0:00 - 1:00** | 1. Messy Input | Excel showing `=130*1.20` | Real data is messy; legacy systems crash. |
-| **1:00 - 2:00** | 2. Anomaly Detection | Overview Tab (`/ui`) | Ballast quarantined; zero leaked margins. |
+| **1:00 - 2:00** | 2. Anomaly Detection | Overview Tab (`/demo.html`) | Ballast quarantined; zero leaked margins. |
 | **2:00 - 3:00** | 3. Refuse Unsafe Action | Exceptions Queue Tab | Cross-source conflict; publication refused. |
 | **3:00 - 5:00** | 4. Human Resolution | Evidence Review Tab | Side-by-side provenance; operator sign-off. |
 | **5:00 - 7:00** | 5 & 6. Live Shopify | Publication Tab + **Shopify Admin** | Real GraphQL mutation + live read-back. |

@@ -39,7 +39,7 @@ existed, `ref_anchal_heritage`) and the frontend side (Command Center hardcoded 
 - `packages/prospect_demo/registry.py` - `list_demo_tenants()`, display metadata only (id + name) for
   the Command Center's merchant switcher. Grants no access by itself.
 - `scripts/reset_prospect_tenant.py` - CLI, mirrors `scripts/reset_reference_merchant.py`'s shape.
-- Command Center (`apps/command_center/`) - `STATE.merchantId` is now switchable via a `<select>` in the
+- RETIRED 2026-10-01: the Command Center UI (`apps/command_center/`) no longer exists; /demo.html is the only SANOCEA UI (see docs/architecture/retired-ui/). The text below describes the retired UI and is kept as history. Command Center (`apps/command_center/`) - `STATE.merchantId` is now switchable via a `<select>` in the
   header (`app.js::switchMerchant`), never a hardcoded constant. Every existing API call already read
   `STATE.merchantId` dynamically, so no per-tab rendering code needed to change - switching merchants
   re-fetches all 7 tabs' data from that tenant's own authoritative backend state.

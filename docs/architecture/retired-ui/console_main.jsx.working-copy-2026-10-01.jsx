@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react'
 import {createRoot} from 'react-dom/client'
 import './demo.css'
+import {findCompany} from '../shared/companyCatalog.js'
 
 // The self-service demo browser calls the Sanocea Commerce OS API directly, cross-origin (this page is
 // static, served from /var/www/sanocea while the API stays loopback-only behind the api.sanocea.com
@@ -21,14 +22,23 @@ const TABS = [
   {id: 'channel-ops', label: 'Channel Operations'},
 ]
 
+function getCompanyFromUrl() {
+  try {
+    return new URLSearchParams(window.location.search).get('company') || null
+  } catch {
+    return null
+  }
+}
+
 // ---- Session bootstrap -----------------------------------------------------------------------------
 
-function loadStoredSession() {
+function loadStoredSession(expectedPrefix) {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw)
     if (!parsed.apiKey || !parsed.merchantId || !parsed.expiresAt) return null
+    if (expectedPrefix && !parsed.merchantId.startsWith(expectedPrefix)) return null
     if (new Date(parsed.expiresAt).getTime() <= Date.now() + 10_000) return null
     return parsed
   } catch {
@@ -51,8 +61,14 @@ function clearStoredSession() {
   } catch {}
 }
 
-async function createSession() {
-  const res = await fetch(`${API_BASE}/demo/sessions`, {method: 'POST', headers: {Accept: 'application/json'}})
+async function createSession(preferredMerchantId) {
+  const headers = {Accept: 'application/json'}
+  let body
+  if (preferredMerchantId) {
+    headers['Content-Type'] = 'application/json'
+    body = JSON.stringify({preferred_merchant_id: preferredMerchantId})
+  }
+  const res = await fetch(`${API_BASE}/demo/sessions`, {method: 'POST', headers, body})
   if (!res.ok) {
     let detail = res.statusText
     try {
@@ -62,13 +78,13 @@ async function createSession() {
     err.status = res.status
     throw err
   }
-  const body = await res.json()
+  const data = await res.json()
   return {
-    sessionId: body.session_id,
-    merchantId: body.merchant_id,
-    displayName: body.display_name,
-    apiKey: body.api_key,
-    expiresAt: body.expires_at,
+    sessionId: data.session_id,
+    merchantId: data.merchant_id,
+    displayName: data.display_name,
+    apiKey: data.api_key,
+    expiresAt: data.expires_at,
   }
 }
 
@@ -339,6 +355,7 @@ function Toast({toast}) {
 }
 
 function DemoApp({session, onSessionInvalid}) {
+  const companyId = getCompanyFromUrl()
   const [tab, setTab] = useState('overview')
   const [toast, setToast] = useState(null)
   const api = useApi(session, onSessionInvalid)
@@ -402,7 +419,24 @@ function DemoApp({session, onSessionInvalid}) {
           <span>Operations Console</span>
         </div>
         <div className="demo-header-tenant">{session.displayName}</div>
-        <div className="demo-header-right">
+        <div className="demo-header-right" style={{display: 'flex', alignItems: 'center', gap: 12}}>
+          <a
+            href={`/demo.html${companyId ? `?company=${companyId}` : ''}`}
+            style={{
+              background: '#00e5ff',
+              color: '#05111d',
+              textDecoration: 'none',
+              fontWeight: 700,
+              fontSize: 12,
+              padding: '6px 12px',
+              borderRadius: 6,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <span>⚡ Commerce Operations App ↗</span>
+          </a>
           <span>{countdown}</span>
         </div>
       </div>
@@ -427,7 +461,11 @@ function DemoApp({session, onSessionInvalid}) {
 }
 
 function BootstrapGate() {
-  const [session, setSession] = useState(() => loadStoredSession())
+  const companyId = getCompanyFromUrl()
+  const company = companyId ? findCompany(companyId) : null
+  const preferredMerchantId = company?.merchantTemplateId || null
+
+  const [session, setSession] = useState(() => loadStoredSession(preferredMerchantId))
   const [error, setError] = useState(null)
   const [attempt, setAttempt] = useState(0)
 
@@ -435,7 +473,7 @@ function BootstrapGate() {
     if (session) return
     let cancelled = false
     setError(null)
-    createSession()
+    createSession(preferredMerchantId)
       .then((s) => {
         if (cancelled) return
         storeSession(s)
@@ -451,7 +489,7 @@ function BootstrapGate() {
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, attempt])
+  }, [session, attempt, preferredMerchantId])
 
   const onSessionInvalid = useCallback(() => {
     clearStoredSession()

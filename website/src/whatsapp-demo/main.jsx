@@ -1,255 +1,432 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react'
+import React, {useState, useEffect, useCallback, useMemo} from 'react'
 import {createRoot} from 'react-dom/client'
-import './chat.css'
-import Walkthrough from './Walkthrough.jsx'
-import {API_BASE} from './api.js'
+import './commerceOps.css'
+import AppSidebar from './components/AppSidebar.jsx'
+import AppHeader from './components/AppHeader.jsx'
+import DashboardView from './components/DashboardView.jsx'
+import WhatsAppView from './components/WhatsAppView.jsx'
+import SeoAuditSection from './components/SeoAuditSection.jsx'
+import {getCompanyOperationalData} from './data/companyData.js'
+import {
+  ALL_DEMO_COMPANIES,
+  loadOperationalState,
+  saveOperationalState,
+  resetCompanyOperationalState,
+  resolveOperationalAction,
+  reconnectChannelInState,
+  degradeChannelInState,
+} from './operationalStore.js'
 
-const LOGO = 'https://www.sanocea.com/sanocea-wordmark.png'
-const SESSION_KEY = 'sanocea_whatsapp_demo_session'
-
-const QUICK_REPLIES = ['What needs my attention?', 'Delivery issues', 'What needs my approval?', 'Menu']
-
-function loadStoredSession() {
+function getInitialCompanyId() {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    if (!parsed.apiKey || !parsed.merchantId || !parsed.expiresAt) return null
-    if (new Date(parsed.expiresAt).getTime() <= Date.now() + 10_000) return null
-    return parsed
-  } catch {
-    return null
-  }
-}
-
-function storeSession(session) {
-  try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session))
-  } catch {}
-}
-
-function clearStoredSession() {
-  try {
-    sessionStorage.removeItem(SESSION_KEY)
-  } catch {}
-}
-
-async function sendChatMessage(session, text) {
-  const res = await fetch(`${API_BASE}/merchants/${session.merchantId}/chat`, {
-    method: 'POST',
-    headers: {Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${session.apiKey}`},
-    body: JSON.stringify({text}),
-  })
-  if (!res.ok) {
-    let detail = res.statusText
-    try {
-      detail = (await res.json()).detail || detail
-    } catch {}
-    const err = new Error(detail)
-    err.status = res.status
-    throw err
-  }
-  const body = await res.json()
-  return {replies: body.replies || [], expiresAt: body.expires_at || null}
-}
-
-// ---- Chat screen ---------------------------------------------------------------------------------
-
-function useCountdown(expiresAt) {
-  const [label, setLabel] = useState('')
-  useEffect(() => {
-    const tick = () => {
-      const ms = new Date(expiresAt).getTime() - Date.now()
-      if (ms <= 0) {
-        setLabel('session ending…')
-        return
-      }
-      setLabel(`~${Math.max(1, Math.round(ms / 60000))}m left`)
+    const params = new URLSearchParams(window.location.search)
+    const company = params.get('company')
+    if (company && getCompanyOperationalData(company)) {
+      return company
     }
-    tick()
-    const id = setInterval(tick, 30_000)
-    return () => clearInterval(id)
-  }, [expiresAt])
-  return label
+  } catch {}
+  return 'premium-basket'
 }
 
-function ChatScreen({session, onSessionEnded}) {
-  const [messages, setMessages] = useState([])
-  const [input, setInput] = useState('')
-  const [sending, setSending] = useState(false)
-  const [booting, setBooting] = useState(true)
-  const [ended, setEnded] = useState(false)
-  const [expiresAt, setExpiresAt] = useState(session.expiresAt)
-  const bottomRef = useRef(null)
-  const countdown = useCountdown(expiresAt)
+function getInitialTab() {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get('tab') || params.get('view')
+    if (tab === 'whatsapp' || tab === 'whatsapp-ops' || tab === 'chat') return 'whatsapp'
+    if (tab === 'seo-audit' || tab === 'audit' || tab === 'seo') return 'seo-audit'
+    if (tab === 'dashboard') return 'dashboard'
+  } catch {}
+  return 'dashboard' // Default to main operations command center
+}
 
-  const inputRef = useRef(null)
+function SanoceaOperationsApp() {
+  const [currentTab, setCurrentTab] = useState(getInitialTab)
+  const [companyId, setCompanyId] = useState(getInitialCompanyId)
+  const [activeTableTab, setActiveTableTab] = useState('inventory') // 'inventory' | 'exceptions'
+  const [timeframe, setTimeframe] = useState('MTD')
+  const [syncing, setSyncing] = useState(false)
+  const [toastMessage, setToastMessage] = useState(null)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
-  const scrollDown = useCallback(() => {
-    requestAnimationFrame(() => bottomRef.current?.scrollIntoView({behavior: 'smooth'}))
+  // Single authoritative operational state loaded from localStorage or pristine initial baseline
+  const [opsState, setOpsState] = useState(() => loadOperationalState(companyId))
+
+  // When companyId changes, load that company's isolated operational state
+  useEffect(() => {
+    setOpsState(loadOperationalState(companyId))
+  }, [companyId])
+
+  // Real-time live seconds ticker for Channel Connectivity (genuinely live!)
+  useEffect(() => {
+    const ticker = setInterval(() => {
+      setOpsState((prev) => ({
+        ...prev,
+        channelStates: (prev.channelStates || []).map((ch) => ({
+          ...ch,
+          lastEventSecondsAgo: (ch.lastEventSecondsAgo || 0) + 1,
+          lastSyncSecondsAgo: (ch.lastSyncSecondsAgo || 0) + 1,
+        })),
+      }))
+    }, 1000)
+    return () => clearInterval(ticker)
   }, [])
 
-  // Only ever called right after a message THIS user just sent finishes (success or error) - never on
-  // any other event - so it can't steal focus from a control the user deliberately clicked instead
-  // (e.g. the Operations Console link). requestAnimationFrame waits for the DOM update (input
-  // re-enabled, response bubble rendered) before focusing, so it's never a no-op on a still-disabled
-  // input. Caret goes to the end of whatever's left in the box, not the start.
-  const refocusInput = useCallback(() => {
-    requestAnimationFrame(() => {
-      const el = inputRef.current
-      if (!el) return
-      el.focus()
-      const end = el.value.length
-      el.setSelectionRange(end, end)
+  // Sync URL query params without reloading
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href)
+      url.searchParams.set('company', companyId)
+      url.searchParams.set('tab', currentTab)
+      window.history.replaceState({}, '', url.toString())
+    } catch {}
+  }, [companyId, currentTab])
+
+  // Toast auto-clear
+  useEffect(() => {
+    if (!toastMessage) return
+    const timer = setTimeout(() => setToastMessage(null), 3800)
+    return () => clearTimeout(timer)
+  }, [toastMessage])
+
+  // Derive dynamic companyData containing live operational updates across inventory, exceptions, kpis
+  const companyData = useMemo(() => {
+    const base = getCompanyOperationalData(companyId)
+    return {
+      ...base,
+      urgentActions: opsState.urgentActions,
+      liveEvents: opsState.streamEvents,
+      inventoryItems: opsState.inventoryItems,
+      exceptionsLog: opsState.exceptionsLog,
+      kpis: opsState.kpis,
+      channels: opsState.channels,
+      initialChatMessages: opsState.chatMessages,
+    }
+  }, [companyId, opsState])
+
+  // Compute Global Connectivity Status derived from live channel states
+  const globalStatus = useMemo(() => {
+    const channelStates = opsState.channelStates || []
+    const totalCount = channelStates.length
+    const connectedCount = channelStates.filter(
+      (c) => c.connectionStatus === 'Connected' && c.healthStatus === 'Healthy'
+    ).length
+    const degradedChannel = channelStates.find(
+      (c) => c.healthStatus !== 'Healthy' || c.connectionStatus !== 'Connected'
+    )
+
+    return {
+      connectedCount,
+      totalCount,
+      isHealthy: !degradedChannel,
+      degradedChannel,
+      statusText: !degradedChannel
+        ? '● All systems connected'
+        : `● ${connectedCount} / ${totalCount} channels connected · ${degradedChannel.name} connection degraded`,
+    }
+  }, [opsState.channelStates])
+
+  // Update chat messages from WhatsApp conversation and persist
+  const handleUpdateChatMessages = useCallback((updater) => {
+    setOpsState((prev) => {
+      const current = prev.chatMessages || []
+      const nextMessages = typeof updater === 'function' ? updater(current) : updater
+      const updated = {
+        ...prev,
+        chatMessages: nextMessages,
+      }
+      saveOperationalState(companyId, updated)
+      return updated
+    })
+  }, [companyId])
+
+  // Reset simulation state across entire application
+  const handleResetDemo = useCallback((options = {}) => {
+    const fresh = resetCompanyOperationalState(companyId)
+    if (options.fromWhatsApp && options.replyText) {
+      const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
+      fresh.chatMessages = [
+        ...fresh.chatMessages,
+        {
+          id: `usr-reset-${Date.now()}`,
+          from: 'user',
+          time: timeStr,
+          text: 'reset',
+        },
+        {
+          id: `bot-reset-${Date.now()}`,
+          from: 'sanocea',
+          time: timeStr,
+          text: options.replyText,
+          quickActions: [
+            { id: 'menu-qa-1', label: '1️⃣ What Needs Attention?', replyText: '1' },
+            { id: 'menu-qa-2', label: '2️⃣ Channel Connectivity', replyText: '2' },
+            { id: 'menu-qa-3', label: '3️⃣ Inventory Health', replyText: '3' },
+            { id: 'menu-qa-4', label: '4️⃣ Channel GMV', replyText: '4' },
+          ],
+        },
+      ]
+    }
+    saveOperationalState(companyId, fresh)
+    setOpsState(fresh)
+    setToastMessage(`⟲ Demo Reset: Operational state restored for ${fresh.companyName}.`)
+  }, [companyId])
+
+  // Reconnect a degraded channel
+  const handleReconnectChannel = useCallback((channelId = 'amazon') => {
+    setOpsState((prev) => {
+      const updated = reconnectChannelInState(prev, channelId)
+      saveOperationalState(companyId, updated)
+      return updated
+    })
+    setToastMessage(`🟢 Telemetry Restored: All channel connectors reporting Healthy.`)
+  }, [companyId])
+
+  // Simulate Channel Degradation (e.g. Amazon SP-API latency spike)
+  const handleSimulateDegrade = useCallback(() => {
+    setOpsState((prev) => {
+      const updated = degradeChannelInState(prev, 'amazon')
+      saveOperationalState(companyId, updated)
+      return updated
+    })
+    setToastMessage(`⚠️ Telemetry Alert: Amazon India connection degraded · Generated Action Required exception!`)
+  }, [companyId])
+
+  // Resolve action handler (called from either Dashboard or WhatsApp)
+  const handleResolveAction = useCallback((actionIdOrKey, options = {}) => {
+    if (actionIdOrKey === 'act-deg-amazon' || actionIdOrKey === 'SYS-CONN-01') {
+      handleReconnectChannel('amazon')
+      return
+    }
+
+    let resolvedLabel = 'Operational action'
+
+    setOpsState((prev) => {
+      const target = (prev.urgentActions || []).find(
+        (a) => a.id === actionIdOrKey || a.ref === actionIdOrKey || a.sku === actionIdOrKey
+      )
+      if (target) {
+        resolvedLabel = target.actionLabel
+      }
+      const updated = resolveOperationalAction(prev, actionIdOrKey, options)
+      saveOperationalState(companyId, updated)
+      return updated
+    })
+
+    setToastMessage(`⚡ Operations Engine: ${resolvedLabel} executed & synchronized!`)
+  }, [companyId, handleReconnectChannel])
+
+  // Add event to live stream
+  const handleAddStreamEvent = useCallback((newEvent) => {
+    setOpsState((prev) => {
+      const updatedEvents = [newEvent, ...(prev.streamEvents || []).slice(0, 23)]
+      let updatedChannels = prev.channelStates || []
+      if (newEvent.channel) {
+        updatedChannels = updatedChannels.map((ch) => {
+          if (
+            ch.name.toLowerCase().includes(newEvent.channel.toLowerCase()) ||
+            newEvent.channel.toLowerCase().includes(ch.id)
+          ) {
+            return {
+              ...ch,
+              lastEventSecondsAgo: 1,
+              lastSyncSecondsAgo: 1,
+              incomingEventCount: (ch.incomingEventCount || 0) + 1,
+            }
+          }
+          return ch
+        })
+      }
+      const next = {
+        ...prev,
+        streamEvents: updatedEvents,
+        channelStates: updatedChannels,
+      }
+      return next
     })
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-    async function boot() {
-      try {
-        // Silently open the menu, then ask for today's briefing - a real, data-grounded opening
-        // message ("I found N things that need attention...") built from the SAME conversation engine
-        // every other reply comes from, not a scripted string.
-        await sendChatMessage(session, 'menu')
-        const briefing = await sendChatMessage(session, '1')
-        if (cancelled) return
-        if (briefing.expiresAt) setExpiresAt(briefing.expiresAt)
-        setMessages([
-          {from: 'sanocea', text: briefing.replies.join('\n\n') || "Good morning — I'm watching this operation now."},
-          {from: 'sanocea', text: 'Ask me anything — "what needs my attention?", "show me the delivery issues", "resolve it" — or type *menu* any time to see structured options.'},
-        ])
-      } catch (err) {
-        if (cancelled) return
-        setMessages([{from: 'sanocea', text: "I couldn't load today's briefing, but you can still ask me questions."}])
-      } finally {
-        if (!cancelled) {
-          setBooting(false)
-          refocusInput()
+  // Sync Telemetry button handler
+  const handleSyncTelemetry = () => {
+    setSyncing(true)
+    setTimeout(() => {
+      setSyncing(false)
+      const nowStr = new Date().toTimeString().split(' ')[0]
+      const syncEvent = {
+        id: `sync-${Date.now()}`,
+        time: nowStr,
+        channel: 'Operations Engine',
+        type: 'Telemetry health check',
+        headline: 'Connector health verified (4/4 channels active)',
+        detail: 'Blinkit, Shopify, Swiggy, and Amazon polling latencies verified within <1.5s tolerance.',
+        badge: 'System Sync',
+        badgeColor: '#00e5ff',
+      }
+      setOpsState((prev) => {
+        const next = {
+          ...prev,
+          streamEvents: [syncEvent, ...(prev.streamEvents || []).slice(0, 23)],
+          channelStates: (prev.channelStates || []).map((ch) => ({
+            ...ch,
+            lastSyncSecondsAgo: 1,
+          })),
         }
-      }
-    }
-    boot()
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(scrollDown, [messages, scrollDown])
-
-  // Keep sessionStorage in sync with the real backend expiry (touch_lease slides it forward on every
-  // message) - otherwise a page refresh mid-conversation would fall back to the ORIGINAL, shorter,
-  // now-stale expiry and needlessly start a new session.
-  useEffect(() => {
-    if (expiresAt) storeSession({...session, expiresAt})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expiresAt])
-
-  const send = async (text) => {
-    const trimmed = text.trim()
-    if (!trimmed || sending || ended) return
-    setMessages((m) => [...m, {from: 'me', text: trimmed}])
-    setInput('')
-    setSending(true)
-    try {
-      const {replies, expiresAt: newExpiry} = await sendChatMessage(session, trimmed)
-      if (newExpiry) setExpiresAt(newExpiry)
-      setMessages((m) => [...m, ...replies.map((r) => ({from: 'sanocea', text: r}))])
-      if (replies.length === 0) {
-        setMessages((m) => [...m, {from: 'sanocea', text: '…'}])
-      }
-    } catch (err) {
-      if (err.status === 409) {
-        setEnded(true)
-        setMessages((m) => [...m, {from: 'sanocea', text: 'This demo session has ended. Refresh the page to start a new one.'}])
-        onSessionEnded()
-      } else {
-        setMessages((m) => [...m, {from: 'sanocea', text: `Something went wrong: ${err.message}`}])
-      }
-    } finally {
-      setSending(false)
-      refocusInput()
-    }
+        saveOperationalState(companyId, next)
+        return next
+      })
+      setToastMessage('⟳ Telemetry sync complete: All channel connectors reporting normal.')
+    }, 600)
   }
 
+  // Module quick jumps from sidebar
+  const handleNavigateModule = useCallback((moduleName) => {
+    setMobileSidebarOpen(false)
+    if (currentTab !== 'dashboard') {
+      setCurrentTab('dashboard')
+    }
+
+    if (moduleName === 'inventory') {
+      setActiveTableTab('inventory')
+    } else if (moduleName === 'exceptions') {
+      setActiveTableTab('exceptions')
+    }
+
+    setTimeout(() => {
+      const targetId = moduleName === 'channels' ? 'channels' : moduleName === 'decisions' ? 'decisions' : 'tables'
+      const target = document.getElementById(targetId)
+      if (target) {
+        target.scrollIntoView({behavior: 'smooth', block: 'start'})
+      }
+    }, 120)
+  }, [currentTab])
+
+  const pendingApprovalsCount = (opsState.urgentActions || []).filter((a) => !a.resolved).length
+  const liveEventCount = (opsState.streamEvents || []).length
+
   return (
-    <div className="wa-shell">
-      <div className="wa-header">
-        <img src={LOGO} alt="Sanocea" />
-        <div>
-          <div className="wa-header-name">Sanocea</div>
-          <div className="wa-header-sub">{session.displayName}</div>
-        </div>
-        <div className="wa-header-right">
-          <span>{countdown}</span>
-          <a className="wa-console-link" href="/console.html" target="_blank" rel="noopener">
-            Open Operations Console ↗
-          </a>
-        </div>
-      </div>
-      <div className="wa-messages">
-        {messages.map((m, i) => (
-          <div key={i} className={`wa-bubble-row ${m.from === 'me' ? 'out' : 'in'}`}>
-            <div className="wa-bubble">{m.text}</div>
-          </div>
-        ))}
-        {(booting || sending) && <div className="wa-typing">Sanocea is typing…</div>}
-        <div ref={bottomRef} />
-      </div>
-      {!booting && !ended && (
-        <div className="wa-quick-replies">
-          {QUICK_REPLIES.map((q) => (
-            <button key={q} className="wa-chip" onClick={() => send(q)} disabled={sending}>
-              {q}
-            </button>
-          ))}
-        </div>
-      )}
-      <div className="wa-composer">
-        <input
-          ref={inputRef}
-          className="wa-composer-input"
-          placeholder={ended ? 'Session ended' : 'Message Sanocea…'}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && send(input)}
-          disabled={sending || ended || booting}
+    <div className="sanocea-app-shell">
+      {/* ── Left Navigation Sidebar (Authentic Behance / Nexino Admin Shell) ── */}
+      <AppSidebar
+        currentTab={currentTab}
+        onSelectTab={(tab) => {
+          setCurrentTab(tab)
+          setMobileSidebarOpen(false)
+        }}
+        selectedCompanyId={companyId}
+        onSelectCompany={setCompanyId}
+        companies={ALL_DEMO_COMPANIES}
+        pendingApprovalsCount={pendingApprovalsCount}
+        liveEventCount={liveEventCount}
+        globalStatus={globalStatus}
+        onNavigateModule={handleNavigateModule}
+        onResetDemo={() => handleResetDemo()}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+        onScrollToSection={(sectionId) => {
+          setMobileSidebarOpen(false)
+          const target = document.getElementById(sectionId)
+          if (target) {
+            target.scrollIntoView({behavior: 'smooth', block: 'start'})
+          }
+        }}
+      />
+
+      {/* ── Main Content Column ────────────────────────────────────────────── */}
+      <div className="sanocea-main-wrapper">
+        {/* ── Topbar (Search, Tab Switcher, Timeframe, Sync, Reset, Profile) ───── */}
+        <AppHeader
+          currentTab={currentTab}
+          onSelectTab={setCurrentTab}
+          selectedCompanyId={companyId}
+          onSelectCompany={setCompanyId}
+          companies={ALL_DEMO_COMPANIES}
+          pendingApprovalsCount={pendingApprovalsCount}
+          liveEventCount={liveEventCount}
+          globalStatus={globalStatus}
+          timeframe={timeframe}
+          onChangeTimeframe={setTimeframe}
+          onSyncTelemetry={handleSyncTelemetry}
+          onResetDemo={() => handleResetDemo()}
+          syncing={syncing}
+          onToggleMobileSidebar={() => setMobileSidebarOpen((prev) => !prev)}
         />
-        <button className="wa-send" onClick={() => send(input)} disabled={sending || ended || booting}>
-          ➤
-        </button>
-      </div>
-      <div className="wa-footer-link">
-        Want to see the underlying records instead? <a href="/console.html" target="_blank" rel="noopener">Open Operations Console</a>
+
+        {/* ── Toast Synchronization Banner ──────────────────────────────────── */}
+        {toastMessage && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 24,
+              right: 24,
+              background: '#FFFFFF',
+              color: '#17191C',
+              border: '1px solid #E7E9ED',
+              borderRadius: 12,
+              padding: '14px 24px',
+              fontSize: 15,
+              fontWeight: 600,
+              boxShadow: '0 12px 32px -4px rgba(16, 24, 40, 0.12), 0 4px 12px -2px rgba(16, 24, 40, 0.06)',
+              zIndex: 999,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <span style={{color: 'var(--teal-primary)', fontSize: 16}}>●</span>
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        {/* ── Main Application Content ───────────────────────────────────────── */}
+        <main className="app-main">
+          {currentTab === 'dashboard' ? (
+            <DashboardView
+              companyData={companyData}
+              urgentActions={opsState.urgentActions || []}
+              onResolveAction={(actionId) => handleResolveAction(actionId, { source: 'dashboard' })}
+              onSwitchToWhatsApp={() => setCurrentTab('whatsapp')}
+              channelStates={opsState.channelStates || []}
+              globalStatus={globalStatus}
+              onSimulateDegrade={handleSimulateDegrade}
+              onReconnectChannel={handleReconnectChannel}
+              activeTableTab={activeTableTab}
+              onChangeTableTab={setActiveTableTab}
+            />
+          ) : currentTab === 'seo-audit' ? (
+            <div style={{padding: '0 4px'}}>
+              <SeoAuditSection
+                key={companyData?.companyId || 'company'}
+                companyData={companyData}
+                onBackToDashboard={() => setCurrentTab('dashboard')}
+                onSwitchToWhatsApp={(contextKey) => {
+                  setCurrentTab('whatsapp')
+                }}
+                onResolveAction={(actionId) => handleResolveAction(actionId, { source: 'seo-audit' })}
+              />
+            </div>
+          ) : (
+            <WhatsAppView
+              companyData={companyData}
+              urgentActions={opsState.urgentActions || []}
+              onResolveAction={(actionId) => handleResolveAction(actionId, { source: 'whatsapp' })}
+              onSwitchToDashboard={() => setCurrentTab('dashboard')}
+              streamEvents={opsState.streamEvents || []}
+              onAddStreamEvent={handleAddStreamEvent}
+              channelStates={opsState.channelStates || []}
+              globalStatus={globalStatus}
+              onReconnectChannel={handleReconnectChannel}
+              chatMessages={opsState.chatMessages || []}
+              onUpdateChatMessages={handleUpdateChatMessages}
+              onResetDemo={handleResetDemo}
+            />
+          )}
+        </main>
       </div>
     </div>
   )
 }
 
-// ---- Root ---------------------------------------------------------------------------------------
-
-function App() {
-  const [session, setSession] = useState(() => loadStoredSession())
-
-  const onSessionEnded = useCallback(() => {
-    clearStoredSession()
-  }, [])
-
-  // The walkthrough already leased the tenant and (via attach-whatsapp) bound the phone number to it
-  // WITHOUT resetting it - so the audit record/state the visitor just built in the walkthrough is still
-  // there when they land in chat, not wiped by a fresh lease.
-  const goToChat = useCallback((walkthroughSession) => {
-    storeSession(walkthroughSession)
-    setSession(walkthroughSession)
-  }, [])
-
-  if (session) return <ChatScreen session={session} onSessionEnded={onSessionEnded} />
-  return <Walkthrough onGoToChat={goToChat} />
-}
-
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+    <SanoceaOperationsApp />
+  </React.StrictMode>
 )

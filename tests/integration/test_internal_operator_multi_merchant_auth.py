@@ -143,21 +143,18 @@ def test_13_prospect_scoped_session_cannot_enumerate_merchant_list(stack):
     # multi-merchant, may enumerate tenants through it.
 
 
-# --- 14: no permanent credential exposed in frontend/browser storage/URL -----------------------------
+# --- 14: no UI is served by the API, and no credential-dispensing endpoint exists --------------------------------
 
-def test_14_no_permanent_credential_in_served_frontend(stack):
+def test_14_the_api_serves_no_ui_and_dispenses_no_credential(stack):
     _, client, internal_key, solo_key = stack
-    ui_html = client.get("/ui").text
-    app_js = client.get("/static/app.js").text
-    for secret in (internal_key, solo_key):
-        assert secret not in ui_html
-        assert secret not in app_js
+    # The command-centre UI was retired (CANONICAL UI RULE: /demo.html is the only SANOCEA UI); the API must not serve one.
+    for path in ("/ui", "/static/app.js", "/static/seo.js", "/static/index.html"):
+        resp = client.get(path)
+        assert resp.status_code == 404, path
+        for secret in (internal_key, solo_key):
+            assert secret not in resp.text
     # No demo-token dispensing endpoint exists at all.
     assert client.get("/merchants/prospect_ajanta_soya/demo-token").status_code == 404
-    # The frontend never writes a credential to localStorage - only sessionStorage, and only ever
-    # REMOVES a legacy localStorage key (defensive cleanup), never sets one.
-    assert "localStorage.setItem" not in app_js
-    assert "sessionStorage.setItem('sanocea_operator_session'" in app_js or 'sessionStorage.setItem("sanocea_operator_session"' in app_js
 
 
 # --- 15-17: regressions -------------------------------------------------------------------------------
@@ -179,9 +176,8 @@ def test_16_existing_single_merchant_operator_keys_unaffected(stack):
     assert blocked.status_code == 403
 
 
-def test_17_command_center_ui_still_serves_with_merchant_switcher(stack):
+def test_17_api_root_sends_browsers_to_the_canonical_demo(stack):
     _, client, _, _ = stack
-    resp = client.get("/ui")
-    assert resp.status_code == 200
-    assert 'id="merchant-select"' in resp.text
-    assert 'id="demo-disclosure-banner"' in resp.text
+    resp = client.get("/", follow_redirects=False)
+    assert resp.status_code in (302, 307)
+    assert resp.headers["location"].endswith("/demo.html")

@@ -7,8 +7,7 @@ from uuid import uuid4
 
 from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse, Response
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse, Response
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -1482,37 +1481,25 @@ def create_app(
     # ================================================================================================
     # SEO Intelligence (read-only bridge to the SEO monitoring worker)
     # ================================================================================================
-    # Sanocea's own internal SEO tenant: NOT a merchant, so no merchant id in the URL and no merchants row. Authorized
-    # by key CLASS only (service key or internal-operator key; single-merchant keys are refused). See
-    # packages/seo_bridge/client.py. Never proxy the worker's /sync-* paths. This route performs no writes.
-    from sanocea.packages.seo_bridge import SeoBridge, SeoWorkerUnreachable, require_internal_operator
+    # The ONE bridge /demo.html -> SEO & Commerce Audit reads: the SEO worker's latest PERSISTED views, authorized by
+    # the existing demo-session key (see packages/seo_bridge require_demo_session). Read-only: no provider is called,
+    # nothing is written, worker-internal fields are redacted, and the worker's /sync-* paths are never proxied.
+    from sanocea.packages.seo_bridge import SeoBridge, SeoWorkerUnreachable, require_demo_session
 
-    @app.get("/internal/seo/overview")
-    def seo_overview(ctx: AuthContext = Depends(require_internal_operator)) -> dict:
+    @app.get("/demo/seo/overview")
+    @limiter.limit("60/minute")
+    def demo_seo_overview(request: Request, ctx: AuthContext = Depends(require_demo_session)) -> dict:
         try:
             return SeoBridge().overview()
         except SeoWorkerUnreachable:
             # Generic on purpose: no worker URL or tenant detail in the response.
             raise HTTPException(status_code=503, detail="SEO worker unavailable")
 
-    # ================================================================================================
-    # Operations Command Center (Phase 4.7 Demo Presentation Layer)
-    # ================================================================================================
-    ui_dir = Path(__file__).resolve().parent.parent / "command_center"
-    if ui_dir.exists():
-        app.mount("/static", StaticFiles(directory=str(ui_dir)), name="static")
-
-        @app.get("/ui", include_in_schema=False)
-        @app.get("/ui/{full_path:path}", include_in_schema=False)
-        def serve_ui(full_path: str = ""):
-            index_file = ui_dir / "index.html"
-            if index_file.exists():
-                return FileResponse(str(index_file))
-            return {"error": "UI index.html not found"}
-
-        @app.get("/", include_in_schema=False)
-        def root_redirect():
-            return RedirectResponse(url="/ui")
+    # The API serves no UI. The only SANOCEA UI is /demo.html on the public site (CLAUDE.md, CANONICAL UI RULE);
+    # a browser that lands on the API root is sent there.
+    @app.get("/", include_in_schema=False)
+    def root_redirect():
+        return RedirectResponse(url=os.environ.get("SANOCEA_PUBLIC_DEMO_URL", "https://www.sanocea.com/demo.html"))
 
     return app
 

@@ -1,0 +1,12 @@
+# SANOCEA™ — AI-Assisted Ecommerce Operations Layer
+> Operational exception automation across catalogue, inventory, pricing, orders, fulfilment, reconciliation, and marketplace exceptions — with humans in control of important decisions.
+
+## Canonical Modules & Solutions
+- [Commerce Command Center](/demo.html): Unified operations dashboard and WhatsApp decision layer.
+- [Marketplace Reconciliation](/solutions/marketplace-reconciliation/): Automated settlement deduction auditing across Amazon, Flipkart, and Blinkit.
+- [Operational Domains](/#operations): Catalogue suppression prevention, inventory drift sync, MAP pricing guardrails, stuck order triage, and NDR courier SLA management.
+
+## Contact & Governance
+- Website: https://www.sanocea.com/
+- Inquiries: hello@sanocea.com
+- Security & Human Governance: High-stakes pricing, refunds, and dark store inventory transfers require explicit operator approval.

@@ -1,3 +1,7 @@
+> **RETIRED 2026-10-01.** The `/ui` Command Center this report certifies no longer exists. `/demo.html` is the only
+> SANOCEA UI. The harness script and its machine-readable report were removed with it; this document is kept as a
+> historical record only. See `docs/architecture/retired-ui/` for the preserved source and the retirement matrix.
+
 # SANOCEA OPERATIONS COMMAND CENTER — CERTIFICATION REPORT
 
 **Document Identifier:** `CERT-COMMAND-CENTER-2026-01`  

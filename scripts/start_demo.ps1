@@ -241,7 +241,7 @@ if ($apiUp -and $ngrokUrl) {
 
 Write-Host ""
 Write-Host "=== READY ===" -ForegroundColor Cyan
-Write-Host "Command Center:  http://127.0.0.1:8080/ui"
+Write-Host "API:             http://127.0.0.1:8080/health   (the only SANOCEA UI is /demo.html on the website; the API serves no UI)"
 Write-Host "Tally Dashboard: http://127.0.0.1:9000/   (Shopify -> Tally live vouchers)"
 Write-Host "Public tunnel:   $ngrokUrl"
 Write-Host "Storefront:      https://sanocea-commerce-os-dev.myshopify.com  (password: sanocea)"
@@ -251,8 +251,6 @@ Write-Host "Tally demo trigger:"
 Write-Host "  python -X utf8 scripts/demo_shopify_to_tally.py --product makhana"
 Write-Host "  python -X utf8 scripts/demo_shopify_to_tally.py --product dates"
 Write-Host "  python -X utf8 scripts/demo_shopify_to_tally.py --product nuts"
-# Open Command Center automatically (only when the API is actually up - otherwise it would just show an error page).
-if ($apiUp) { try { Start-Process "http://127.0.0.1:8080/ui" } catch {} }
 if ($tallyUp) { try { Start-Process "http://127.0.0.1:9000/" } catch {} }
 Write-Host ""
 Write-Host "Everything above keeps running in its own window after you close this one."
