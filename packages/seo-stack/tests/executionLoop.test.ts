@@ -12,6 +12,7 @@ const T = 'a';
 const L = 'https://a.test/x', X = 'https://a.test/x/';
 const PLAN = { selected: 'FIX_SITEMAP_ENTRY', why: 'w', rejected: [], investigate_next: [], candidates: [{ action: 'FIX_SITEMAP_ENTRY', addresses: 'a', preconditions: [], verification: 'v', fallback: 'ROLLBACK',
   expected_outcome: [{ kind: 'sitemap_lists', subject: X, equals: X }, { kind: 'sitemap_lists', subject: L, absent: true }, { kind: 'redirects_to', subject: X, absent: true }] }] };
+const EXPECTED = PLAN.candidates[0].expected_outcome;
 const OK_FACTS = [{ id: 'f1', kind: 'sitemap_lists', subject: X, value: X, source: 's' }];
 const BAD_FACTS = [{ id: 'f2', kind: 'sitemap_lists', subject: L, value: L, source: 's' }, ...OK_FACTS]; // the old entry is still listed => NOT_MET
 const T0 = new Date('2026-10-02T10:00:00Z');
@@ -40,7 +41,7 @@ function bridge(script: Script) {
   return { b, calls, count: (k: string) => calls.filter(c => (c.command === 'execute' ? (c.dry_run ? 'dry' : 'execute') : c.command) === k).length };
 }
 const PUBLISHED: ExecutorResult = { status: 'PUBLISHED', change_id: 'chg_1', receipt: { action: 'FIX_SITEMAP_ENTRY', previous_release: 'r1', new_release: 'r2', changed_files: [{ path: 'sitemap.xml' }] }, source_sync: { commit: 'abcdef123456' } };
-const HAPPY: Script = { dry: { status: 'ELIGIBLE', change_id: 'chg_1' }, execute: PUBLISHED, observe: { status: 'OBSERVED', observable: true, facts: OK_FACTS } };
+const HAPPY: Script = { dry: { status: 'ELIGIBLE', change_id: 'chg_1' }, execute: PUBLISHED, observe: { status: 'OBSERVED', observable: true, facts: OK_FACTS, expected_outcome: EXPECTED } };
 const notes = (eng: OpportunityEngine) => eng.history(T, 'OPP-1').map(e => e.note);
 
 // ── bridge process boundary ──────────────────────────────────────────────────
@@ -133,7 +134,7 @@ test('executor failure: an ERROR before publishing changes nothing; an ERROR aft
 
   s = seed(); s.authorize();
   let n = 0;
-  const flaky = bridge({ dry: () => (n++ === 0 ? { status: 'ELIGIBLE', change_id: 'chg_1' } : { status: 'ALREADY_PUBLISHED', change_id: 'chg_1', receipt: PUBLISHED.receipt }), execute: { status: 'ERROR', reason: 'crashed mid-publish' }, observe: { status: 'OBSERVED', observable: true, facts: OK_FACTS } });
+  const flaky = bridge({ dry: () => (n++ === 0 ? { status: 'ELIGIBLE', change_id: 'chg_1' } : { status: 'ALREADY_PUBLISHED', change_id: 'chg_1', receipt: PUBLISHED.receipt }), execute: { status: 'ERROR', reason: 'crashed mid-publish' }, observe: { status: 'OBSERVED', observable: true, facts: OK_FACTS, expected_outcome: EXPECTED } });
   const loop = new ExecutionLoop(s.eng, flaky.b);
   await loop.run(T, T0);
   assert.equal(s.eng.get(T, 'OPP-1')!.status, 'IN_PROGRESS', 'stays IN_PROGRESS, not falsely completed');
@@ -158,7 +159,7 @@ test('verification: an unobservable live site defers (no verdict) and is abandon
 
 test('rollback path: a contradicting re-observation rolls the change back once and the change is never verified or rolled back again', async () => {
   const s = seed(); s.authorize();
-  const b = bridge({ ...HAPPY, observe: { status: 'OBSERVED', observable: true, facts: BAD_FACTS }, rollback: { status: 'ROLLED_BACK', restored_release: 'r1', source_restored: true } });
+  const b = bridge({ ...HAPPY, observe: { status: 'OBSERVED', observable: true, facts: BAD_FACTS, expected_outcome: EXPECTED }, rollback: { status: 'ROLLED_BACK', restored_release: 'r1', source_restored: true } });
   const loop = new ExecutionLoop(s.eng, b.b);
   const sum = await loop.run(T, T0);
   assert.equal(sum.rolledBack, 1);
@@ -171,7 +172,7 @@ test('rollback path: a contradicting re-observation rolls the change back once a
 
 test('rollback unavailable (a later release exists): recorded for investigation, no repeated attempts', async () => {
   const s = seed(); s.authorize();
-  const b = bridge({ ...HAPPY, observe: { status: 'OBSERVED', observable: true, facts: BAD_FACTS }, rollback: { status: 'ROLLBACK_UNAVAILABLE', code: 'ROLLBACK_CONFLICT', reason: 'a later release exists' } });
+  const b = bridge({ ...HAPPY, observe: { status: 'OBSERVED', observable: true, facts: BAD_FACTS, expected_outcome: EXPECTED }, rollback: { status: 'ROLLBACK_UNAVAILABLE', code: 'ROLLBACK_CONFLICT', reason: 'a later release exists' } });
   const loop = new ExecutionLoop(s.eng, b.b);
   await loop.run(T, T0); await loop.run(T, at(30));
   assert.ok(notes(s.eng).some(n => /^ROLLBACK_UNAVAILABLE \(ROLLBACK_CONFLICT\)/.test(n)));
@@ -206,4 +207,57 @@ test('tenant isolation: the loop for one tenant never touches another tenant\'s 
   const s = seed(); s.authorize(); const b = bridge(HAPPY);
   await new ExecutionLoop(s.eng, b.b).run('other', T0);
   assert.equal(b.calls.length, 0); assert.equal(s.eng.get(T, 'OPP-1')!.status, 'APPROVED');
+});
+
+// ── several changes over one opportunity's life ──────────────────────────────
+
+test('observation asks for the change by id and judges it against the outcome RECORDED at publication, not the opportunity\'s current plan', async () => {
+  const s = seed(); s.authorize();
+  const b = bridge({ ...HAPPY, observe: c => ({ status: 'OBSERVED', observable: true, facts: OK_FACTS, expected_outcome: EXPECTED, echo: c }) });
+  await new ExecutionLoop(s.eng, b.b).run(T, T0);
+  const obs = b.calls.find(c => c.command === 'observe');
+  assert.equal(obs.change_id, 'chg_1'); assert.equal('expected_outcome' in obs, false, 'the caller does not supply the expectation');
+  // the plan moves on to the NEXT step (as happens once the first change is in): the first change must still be judged by its own recorded outcome
+  s.db.handle.prepare(`UPDATE seo_opportunities SET action_plan_json = ? WHERE opportunity_id = 'OPP-1'`).run(JSON.stringify({ ...PLAN, candidates: [{ ...PLAN.candidates[0], expected_outcome: [{ kind: 'something_else', subject: 'x', equals: 'y' }] }] }));
+  const b2 = bridge({ observe: { status: 'OBSERVED', observable: true, facts: OK_FACTS, expected_outcome: EXPECTED } });
+  await new ExecutionLoop(s.eng, b2.b).run(T, at(25));
+  assert.equal(s.eng.get(T, 'OPP-1')!.status, 'LEARNED', 'verified against the recorded outcome (MET), unaffected by the moved-on plan');
+});
+
+test('a reopened opportunity starts a clean cycle: the old approval and result links no longer stand, and the second change is executed and verified on its own', async () => {
+  const s = seed(); s.authorize();
+  const b = bridge(HAPPY);
+  const loop = new ExecutionLoop(s.eng, b.b);
+  await loop.run(T, T0); await loop.run(T, at(24.5));
+  assert.equal(s.eng.get(T, 'OPP-1')!.status, 'LEARNED');
+  // observed again after being marked done (what refresh() records), plan now describes the next action
+  s.db.handle.prepare(`UPDATE seo_opportunities SET status = 'DISCOVERED', resulting_action = NULL, resulting_measurement = NULL WHERE opportunity_id = 'OPP-1'`).run();
+  s.db.handle.prepare(`INSERT INTO seo_opportunity_events (opportunity_id, tenant_id, at, actor, from_status, to_status, note) VALUES ('OPP-1', ?, ?, 'agent:opportunity-engine', 'LEARNED', 'DISCOVERED', 'Observed again after being marked done; reopened')`).run(T, at(26).toISOString());
+  assert.equal(s.eng.get(T, 'OPP-1')!.approval, null, 'the previous cycle\'s approval does not carry over');
+  for (const st of ['QUALIFIED', 'ACTIONABLE', 'AWAITING_APPROVAL'] as const) s.eng.transition(T, 'OPP-1', st, 'agent:autonomy-pass', 'prepared', at(26.1).toISOString());
+  assert.equal(s.eng.authorize(T, 'OPP-1', at(26.2).toISOString()).decision.allowed, true, 'authorised afresh under the policy');
+  const b2 = bridge({ dry: { status: 'ELIGIBLE', change_id: 'chg_2' }, execute: { ...PUBLISHED, change_id: 'chg_2' }, observe: { status: 'OBSERVED', observable: true, facts: OK_FACTS, expected_outcome: EXPECTED } });
+  await new ExecutionLoop(s.eng, b2.b).run(T, at(26.3));
+  const o = s.eng.get(T, 'OPP-1')!;
+  assert.equal(o.status, 'MEASURING'); assert.equal(o.resultingAction, 'change:chg_2');
+  assert.equal(b2.count('execute'), 1);
+  assert.equal(b2.count('observe'), 1, 'the first cycle\'s two verifications are not counted toward the second change');
+  assert.equal(buildLifecycleStates(s.eng).at(-1), 'current', 'lifecycle shows the latest change: verified once, second check pending');
+});
+
+import { buildLifecycle } from '../src/opportunities/lifecycle.js';
+function buildLifecycleStates(eng: OpportunityEngine) {
+  const o = eng.get(T, 'OPP-1')!;
+  return buildLifecycle(o, eng.history(T, 'OPP-1'), eng.getAutonomyMode(T)).stages.map(x => x.state);
+}
+
+test('a human-approved Class B change (CHANGE_CANONICAL) is executed; the same change approved autonomously in SEO mode is not', async () => {
+  const h = seed('CHANGE_CANONICAL'); h.eng.transition(T, 'OPP-1', 'APPROVED', 'human:owner', 'owner decision');
+  const bh = bridge(HAPPY);
+  await new ExecutionLoop(h.eng, bh.b).run(T, T0);
+  assert.equal(bh.count('execute'), 1, 'a person is the authority for a Class B change');
+  const a = seed('CHANGE_CANONICAL'); assert.equal(a.authorize().decision.allowed, false, 'SEO mode does not authorise Class B on its own');
+  const ba = bridge(HAPPY);
+  await new ExecutionLoop(a.eng, ba.b).run(T, T0);
+  assert.equal(ba.calls.length, 0);
 });

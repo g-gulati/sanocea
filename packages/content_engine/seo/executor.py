@@ -26,12 +26,13 @@ from urllib.parse import urlsplit
 from packages.content_engine.seo.policy import PublishTarget
 from packages.content_engine.seo.publisher import PublishReceipt, PublishRequest, PublisherError, StaticSiteReleasePublisher
 from packages.content_engine.seo.sitemap import SITEMAP_PATH, _canonical, _locs, _norm, evaluate_sitemap_eligibility, plan_sitemap_fix, sha
+from packages.content_engine.seo.pageedit import evaluate_page_edit_eligibility, page_file_for, plan_canonical_fix
 from packages.content_engine.seo.source import OpportunitySource
 from packages.content_engine.seo.store import SeoContentStore
 
 Fetch = Callable[[str], Tuple[int, Dict[str, str], str]]
 OBS_SRC = "[OBSERVED: LIVE POST-PUBLICATION FETCH]"
-SUPPORTED = ("FIX_SITEMAP_ENTRY",)
+SUPPORTED = ("FIX_SITEMAP_ENTRY", "CHANGE_CANONICAL")
 
 
 def targets_path() -> str:
@@ -99,13 +100,15 @@ def _expected(opp: Dict[str, Any]) -> List[Dict[str, Any]]:
     return list((sel or {}).get("expected_outcome", []))
 
 
-def _publication_for_opportunity(store: SeoContentStore, tenant: str, opportunity_id: str) -> Optional[Dict[str, Any]]:
+def _publication_for_opportunity(store: SeoContentStore, tenant: str, opportunity_id: str, action: str, since: str) -> Optional[Dict[str, Any]]:
+    """A publication by THIS opportunity, for THIS action, made since the current approval was given. An opportunity can carry several
+    changes over its life (e.g. canonical, then sitemap), so only the current approval cycle's change counts as a crash-resume match."""
     d = os.path.join(store._dir(tenant), "publications")
     if not os.path.isdir(d):
         return None
     for n in sorted(os.listdir(d)):
         rec = store._read(os.path.join(d, n))
-        if rec and rec.get("opportunity_id") == opportunity_id and rec.get("status") in ("PUBLISHED", "NOOP_ALREADY_PUBLISHED"):
+        if rec and rec.get("opportunity_id") == opportunity_id and rec.get("action") == action and rec.get("status") in ("PUBLISHED", "NOOP_ALREADY_PUBLISHED") and str(rec.get("published_at", "")) >= since:
             return rec
     return None
 
@@ -138,7 +141,8 @@ def execute(p: Dict[str, Any], fetch: Optional[Fetch] = None, store: Optional[Se
         return _result("BLOCKED", blocked_by=["publish_target_configured"], reason="No authorised publish target is configured for this tenant.")
     fetch = fetch or make_fetch(tgt["host"])
     store = store or SeoContentStore()
-    prior_pub = _publication_for_opportunity(store, tenant, opp["opportunityId"])
+    since = str((opp.get("approval") or {}).get("at", ""))
+    prior_pub = _publication_for_opportunity(store, tenant, opp["opportunityId"], action, since)
     if prior_pub and not any(e.get("event_id") in ("evt_rb_" + prior_pub["change_id"], "evt_vrb_" + prior_pub["change_id"]) for e in store.audit_events(tenant)):
         return _result("ALREADY_PUBLISHED", receipt={k: v for k, v in prior_pub.items() if k not in ("key", "tenant_id_")}, change_id=prior_pub["change_id"])  # crash-safe resume: never apply twice
     pub = _publisher(tenant, tgt, fetch)
@@ -146,31 +150,50 @@ def execute(p: Dict[str, Any], fetch: Optional[Fetch] = None, store: Optional[Se
     listed = (opp.get("evidence") or {}).get("listedUrl")
     if not listed:
         return _result("BLOCKED", blocked_by=["listed_url_known"], reason="The opportunity records no listed URL.")
-    live_xml = pub.live_file(SITEMAP_PATH)
     try:
         robots = pub.live_file("robots.txt")
     except OSError:
         robots = None
-    # Source-of-truth gate: the repo file the build uses must equal the live file, or the next deploy would fight this change.
-    src_rel = (tgt.get("source_files") or {}).get(SITEMAP_PATH)
+    intended = (opp.get("diagnosis") or {}).get("intended")
+    if action == "CHANGE_CANONICAL":
+        if not intended:
+            return _result("BLOCKED", blocked_by=["intended_address_established"], reason="The worker's diagnosis has not established which address is intended.")
+        rel = page_file_for(intended)
+        if not rel:
+            return _result("BLOCKED", blocked_by=["page_file_resolved"], reason="The intended address does not map to a single page file.")
+    else:
+        rel = SITEMAP_PATH
+    try:
+        live_text = pub.live_file(rel)
+    except OSError:
+        return _result("BLOCKED", blocked_by=["live_file_readable"], reason=f"{rel} could not be read from the live release.")
+    # Source-of-truth gate: the repo file the build uses must correspond to the live file, or the next deploy would fight this change.
+    src_rel = (tgt.get("source_files") or {}).get(rel)
     src_abs = os.path.join(tgt["source_repo"], src_rel) if src_rel else None
     if not src_abs or not os.path.isfile(src_abs):
-        return _result("BLOCKED", blocked_by=["source_of_truth_known"], reason="No repository source file is configured for the live sitemap.")
+        return _result("BLOCKED", blocked_by=["source_of_truth_known"], reason=f"No repository source file is configured for the live {rel}.")
     with open(src_abs, encoding="utf-8") as f:
-        if sha(f.read()) != sha(live_xml):
+        src_text = f.read()
+    if action == "FIX_SITEMAP_ENTRY":  # copied verbatim by the build: must be byte-identical
+        if sha(src_text) != sha(live_text):
             return _result("BLOCKED", blocked_by=["source_of_truth_matches_live"],
                            reason=f"{src_rel} differs from the live sitemap; publishing would be reverted by, or conflict with, the next deploy. Reconcile the source first.")
-    plan = plan_sitemap_fix(listed, live_xml, tgt["host"], fetch, robots, target, tenant)
-    decision = evaluate_sitemap_eligibility(opp, plan, mode, store, tenant)
+        plan = plan_sitemap_fix(listed, live_text, tgt["host"], fetch, robots, target, tenant)
+        decision = evaluate_sitemap_eligibility(opp, plan, mode, store, tenant)
+        new_text, new_src_text, destination, summary = plan.after_xml, plan.after_xml, plan.destination, f"sitemap entry {listed} -> {plan.destination}"
+    else:  # a built page: the build rewrites asset paths, so correspondence is checked on the declared addresses (see plan gate)
+        plan = plan_canonical_fix(listed, intended, intended, live_text, src_text, tgt["host"], fetch, robots, target, tenant)
+        decision = evaluate_page_edit_eligibility(opp, plan, mode, store, tenant)
+        new_text, new_src_text, destination, summary = plan.after_html, plan.source_after_html, intended, f"page address declarations {listed} -> {intended} in {rel}"
     if not plan.ok or not decision.eligible:
         return _result("BLOCKED", blocked_by=decision.blocked_by, reason=plan.blocked_reason or "; ".join(g.detail for g in decision.gates if not g.passed),
                        gates=[g.model_dump() for g in decision.gates], evidence=plan.evidence)
     change_id = decision.draft_id
     if p.get("dry_run"):
-        return _result("ELIGIBLE", change_id=change_id, destination=plan.destination)
+        return _result("ELIGIBLE", change_id=change_id, destination=destination)
     if store.get_publication(tenant, change_id) and any(e.get("event_id") in ("evt_rb_" + change_id, "evt_vrb_" + change_id) for e in store.audit_events(tenant)):
         return _result("BLOCKED", blocked_by=["previously_rolled_back"], reason="This exact change was published and then rolled back; it will not be re-applied without new evidence.")
-    req = PublishRequest(tenant_id=tenant, opportunity_id=opp["opportunityId"], change_id=change_id, action="FIX_SITEMAP_ENTRY", target=listed, file_changes={SITEMAP_PATH: plan.after_xml or ""},
+    req = PublishRequest(tenant_id=tenant, opportunity_id=opp["opportunityId"], change_id=change_id, action=action, target=listed, file_changes={rel: new_text or ""},
                          before_sha256=plan.before_sha256, after_sha256=plan.after_sha256 or "", expected_outcome=_expected(opp), source_path=src_rel)
     try:
         receipt = pub.publish(req, decision, store)
@@ -179,20 +202,26 @@ def execute(p: Dict[str, Any], fetch: Optional[Fetch] = None, store: Optional[Se
     out: Dict[str, Any] = {"receipt": json.loads(receipt.model_dump_json()), "change_id": change_id}
     if receipt.status == "PUBLISHED":  # keep the repository source in step so the next full build does not revert this
         with open(src_abs, "w", encoding="utf-8") as f:
-            f.write(plan.after_xml or "")
-        commit = _commit_source(tgt["source_repo"], src_rel, f"seo(autonomous): {receipt.change_id} sitemap entry {listed} -> {plan.destination}\n\nPublished by the SEO executor under {decision.policy}; release {receipt.new_release}.") if tgt.get("commit_source") else None
-        store._write(os.path.join(store._dir(tenant), "source_sync", change_id + ".json"), {"path": src_rel, "before_text": live_xml, "after_text": plan.after_xml, "commit": commit})
+            f.write(new_src_text or "")
+        commit = _commit_source(tgt["source_repo"], src_rel, f"seo(autonomous): {receipt.change_id} {summary}\n\nPublished by the SEO executor under {decision.policy}; release {receipt.new_release}.") if tgt.get("commit_source") else None
+        store._write(os.path.join(store._dir(tenant), "source_sync", change_id + ".json"), {"path": src_rel, "before_text": src_text, "after_text": new_src_text, "commit": commit})
         out["source_sync"] = {"path": src_rel, "commit": commit}
     return _result("PUBLISHED" if receipt.status == "PUBLISHED" else "ALREADY_PUBLISHED", **out)
 
 
-def observe(p: Dict[str, Any], fetch: Optional[Fetch] = None) -> Dict[str, Any]:
+def observe(p: Dict[str, Any], fetch: Optional[Fetch] = None, store: Optional[SeoContentStore] = None) -> Dict[str, Any]:
     """Re-observe the LIVE site for each expectation. If anything cannot be observed, `observable` is False and no verdict may be drawn."""
     tenant = p["tenant_id"]
     tgt = load_target(tenant)
     if not tgt:
         return _result("ERROR", reason="no publish target for tenant", observable=False, facts=[])
     fetch = fetch or make_fetch(tgt["host"])
+    expected = p.get("expected_outcome", [])
+    if p.get("change_id"):  # the outcome recorded WHEN the change was published; the opportunity's plan may have moved on since
+        rec = (store or SeoContentStore()).get_publication(tenant, p["change_id"])
+        if not rec:
+            return _result("ERROR", reason="no publication record for this change", observable=False, facts=[])
+        expected = rec.get("expected_outcome", [])
     facts: List[Dict[str, Any]] = []
     unobservable: List[str] = []
 
@@ -207,7 +236,7 @@ def observe(p: Dict[str, Any], fetch: Optional[Fetch] = None) -> Dict[str, Any]:
             locs = [_norm(x) for x in _locs(body)]
         except Exception:
             locs = None
-    for e in p.get("expected_outcome", []):
+    for e in expected:
         kind, subject = e.get("kind"), e.get("subject", "")
         if kind == "sitemap_lists":
             if locs is None:
@@ -228,7 +257,7 @@ def observe(p: Dict[str, Any], fetch: Optional[Fetch] = None) -> Dict[str, Any]:
                 fact(kind, subject, _canonical(b))
         else:
             unobservable.append(f"{kind} (no observer)")
-    return _result("OBSERVED", observable=not unobservable, unobservable=unobservable, facts=facts)
+    return _result("OBSERVED", observable=not unobservable, unobservable=unobservable, facts=facts, expected_outcome=expected)
 
 
 def rollback(p: Dict[str, Any], fetch: Optional[Fetch] = None, store: Optional[SeoContentStore] = None, source: Optional[OpportunitySource] = None) -> Dict[str, Any]:

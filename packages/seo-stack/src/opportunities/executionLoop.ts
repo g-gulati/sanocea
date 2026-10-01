@@ -12,7 +12,7 @@ import { OpportunityEngine, Opportunity } from './opportunityEngine.js';
 import { ExecutorBridge } from './executorBridge.js';
 import { classifyAction, modeAllows } from './autonomyPolicy.js';
 
-export const EXECUTABLE_ACTIONS: ReadonlySet<string> = new Set(['FIX_SITEMAP_ENTRY']);
+export const EXECUTABLE_ACTIONS: ReadonlySet<string> = new Set(['FIX_SITEMAP_ENTRY', 'CHANGE_CANONICAL']);
 export const EXECUTOR_ACTOR = 'agent:executor';
 const VERIFIER = 'agent:verification';
 
@@ -90,15 +90,18 @@ export class ExecutionLoop {
   }
 
   private async verifyOne(tenantId: string, o: Opportunity, sum: ExecutionSummary, now: Date): Promise<void> {
-    const hist = this.engine.history(tenantId, o.opportunityId);
+    const full = this.engine.history(tenantId, o.opportunityId);
+    const lastExec = full.map(e => e.note.startsWith('EXECUTED ')).lastIndexOf(true);
+    const hist = lastExec >= 0 ? full.slice(lastExec + 1) : full; // only what happened since the LATEST execution: an opportunity can carry several changes over its life
     if (hist.some(e => e.note.startsWith('ROLLED_BACK') || e.note.startsWith('VERIFICATION_ABANDONED') || e.note.startsWith('ROLLBACK_UNAVAILABLE') || e.note.startsWith('VERIFICATION_INVESTIGATE'))) return;
     const mets = hist.filter(e => e.note.startsWith('VERIFICATION MET'));
     const settleAfter = this.opts.settleAfterMs ?? 24 * 3600_000;
     if (mets.length >= 2) return;
     if (mets.length === 1 && now.getTime() - Date.parse(mets[0].at) < settleAfter) return; // the second, settled re-check is not yet due
     const changeId = o.resultingAction!.slice('change:'.length);
-    const sel = o.actionPlan?.candidates.find(c => c.action === o.actionPlan!.selected);
-    const obs = await this.bridge!.run({ command: 'observe', tenant_id: tenantId, expected_outcome: sel?.expected_outcome ?? [] });
+    // The expected outcome is the one recorded WHEN this change was published (read by the executor from the immutable publication record);
+    // the opportunity's current plan may already describe the next step and must never be used to judge this one.
+    const obs = await this.bridge!.run({ command: 'observe', tenant_id: tenantId, change_id: changeId });
     if (obs.status !== 'OBSERVED' || !obs.observable) {
       const deferrals = hist.filter(e => e.note.startsWith('VERIFICATION_DEFERRED')).length;
       if (deferrals + 1 >= (this.opts.maxDeferrals ?? 6)) this.engine.annotate(tenantId, o.opportunityId, VERIFIER, `VERIFICATION_ABANDONED: the live site could not be observed after ${deferrals + 1} attempts (${(obs.unobservable ?? [obs.reason ?? obs.status]).join('; ')}); needs investigation`, now.toISOString());
@@ -106,7 +109,7 @@ export class ExecutionLoop {
       sum.deferred++;
       return;
     }
-    const v = this.engine.verify(tenantId, o.opportunityId, obs.facts ?? [], true, now.toISOString());
+    const v = this.engine.verifyExpected(tenantId, o.opportunityId, obs.expected_outcome ?? [], obs.facts ?? [], true, now.toISOString());
     sum.verified++;
     if (v.status === 'MET') {
       this.engine.transition(tenantId, o.opportunityId, o.status === 'COMPLETED' ? 'MEASURING' : 'LEARNED', VERIFIER, mets.length === 0 ? 'Change verified on the live site; monitoring until the settled re-check' : 'Settled re-check met; outcome learned', now.toISOString());

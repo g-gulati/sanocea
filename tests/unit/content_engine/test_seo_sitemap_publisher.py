@@ -201,7 +201,7 @@ def test_publisher_refuses_ineligible_forged_unsupported_and_out_of_scope_reques
     blocked = evaluate_sitemap_eligibility(opp(), p, "RECOMMEND_ONLY", st, "sanocea")
     with pytest.raises(PublisherError) as e: pub.publish(req.model_copy(update={"change_id": blocked.draft_id}), blocked, st)
     assert e.value.code == "NOT_ELIGIBLE"
-    for action in ["CHANGE_REDIRECT", "CHANGE_SERVER_RENDERING", "CREATE_SEO_PAGE", "UPDATE_EXISTING_PAGE", "CHANGE_CANONICAL", "CHANGE_INDEXABILITY", "DISTRIBUTE_EXISTING_CONTENT"]:
+    for action in ["CHANGE_REDIRECT", "CHANGE_SERVER_RENDERING", "CREATE_SEO_PAGE", "UPDATE_EXISTING_PAGE", "CHANGE_INDEXABILITY", "DISTRIBUTE_EXISTING_CONTENT"]:
         with pytest.raises(PublisherError) as e: pub.publish(req.model_copy(update={"action": action}), d.model_copy(update={"action": action}), st)
         assert e.value.code == "UNSUPPORTED_ACTION", action
     for path in ["redirects.conf", "nginx.conf", "index.html", "robots.txt", "../outside.txt"]:

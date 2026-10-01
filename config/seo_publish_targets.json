@@ -6,11 +6,20 @@
       "host": "www.sanocea.com",
       "base_url": "https://www.sanocea.com",
       "www_root": "/var/www/sanocea",
-      "path_prefixes": ["/sitemap.xml"],
+      "path_prefixes": [
+        "/sitemap.xml",
+        "/solutions/"
+      ],
       "source_repo": "/opt/sanocea/repo",
-      "source_files": { "sitemap.xml": "website/public/sitemap.xml" },
+      "source_files": {
+        "sitemap.xml": "website/public/sitemap.xml",
+        "solutions/marketplace-reconciliation/index.html": "website/solutions/marketplace-reconciliation/index.html"
+      },
       "commit_source": true,
-      "health_urls": ["https://www.sanocea.com/", "https://www.sanocea.com/sitemap.xml"]
+      "health_urls": [
+        "https://www.sanocea.com/",
+        "https://www.sanocea.com/sitemap.xml"
+      ]
     }
   }
 }

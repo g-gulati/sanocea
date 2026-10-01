@@ -30,7 +30,8 @@ const strip = (s: string) => s.replace(/^[A-Z_]+(?: \([^)]*\))?:\s*/, '');
 export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode): Lifecycle {
   const action = o.decision?.action ?? o.recommendedAction;
   const cls = classifyAction(action);
-  const last = (re: RegExp) => [...history].reverse().find(e => re.test(e.note));
+  const lastIn = (evs: Ev[], re: RegExp) => [...evs].reverse().find(e => re.test(e.note));
+  const last = (re: RegExp) => lastIn(history, re);
   const stages: LifecycleStage[] = [];
 
   stages.push({ key: 'found', label: 'Found', state: 'done', headline: o.diagnosis?.finding ?? (o.plainEnglish || o.reason), detail: !o.diagnosis && o.reason !== o.plainEnglish ? o.reason : undefined, at: o.detectedAt });
@@ -74,7 +75,9 @@ export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode
     : appr ? { key: 'executed', label: 'Executed', state: 'current', headline: 'Waiting for the next execution cycle' }
     : { key: 'executed', label: 'Executed', state: 'waiting', headline: 'Nothing has been changed' });
 
-  const met = history.filter(e => e.note.startsWith('VERIFICATION MET')), rolled = last(/^ROLLED_BACK/), vbad = last(/^VERIFICATION (NOT_MET|INCONCLUSIVE)|^VERIFICATION_INVESTIGATE|^ROLLBACK_UNAVAILABLE|^VERIFICATION_ABANDONED/), deferred = last(/^VERIFICATION_DEFERRED/);
+  const lastExecIdx = history.map(e => e.note.startsWith('EXECUTED ')).lastIndexOf(true);
+  const cycle = lastExecIdx >= 0 ? history.slice(lastExecIdx + 1) : history; // verification of the LATEST change only
+  const met = cycle.filter(e => e.note.startsWith('VERIFICATION MET')), rolled = lastIn(cycle, /^ROLLED_BACK/), vbad = lastIn(cycle, /^VERIFICATION (NOT_MET|INCONCLUSIVE)|^VERIFICATION_INVESTIGATE|^ROLLBACK_UNAVAILABLE|^VERIFICATION_ABANDONED/), deferred = lastIn(cycle, /^VERIFICATION_DEFERRED/);
   stages.push(rolled ? { key: 'verified', label: 'Verified', state: 'blocked', at: rolled.at, headline: 'Re-checking showed the change did not work, so it was undone', detail: 'The previous version of the website was restored automatically.' }
     : met.length >= 2 ? { key: 'verified', label: 'Verified', state: 'done', at: met[1].at, headline: 'Confirmed twice on the live site: right after the change and again a day later' }
     : met.length === 1 ? { key: 'verified', label: 'Verified', state: 'current', at: met[0].at, headline: 'Confirmed on the live site; one more check is scheduled for a day later' }

@@ -18,7 +18,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { buildLifecycle, Lifecycle } from './lifecycle.js';
-import { ActionPlan, Diagnosis, Fact, collectRedirectFamilyFacts, Ga4LandingObs, diagnoseRedirectFamily, selectAction, verifyOutcome, Verification } from './diagnosis.js';
+import { Expectation, ActionPlan, Diagnosis, Fact, collectRedirectFamilyFacts, Ga4LandingObs, diagnoseRedirectFamily, selectAction, verifyOutcome, Verification } from './diagnosis.js';
 import { AUTONOMOUS_ACTOR, modeAllows, AuthorizationDecision, AutonomyMode, DEFAULT_MODE, POLICY_REF, classifyAction, evaluateAuthorization, isAutonomyMode } from './autonomyPolicy.js';
 import { SeoDatabase } from '../persistence/seoDb.js';
 import { GscPropertyService, InspectionRecord, SitemapRecord } from '../search-intel/gscProperty.js';
@@ -301,6 +301,9 @@ export class OpportunityEngine {
 
   private approvalOf(tenantId: string, id: string): ApprovalRecord | null {
     const e = this.db.handle.prepare(`SELECT * FROM seo_approvals WHERE tenant_id = ? AND opportunity_id = ? ORDER BY rowid DESC LIMIT 1`).get(tenantId, id) as any;
+    // An approval belongs to one cycle: once the opportunity has been reopened (observed again after being marked done) the earlier approval no longer stands.
+    const reopen = this.db.handle.prepare(`SELECT at FROM seo_opportunity_events WHERE tenant_id = ? AND opportunity_id = ? AND note LIKE 'Observed again after being marked done; reopened%' ORDER BY id DESC LIMIT 1`).get(tenantId, id) as any;
+    if (e && reopen && String(e.approved_at) < String(reopen.at)) return null;
     return e ? { by: e.actor, at: e.approved_at, actorType: e.approval_actor_type, policy: e.approval_policy, reason: e.approval_reason, actionClass: e.action_class, approvedAction: e.approved_action } : null;
   }
 
@@ -386,6 +389,16 @@ export class OpportunityEngine {
     this.event(tenantId, opportunityId, r.status, r.status, 'agent:verification', `VERIFICATION ${v.status}: ${v.reason} Next: ${v.next}`, now);
   }
 
+  /** Verify against an expected outcome recorded at publication time (not the opportunity's current plan), then record the outcome. */
+  public verifyExpected(tenantId: string, opportunityId: string, expected: Expectation[], observed: Fact[], rollbackAvailable: boolean, now = new Date().toISOString()): Verification {
+    if (!this.get(tenantId, opportunityId)) throw new Error('opportunity not found for this tenant');
+    const plan: ActionPlan = { selected: 'RECORDED_CHANGE', why: 'recorded at publication', rejected: [], investigate_next: [],
+      candidates: [{ action: 'RECORDED_CHANGE', addresses: 'the published change', preconditions: [], expected_outcome: expected, verification: 'Re-observe the live site against the recorded outcome.', fallback: 'ROLLBACK' }] };
+    const v = verifyOutcome(plan, observed, rollbackAvailable);
+    this.recordVerification(tenantId, opportunityId, v, now);
+    return v;
+  }
+
   /** Verify an opportunity's selected action against freshly re-observed facts, then record the outcome. */
   public verify(tenantId: string, opportunityId: string, observed: Fact[], rollbackAvailable: boolean, now = new Date().toISOString()): Verification {
     const o = this.get(tenantId, opportunityId);
@@ -447,6 +460,7 @@ export class OpportunityEngine {
         if (status === 'COMPLETED' || status === 'LEARNED') {
           this.event(tenantId, existing.opportunity_id, status, 'DISCOVERED', 'agent:opportunity-engine', 'Observed again after being marked done; reopened', now);
           status = 'DISCOVERED'; reopened++;
+          this.db.handle.prepare(`UPDATE seo_opportunities SET resulting_action = NULL, resulting_measurement = NULL WHERE tenant_id = ? AND opportunity_id = ?`).run(tenantId, existing.opportunity_id); // a new cycle starts clean; the audit trail keeps the old one
         }
         this.db.handle.prepare(`UPDATE seo_opportunities SET status = ?, reason = ?, evidence_json = ?, recommended_action = ?, decision_json = ?, objective = ?, source = ?, confidence = ?, last_seen_at = ?, updated_at = ?, diagnosis_json = ?, action_plan_json = ? WHERE tenant_id = ? AND opportunity_id = ?`)
           .run(status, c.reason, ev, c.decision.action, JSON.stringify(c.decision), c.objective, c.source, c.confidence, now, now, c.diagnosis ? JSON.stringify(c.diagnosis) : null, c.actionPlan ? JSON.stringify(c.actionPlan) : null, tenantId, existing.opportunity_id);

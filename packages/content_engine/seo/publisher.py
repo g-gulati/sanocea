@@ -14,6 +14,7 @@ from __future__ import annotations
 import difflib
 import hashlib
 import os
+import re
 import shutil
 from datetime import datetime, timezone
 from typing import Callable, Dict, List, Optional, Protocol
@@ -25,7 +26,19 @@ from packages.content_engine.seo.store import SeoContentStore
 
 # action -> the ONLY files it may change (relative to the release root)
 ALLOWED_FILES: Dict[str, frozenset] = {"FIX_SITEMAP_ENTRY": frozenset({"sitemap.xml"})}
-SUPPORTED_ACTIONS = frozenset(ALLOWED_FILES)
+# CHANGE_CANONICAL may change exactly ONE directory-style page file (a/b/index.html); never the sitemap, robots, assets or server config.
+PAGE_FILE_RE = re.compile(r"^[a-z0-9][a-z0-9/_-]*/index\.html$")
+PAGE_EDIT_ACTIONS = frozenset({"CHANGE_CANONICAL"})
+SUPPORTED_ACTIONS = frozenset(ALLOWED_FILES) | PAGE_EDIT_ACTIONS
+
+
+def paths_allowed(action: str, files) -> bool:
+    files = set(files)
+    if action in ALLOWED_FILES:
+        return bool(files) and files <= ALLOWED_FILES[action]
+    if action in PAGE_EDIT_ACTIONS:
+        return len(files) == 1 and all(PAGE_FILE_RE.match(f) for f in files)
+    return False
 
 
 class PublisherError(Exception):
@@ -140,9 +153,8 @@ class StaticSiteReleasePublisher:
         ev = [e for e in store.audit_events(self.tenant_id) if e.get("event_id") == "evt_" + digest and e.get("eligible") is True and e.get("change_id") == req.change_id]
         if not ev:
             raise PublisherError("NO_AUDITED_DECISION", "No audited eligibility decision matches this change; a decision object alone is not authority.")
-        extra = set(req.file_changes) - ALLOWED_FILES[req.action]
-        if extra or not req.file_changes:
-            raise PublisherError("PATH_NOT_ALLOWED", f"{req.action} may only change {sorted(ALLOWED_FILES[req.action])}; refused {sorted(extra)}.")
+        if not paths_allowed(req.action, req.file_changes):
+            raise PublisherError("PATH_NOT_ALLOWED", f"{req.action} may not change {sorted(req.file_changes)}.")
 
     # ── publish ──────────────────────────────────────────────────────────────
     def publish(self, req: PublishRequest, dec: PublishDecision, store: SeoContentStore) -> PublishReceipt:
@@ -170,7 +182,7 @@ class StaticSiteReleasePublisher:
             changed = sorted(p for p in set(before) | set(after) if before.get(p) != after.get(p))
             if set(changed) != set(req.file_changes):
                 raise PublisherError("UNEXPECTED_DIFF", f"Release differs in {changed}, expected exactly {sorted(req.file_changes)}.")
-            if after["sitemap.xml"] != req.after_sha256:
+            if any(after[rel] != req.after_sha256 for rel in req.file_changes):
                 raise PublisherError("AFTER_HASH_MISMATCH", "The written file does not match the planned after-state.")
         except Exception:
             shutil.rmtree(new, ignore_errors=True)  # nothing was switched; live release untouched
@@ -179,11 +191,12 @@ class StaticSiteReleasePublisher:
         if self.health_check and not self.health_check(new):
             self._switch(prev)
             raise PublisherError("HEALTH_CHECK_FAILED", "The new release failed its health check; switched back to the previous release.")
-        patch = "".join(difflib.unified_diff(open(os.path.join(prev, "sitemap.xml")).read().splitlines(True), req.file_changes["sitemap.xml"].splitlines(True), "a/" + (req.source_path or "sitemap.xml"), "b/" + (req.source_path or "sitemap.xml")))
+        main_file = next(iter(req.file_changes))
+        patch = "".join(difflib.unified_diff(open(os.path.join(prev, main_file)).read().splitlines(True), req.file_changes[main_file].splitlines(True), "a/" + (req.source_path or main_file), "b/" + (req.source_path or main_file)))
         receipt = PublishReceipt(change_id=req.change_id, tenant_id=self.tenant_id, action=req.action, target=req.target, status="PUBLISHED", previous_release=os.path.basename(prev), new_release=os.path.basename(new),
                                  changed_files=[ChangedFile(path=p, before_sha256=before[p], after_sha256=after[p]) for p in changed], published_at=now.isoformat(), rollback_ref=os.path.basename(prev), source_sync_patch=patch, opportunity_id=req.opportunity_id, expected_outcome=req.expected_outcome)
         store.record_publication(self.tenant_id, req.change_id, receipt.model_dump())
-        store.append_audit(self.tenant_id, "evt_pub_" + req.change_id, {"type": "SITEMAP_PUBLISHED", "change_id": req.change_id, "opportunity_id": req.opportunity_id, "action": req.action, "actor_type": "AUTONOMOUS_AGENT",
+        store.append_audit(self.tenant_id, "evt_pub_" + req.change_id, {"type": "SITEMAP_PUBLISHED" if req.action == "FIX_SITEMAP_ENTRY" else "PAGE_EDIT_PUBLISHED", "change_id": req.change_id, "opportunity_id": req.opportunity_id, "action": req.action, "actor_type": "AUTONOMOUS_AGENT",
                                                                        "previous_release": receipt.previous_release, "new_release": receipt.new_release, "before_sha256": req.before_sha256, "after_sha256": req.after_sha256, "at": receipt.published_at})
         return receipt
 
@@ -201,5 +214,5 @@ class StaticSiteReleasePublisher:
         self._switch(prev)
         live = _sha_file(os.path.join(self.current_release(), receipt.changed_files[0].path))
         now = self.clock().isoformat()
-        store.append_audit(self.tenant_id, "evt_rb_" + receipt.change_id, {"type": "SITEMAP_ROLLED_BACK", "change_id": receipt.change_id, "restored_release": receipt.rollback_ref, "live_sha256": live, "at": now})
+        store.append_audit(self.tenant_id, "evt_rb_" + receipt.change_id, {"type": "SITEMAP_ROLLED_BACK" if receipt.action == "FIX_SITEMAP_ENTRY" else "PAGE_EDIT_ROLLED_BACK", "change_id": receipt.change_id, "restored_release": receipt.rollback_ref, "live_sha256": live, "at": now})
         return RollbackResult(change_id=receipt.change_id, restored_release=receipt.rollback_ref, live_sha256=live, rolled_back_at=now)

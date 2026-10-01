@@ -20,7 +20,7 @@ SITEMAP = f'''<?xml version="1.0" encoding="UTF-8"?>
   <url><loc>{LISTED}</loc></url>
 </urlset>
 '''
-AUTO = {"by": "autonomous:sanocea-autonomy-policy@1.0.0", "at": "2026-10-02T00:00:00Z", "actorType": "AUTONOMOUS_AGENT", "policy": POLICY_REF, "reason": "ok", "actionClass": "A", "approvedAction": "FIX_SITEMAP_ENTRY"}
+AUTO = {"by": "autonomous:sanocea-autonomy-policy@1.0.0", "at": "2026-09-30T00:00:00Z", "actorType": "AUTONOMOUS_AGENT", "policy": POLICY_REF, "reason": "ok", "actionClass": "A", "approvedAction": "FIX_SITEMAP_ENTRY"}
 PLAN = {"selected": "FIX_SITEMAP_ENTRY", "candidates": [{"action": "FIX_SITEMAP_ENTRY", "expected_outcome": [
     {"kind": "sitemap_lists", "subject": DEST, "equals": DEST}, {"kind": "sitemap_lists", "subject": LISTED, "absent": True}, {"kind": "redirects_to", "subject": DEST, "absent": True}]}]}
 
