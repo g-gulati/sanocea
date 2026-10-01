@@ -275,3 +275,12 @@ def test_redact_unit():
     from sanocea.packages.seo_bridge import redact
     out = redact({"owner": "h:1", "a": [{"dbPath": "/x", "k": "ok [OBSERVED]"}], "s": "at /opt/sanocea/z/y.sqlite now", "n": 3, "u": "https://a.b/c", "h": "vmi33:803425", "e": "BING_WEBMASTER_API_KEY is not configured", "p": "[OBSERVED: COMMON CRAWL DOMAIN REFERENCE GRAPH]"})
     assert out == {"e": "a required setting is not configured", "p": "[OBSERVED: COMMON CRAWL DOMAIN REFERENCE GRAPH]", "a": [{"k": "ok [OBSERVED]"}], "s": "at <redacted> now", "n": 3, "u": "https://a.b/c", "h": "<redacted>"}
+
+
+def test_redact_keeps_whole_string_identifiers_but_still_scrubs_setting_names_inside_sentences():
+    """Regression: roles like AI_CONTENT_AUDITOR / LINK_BUILDING_MANAGER were rewritten to 'a required setting'."""
+    from sanocea.packages.seo_bridge import redact
+    out = redact({"role": "AI_CONTENT_AUDITOR", "status": "AWAITING_PROVIDER", "r2": "LINK_BUILDING_MANAGER",
+                  "err": "BING_WEBMASTER_API_KEY is not configured", "type": "GSC_SIGNAL_SEARCH_VELOCITY"})
+    assert out == {"role": "AI_CONTENT_AUDITOR", "status": "AWAITING_PROVIDER", "r2": "LINK_BUILDING_MANAGER",
+                   "err": "a required setting is not configured", "type": "GSC_SIGNAL_SEARCH_VELOCITY"}

@@ -3,7 +3,8 @@ import {SANOCEA_CASE_STUDY_DATA, TENANT_SEO_CONFIGS} from '../data/seoAuditData.
 import {useSeoOverview, view, fmtTime, sentinelStatus, latestHeartbeat} from '../useSeoOverview.js'
 import SeoSearchIntelPanel from './SeoSearchIntelPanel.jsx'
 import SeoSentinelPanel from './SeoSentinelPanel.jsx'
-import {NotAvailable, relativeAge, HistoricalNotice} from './SeoShared.jsx'
+import SeoPlainOverview from './SeoPlainOverview.jsx'
+import {NotAvailable, relativeAge, HistoricalNotice, RosterEvidence, LabelLegend} from './SeoShared.jsx'
 
 export default function SanoceaCaseStudyView() {
   const caseStudy = SANOCEA_CASE_STUDY_DATA
@@ -54,6 +55,16 @@ export default function SanoceaCaseStudyView() {
 
   return (
     <div className="sanocea-case-study-card" id="sanocea-seo-workspace">
+      {/* PRIMARY LAYER: plain-English overview for a non-technical merchant (seven questions, in order). */}
+      <SeoPlainOverview overview={seo.overview} status={seo.status} error={seo.error} />
+
+      {/* EVIDENCE AND TECHNICAL DETAILS: everything that used to be the primary view, with its original technical
+          names, provenance labels and timestamps. Collapsed by default so it never dominates the reading experience. */}
+      <details id="seo-evidence-layer" style={{marginTop: 26, border: '1px solid #CBD5E1', borderRadius: 12, background: '#F8FAFC'}}>
+        <summary style={{cursor: 'pointer', padding: '14px 18px', fontSize: 15, fontWeight: 800, color: '#0F172A'}}>Evidence and technical details <span style={{fontWeight: 500, fontSize: 12.5, color: '#64748B'}}>· every figure above comes from here, with its original names and labels</span></summary>
+        <div style={{padding: '0 14px 16px'}}>
+          <LabelLegend />
+          <RosterEvidence overview={seo.overview} />
       {/* ── 1. PRIMARY SENTINEL STATUS BAR ────────────────────────────────────── */}
       <div className="cs-sentinel-bar">
         <div className="cs-sentinel-main">
@@ -436,6 +447,8 @@ export default function SanoceaCaseStudyView() {
           </div>
         )}
       </div>
+        </div>
+      </details>
     </div>
   )
 }

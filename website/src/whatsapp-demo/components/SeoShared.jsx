@@ -251,3 +251,33 @@ export function HistoricalNotice() {
     </div>
   )
 }
+
+// Plain-English key to the technical labels used throughout the evidence layer.
+export function LabelLegend() {
+  const rows = [['[OBSERVED]', 'measured directly (for example from Google)'], ['[CALCULATED]', 'arithmetic on measured numbers'], ['[INFERRED]', 'our reasoning from the data'], ['[NOT AVAILABLE]', 'no real source yet'], ['[EDITORIAL · STATIC]', 'written analysis, not live data'], ['[HISTORICAL · STATIC]', 'a past record']]
+  return (
+    <div style={{display: 'grid', gap: 4, fontSize: 12.5, margin: '4px 0 14px', color: '#475569'}}>
+      <div style={{fontWeight: 700, color: '#0F172A'}}>What the labels mean</div>
+      {rows.map(([k, v]) => <div key={k}><Chip label={k} /> {v}</div>)}
+    </div>
+  )
+}
+
+// The specialist roster with the worker's own provenance, statuses and times (the plain-English version is in section 6).
+export function RosterEvidence({overview}) {
+  const v = view(overview, 'agent_roster')
+  if (!v.ok) return <NotAvailable title="Specialist roster" reason={v.error} />
+  return (
+    <div style={{marginBottom: 18}}>
+      <SectionHead title="Specialist roster" chip={v.data.provenance} stamp={v.updated_at} sub={`${v.data.activeAgentsCount} active, ${v.data.totalAgentsCount} registered`} />
+      <div style={{overflowX: 'auto'}}>
+        <table className="cs-diffs-table">
+          <thead><tr><th>Specialist</th><th>Status</th><th>What it does</th><th>Provenance</th><th>Last run</th><th>Next run</th></tr></thead>
+          <tbody>{(v.data.roster || []).map((x) => (
+            <tr key={x.role}><td><code>{x.role}</code></td><td>{x.status}</td><td style={{fontSize: 12}}>{x.outputSummary || x.currentTask}</td><td><Chip label={x.provenance} /></td><td style={{fontSize: 12}}>{fmtTime(x.executedAt)}</td><td style={{fontSize: 12}}>{fmtTime(x.nextScheduledAt)}</td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </div>
+  )
+}

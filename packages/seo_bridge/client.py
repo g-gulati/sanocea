@@ -56,6 +56,9 @@ _REDACT_STR = re.compile(
 )
 
 
+_IDENTIFIER = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+")
+
+
 def redact(obj: Any) -> Any:
     """Recursively drops worker-internal keys and scrubs filesystem paths, host:pid tokens and ENV_VAR-style setting names from strings. Everything
     else (values, provenance labels, timestamps) passes through byte-for-byte."""
@@ -64,6 +67,8 @@ def redact(obj: Any) -> Any:
     if isinstance(obj, list):
         return [redact(v) for v in obj]
     if isinstance(obj, str):
+        if _IDENTIFIER.fullmatch(obj):
+            return obj  # a whole-string identifier (a role, status or type such as AI_CONTENT_AUDITOR) is data, not a leaked setting name
         return _REDACT_STR.sub(lambda m: "a required setting" if m.group(0).isupper() and "_" in m.group(0) else "<redacted>", obj)
     return obj
 

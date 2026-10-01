@@ -553,3 +553,45 @@ test('Regression 19: ONE shared SEO data contract: only the store fetches, nothi
   const importers = files.filter((f) => /import\s*\{[^}]*fetchSeoOverview[^}]*\}/.test(fs.readFileSync(f, 'utf8'))).map((f) => path.basename(f)).sort()
   assert.deepEqual(importers, ['useSeoOverview.js'], 'only the shared store may call fetchSeoOverview')
 })
+
+test('Regression 20: SEO primary layer is plain English, seven questions in order, data-derived, with evidence collapsed beneath', async () => {
+  const fs = await import('node:fs')
+  const path = await import('node:path')
+  const read = (rel) => fs.readFileSync(path.resolve(rel), 'utf8')
+  const plain = read('src/whatsapp-demo/components/SeoPlainOverview.jsx')
+  const view = read('src/whatsapp-demo/components/SanoceaCaseStudyView.jsx')
+
+  // the seven questions, in the approved order
+  const headings = ['1. How visible are we?', '2. Are people finding us and clicking?', '3. Is visibility improving or declining?', '4. What did SANOCEA find?', '5. What needs attention?', '6. What is SANOCEA doing about it?', '7. Not switched on yet']
+  let at = -1
+  for (const h of headings) {
+    const i = plain.indexOf(h)
+    assert.ok(i > at, `section out of order or missing: ${h}`)
+    at = i
+  }
+
+  // customer-facing text carries no SEO jargon or provenance codes (code identifiers and comments are excluded)
+  const strings = [...plain.matchAll(/>([^<>{}]*[A-Za-z][^<>{}]*)</g)].map((m) => m[1]).concat([...plain.matchAll(/'([^'\n]{12,})'/g)].map((m) => m[1]).filter((t) => !/^[A-Z_]+$/.test(t) && !/^[a-z_]+$/.test(t))).join('\n')
+  for (const bad of ['GSC', 'SERP', 'CTR', 'canonical', 'anonymi', 'citation rate', 'Domain Authority', 'keyword volume', 'sitemap', 'robots.txt', 'heartbeat', 'scheduler', '[OBSERVED]', '[CALCULATED]', '[INFERRED]', 'provenance']) {
+    assert.ok(!strings.includes(bad), `jargon in the primary layer: ${bad}`)
+  }
+
+  // no metric or page name is hard-coded: everything is read from the shared store
+  for (const lit of ['39.29', '2.43', 'marketplace-reconciliation', '>28<', '>11<']) assert.ok(!plain.includes(lit), `hard-coded value in primary layer: ${lit}`)
+  assert.ok(plain.includes('gscNumbers(overview)') && plain.includes("view(overview, 'agent_roster')"), 'must read the shared SEO store')
+  // every roster entry is counted once: nothing may be filtered out by a role it does not recognise
+  assert.ok(plain.includes("const waiting = roster.filter((x) => x.status !== 'COMPLETED')") && plain.includes('...completed.filter((x) => !RUN_ORDER.includes(x.role))'), 'running + not-switched-on must always add up to the roster')
+
+  // limitations: compact, low weight, expandable per item, shown only while the source is genuinely missing
+  assert.ok(plain.includes('<details key={name}') && plain.includes('Open one to see why'), 'each limitation must expand for its reason')
+  for (const gate of ["serpV.data.status === 'NOT_AVAILABLE'", "rosterOff('GEO_SPECIALIST')", "keywordGapsStatus === 'NOT_AVAILABLE'", "backlinkStatus.status === 'NOT AVAILABLE'"]) assert.ok(plain.includes(gate), `limitation must be conditional: ${gate}`)
+
+  // honesty guards that must survive: no invented ranking, volume, AI or authority figures
+  for (const bad of ['Domain Authority', 'search volume', 'citation', 'rank #', 'Moz']) assert.ok(!strings.includes(bad), `must not present ${bad}`)
+
+  // evidence layer: collapsed (no `open`), holds the legend, roster and the previous technical view
+  const ev = view.slice(view.indexOf('id="seo-evidence-layer"'))
+  assert.ok(view.includes('<SeoPlainOverview') && view.indexOf('<SeoPlainOverview') < view.indexOf('id="seo-evidence-layer"'), 'primary layer first, evidence after')
+  assert.ok(!/<details id="seo-evidence-layer"[^>]*\sopen[\s>=]/.test(view), 'evidence layer must be collapsed by default')
+  for (const kept of ['<LabelLegend />', '<RosterEvidence', 'cs-sentinel-bar', 'LIVE AUTONOMOUS ACTIVITY', 'cs-evidence-tabs-section', '<SeoSearchIntelPanel']) assert.ok(ev.includes(kept), `evidence layer must keep: ${kept}`)
+})
