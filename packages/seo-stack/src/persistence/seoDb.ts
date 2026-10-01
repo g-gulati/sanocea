@@ -421,6 +421,15 @@ export class SeoDatabase {
         PRIMARY KEY (tenant_id, property_id, event_name)
       );
 
+      CREATE TABLE IF NOT EXISTS seo_owner_decisions (
+        tenant_id TEXT NOT NULL,
+        subject_key TEXT NOT NULL,
+        address TEXT NOT NULL,
+        actor TEXT NOT NULL,
+        decided_at TEXT NOT NULL,
+        PRIMARY KEY (tenant_id, subject_key)
+      );
+
       CREATE TABLE IF NOT EXISTS bing_raw_observations (
         tenant_id TEXT NOT NULL,
         site_url TEXT NOT NULL,
@@ -1216,6 +1225,15 @@ export class SeoDatabase {
   public getBingPositionObservations(tenantId: string, siteUrl: string): Array<{ key: string; observedDate: string; position: number; impressions: number; clicks: number; fetchedAt: string }> {
     return (this.db.prepare(`SELECT * FROM bing_position_observations WHERE tenant_id = ? AND site_url = ? ORDER BY key, observed_date`).all(tenantId, siteUrl) as any[])
       .map(r => ({ key: r.key, observedDate: r.observed_date, position: r.position, impressions: r.impressions, clicks: r.clicks, fetchedAt: r.fetched_at }));
+  }
+
+  public setOwnerIntent(tenantId: string, subjectKey: string, address: string, actor: string, at: string): void {
+    this.db.prepare(`INSERT INTO seo_owner_decisions (tenant_id, subject_key, address, actor, decided_at) VALUES (?,?,?,?,?)
+      ON CONFLICT(tenant_id, subject_key) DO UPDATE SET address = excluded.address, actor = excluded.actor, decided_at = excluded.decided_at`).run(tenantId, subjectKey, address, actor, at);
+  }
+
+  public getOwnerIntents(tenantId: string): Record<string, string> {
+    return Object.fromEntries((this.db.prepare(`SELECT subject_key, address FROM seo_owner_decisions WHERE tenant_id = ?`).all(tenantId) as any[]).map(r => [r.subject_key, r.address]));
   }
 
   /** Bing rows kept as the API returned them (kind: PAGE_STATS | CRAWL_STATS | CRAWL_ISSUE | FEED | URL_INFO). replace=true drops the kind's earlier rows first (snapshot kinds). */

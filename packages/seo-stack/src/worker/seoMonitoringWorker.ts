@@ -818,6 +818,9 @@ export class SeoMonitoringWorker {
     return { provenance: rows.length ? '[OBSERVED: COMMON CRAWL DOMAIN REFERENCE GRAPH]' : '[NOT AVAILABLE]', rows };
   }
 
+  /** The owner's answer to a DECISION_NEEDED question (human actor required). */
+  public recordOwnerIntent(opportunityId: string, address: string, actor: string) { return this.opportunities.recordOwnerIntent(this.config.tenantId, opportunityId, address, actor); }
+
   /** Persisted-only. GA4 first-party behaviour evidence (own property). */
   public getGa4Report() { return this.ga4.report(this.config.tenantId); }
 

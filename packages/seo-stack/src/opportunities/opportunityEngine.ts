@@ -143,6 +143,8 @@ export interface DetectionInput {
   inspections?: InspectionRecord[];
   sitemaps?: SitemapRecord[];
   ga4Landings?: Ga4LandingObs[];
+  /** stripped-slash page address -> address the owner stated is public */
+  ownerIntents?: Record<string, string>;
 }
 
 const CRAWL_SOURCE = '[OBSERVED: LIVE PAGE FETCH]';
@@ -185,7 +187,7 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
   // Redirecting sitemap URL: the detector supplies FACTS only. The action is derived downstream (diagnose -> selectAction).
   for (const p of input.pages) {
     if (!(p.redirected && p.finalUrl && p.finalUrl !== p.url)) continue;
-    const facts = collectRedirectFamilyFacts(p as any, input.pages as any, (input.inspections ?? []).map(i => ({ url: i.url, googleCanonical: i.googleCanonical })), crawlSource, input.ga4Landings);
+    const facts = collectRedirectFamilyFacts(p as any, input.pages as any, (input.inspections ?? []).map(i => ({ url: i.url, googleCanonical: i.googleCanonical })), crawlSource, input.ga4Landings, input.ownerIntents?.[p.url.replace(/#.*$/, '').replace(/\/+$/, '')] ?? null);
     out.push({
       type: 'SITEMAP_URL_REDIRECTS', target: p.url, confidence: 'OBSERVED', source: crawlSource,
       reason: `${p.url} (listed in the sitemap) redirects to ${p.finalUrl}.`,
@@ -417,7 +419,7 @@ export class OpportunityEngine {
     const inspections = props.flatMap(p => gsvc.latestInspections(tenantId, p.property));
     const sitemaps = props.flatMap(p => gsvc.getSitemaps(tenantId, p.property));
     const candidates = detectOpportunities({
-      inspections, sitemaps, ga4Landings: this.db.getGa4LandingTotals(tenantId),
+      inspections, sitemaps, ga4Landings: this.db.getGa4LandingTotals(tenantId), ownerIntents: this.db.getOwnerIntents(tenantId),
       pages, pagesObservedAt: (auditor?.details as any)?.checkedAt, pagesSource: auditor?.provenance,
       gscPages: snap?.pageRows?.map((r: any) => ({ page: r.page ?? r.keys?.[0] ?? '', clicks: r.clicks, impressions: r.impressions, ctr: r.ctr, position: r.position })).filter(r => r.page) ?? [],
       gscQueries: snap?.queryRows?.map((r: any) => ({ query: r.query ?? r.keys?.[0] ?? '', clicks: r.clicks, impressions: r.impressions, ctr: r.ctr, position: r.position })).filter(r => r.query) ?? [],
@@ -465,6 +467,22 @@ export class OpportunityEngine {
     this.db.handle.prepare(`UPDATE seo_opportunities SET status = ?, updated_at = ? WHERE tenant_id = ? AND opportunity_id = ?`).run(to, now, tenantId, opportunityId);
     if (to === 'APPROVED') this.insertApproval(tenantId, r, 'HUMAN', actor, 'human-manual', note || 'Approved by a human', [], now);
     this.event(tenantId, opportunityId, r.status, to, actor, note, now);
+    return this.get(tenantId, opportunityId)!;
+  }
+
+  /**
+   * The owner's answer to a DECISION_NEEDED question. A human act (human: actor), recorded durably and audited; the diagnosis is
+   * re-run at once so the answer takes effect through the same diagnose -> select -> policy path as any other fact.
+   */
+  public recordOwnerIntent(tenantId: string, opportunityId: string, address: string, actor: string, now = new Date().toISOString()): Opportunity {
+    if (!actor.startsWith('human:') || actor.length <= 6) throw new Error('only a human can state the intended address');
+    const o = this.get(tenantId, opportunityId);
+    if (!o) throw new Error('opportunity not found for this tenant');
+    const options = o.diagnosis?.decision_needed?.options.map(x => x.address) ?? [];
+    if (!options.includes(address)) throw new Error('that address is not one of the options SANOCEA asked about');
+    this.db.setOwnerIntent(tenantId, o.target.replace(/#.*$/, '').replace(/\/+$/, ''), address, actor, now);
+    this.event(tenantId, opportunityId, o.status, o.status, actor, `OWNER_DECISION: the public address of this page is ${address}`, now);
+    this.refresh(tenantId, now);
     return this.get(tenantId, opportunityId)!;
   }
 

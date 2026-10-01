@@ -13,12 +13,15 @@ import { createHash } from 'node:crypto';
 export interface Fact { id: string; kind: string; subject: string; value: string | null; source: string }
 export type HypothesisStatus = 'ESTABLISHED' | 'LIKELY' | 'POSSIBLE' | 'RULED_OUT';
 export interface Hypothesis { statement: string; supported_by: string[]; contradicted_by: string[]; status: HypothesisStatus }
-export interface Diagnosis { finding: string; hypotheses: Hypothesis[]; conclusion: string; sufficient: boolean; missing_evidence: string[]; intended?: string }
+export interface DecisionOption { address: string; signals: string[]; consequence: string }
+/** Raised only when every observable fact has been gathered and the remaining gap is a business fact: which address the owner wants public. */
+export interface DecisionNeeded { question: string; why: string; options: DecisionOption[] }
+export interface Diagnosis { decision_needed?: DecisionNeeded; finding: string; hypotheses: Hypothesis[]; conclusion: string; sufficient: boolean; missing_evidence: string[]; intended?: string }
 export interface Expectation { kind: string; subject: string; equals?: string; absent?: boolean }
 export interface Candidate { action: string; addresses: string; preconditions: string[]; expected_outcome: Expectation[]; verification: string; fallback: 'ROLLBACK' | 'INVESTIGATE' }
 export interface ActionPlan { candidates: Candidate[]; selected: string; why: string; rejected: Array<{ action: string; reason: string }>; investigate_next: string[] }
 
-export interface PageObs { url: string; status: number; finalUrl?: string; redirected?: boolean; canonical?: string | null; internalLinks?: string[] }
+export interface PageObs { url: string; status: number; finalUrl?: string; redirected?: boolean; canonical?: string | null; internalLinks?: string[]; declaredUrls?: string[] }
 export interface InspectionObs { url: string; googleCanonical: string | null }
 /** GA4 first-party behaviour for one landing path over a window. Behaviour evidence only: it never establishes an intended address. */
 export interface Ga4LandingObs { landingPage: string; sessions: number; engagedSessions: number; organicSessions: number; windowStart: string; windowEnd: string }
@@ -31,12 +34,17 @@ const form = (u: string) => (new URL(u).pathname.endsWith('/') ? 'slash' : 'no-s
 const stripSlash = (u: string) => norm(u).replace(/\/+$/, '');
 
 /** Facts for one redirecting sitemap URL, from what the audit and Google inspection already observed. Observation only. */
-export function collectRedirectFamilyFacts(page: PageObs, allPages: PageObs[], inspections: InspectionObs[], crawlSource = '[OBSERVED: LIVE PAGE FETCH]', ga4: Ga4LandingObs[] = []): Fact[] {
+export function collectRedirectFamilyFacts(page: PageObs, allPages: PageObs[], inspections: InspectionObs[], crawlSource = '[OBSERVED: LIVE PAGE FETCH]', ga4: Ga4LandingObs[] = [], ownerIntent: string | null = null): Fact[] {
   const L = page.url, D = page.finalUrl!;
   const facts: Fact[] = [mk('sitemap_lists', L, L, crawlSource), mk('redirects_to', L, D, crawlSource), mk('destination_status', D, String(page.status), crawlSource), mk('destination_canonical', D, page.canonical ?? null, crawlSource)];
   for (const p of allPages) for (const href of p.internalLinks ?? []) if (stripSlash(href) === stripSlash(L) || stripSlash(href) === stripSlash(D)) facts.push(mk('internal_link', `${p.url}->`, norm(href), crawlSource));
   const insp = inspections.find(i => i.url === D);
   if (insp) facts.push(mk('google_canonical', D, insp.googleCanonical, '[OBSERVED: GOOGLE SEARCH CONSOLE API]'));
+  // Other addresses the destination page declares for itself (og:url, JSON-LD url / @id / breadcrumb item), exactly as written.
+  for (const u of page.declaredUrls ?? []) if (stripSlash(u) === stripSlash(L)) facts.push(mk('declared_address', D, u, crawlSource));
+  // A statement by the site owner (recorded as a human act) is the one fact that can settle which address is intended.
+  const stated = [L, D].find(a => a === ownerIntent); // exact address only: L and D differ solely by the trailing slash
+  if (stated) facts.push(mk('owner_intended', D, stated, '[STATED BY THE SITE OWNER]'));
   // Where real visitors actually land (GA4 reports a path). Recorded for both addresses, including zero when GA4 saw no landings.
   if (ga4.length) {
     for (const addr of [L, D]) {
@@ -74,6 +82,8 @@ export function diagnoseRedirectFamily(facts: Fact[]): Diagnosis {
     if (sibs.length && sameForm) { present.push(sibs[0].id); const ok = sibs.every(s => s.value === form(addr)); (ok ? agree : against).push(...sibs.map(s => s.id)); }
     return { present, agree, against };
   };
+  const decl = by('declared_address'), owner = by('owner_intended')[0];
+  const declFor = (addr: string) => decl.filter(f => f.value === addr).map(f => f.id);
   const missing: string[] = [];
   if (!g) missing.push('Google-selected canonical for the redirect destination (URL Inspection of the destination)');
   if (!links.length) missing.push('internal links to this page');
@@ -84,8 +94,32 @@ export function diagnoseRedirectFamily(facts: Fact[]): Diagnosis {
   const hD: Hypothesis = { statement: `The intended address of this page is ${D} (the redirect destination).`, supported_by: [...votes(D).for, ...practiceFor(D).agree, ...visited(D)], contradicted_by: [...votes(L).for.filter(i => !votes(D).for.includes(i)), ...practiceFor(D).against], status: status(D, L) };
   const hL: Hypothesis = { statement: `The intended address of this page is ${L} (the address listed in the sitemap).`, supported_by: [...votes(L).for, ...practiceFor(L).agree, ...visited(L)], contradicted_by: [...votes(D).for.filter(i => !votes(L).for.includes(i)), ...practiceFor(L).against], status: status(L, D) };
   const finding = `The sitemap lists ${L}, which redirects to ${D}; the destination's canonical is ${canon.value ?? 'absent'}.`;
+  if (owner?.value) {  // a business fact stated by the owner outranks inference; the other address is ruled out by it
+    const o = owner.value, other = o === D ? L : D;
+    const [hO, hOther] = o === D ? [hD, hL] : [hL, hD];
+    hO.status = 'ESTABLISHED'; hO.supported_by = [...hO.supported_by, owner.id]; hOther.status = 'RULED_OUT'; hOther.contradicted_by = [...hOther.contradicted_by, owner.id];
+    return { finding, hypotheses: [hD, hL], conclusion: `The site owner stated that ${o} is the public address of this page, so ${other} is not. Signals that disagree with ${o} need correcting.`, sufficient: true, missing_evidence: [], intended: o };
+  }
   const est = hD.status === 'ESTABLISHED' ? D : hL.status === 'ESTABLISHED' ? L : null;
-  if (!est) return { finding, hypotheses: [hD, hL], conclusion: 'The sitemap, the redirect and the canonical disagree, and the available evidence does not establish which address is intended.', sufficient: false, missing_evidence: missing };
+  if (!est) {
+    const base = { finding, hypotheses: [hD, hL], conclusion: 'The sitemap, the redirect and the canonical disagree, and the available evidence does not establish which address is intended.', sufficient: false, missing_evidence: missing };
+    // Gaps that cannot be closed by observing more: no sibling pages exist to show a convention; Google has seen the page but chose no canonical.
+    const unobtainable = missing.length > 0 && missing.every(m => m.startsWith('established URL convention'));
+    const conflict = (declFor(D).length + votes(D).for.length + practiceFor(D).agree.length > 0) && (declFor(L).length + votes(L).for.length + practiceFor(L).agree.length > 0);
+    if (!unobtainable || !conflict || !sameForm) return base;
+    const sig = (addr: string): string[] => {
+      const out: string[] = [];
+      if (votes(addr).for.length) out.push(...[...votes(addr).for].map(id => ({ sl: 'the sitemap lists it', rd: 'the web server redirects visitors to it', dc: "the page's own canonical tag names it" } as Record<string, string>)[id.split(':')[1] === 'sitemap_lists' ? 'sl' : id.split(':')[1] === 'redirects_to' ? 'rd' : 'dc']));
+      if (declFor(addr).length) out.push(`${declFor(addr).length} other place(s) in the page's own markup name it (social URL, structured data, breadcrumbs)`);
+      const l = links.filter(x => x.value === addr).length; if (l) out.push(`${l} internal link(s) use it`);
+      return out;
+    };
+    const opt = (addr: string): DecisionOption => ({ address: addr, signals: sig(addr), consequence: addr === D
+      ? `SANOCEA would correct the page's declared address and the sitemap to ${addr}. The web server already serves this address, so no server change is needed.`
+      : `${addr} is not served today (the server redirects it), so using it needs a web-server change, which SANOCEA never makes on its own.` });
+    return { ...base, conclusion: `Every observable signal has been gathered and they split: the page and the sitemap name ${L}, while the web server and the internal links use ${D}. Google has not yet chosen an address, and the site has no other pages to show a convention. Which address is meant is the owner's decision.`,
+      decision_needed: { question: `Which address should be the public address of this page: ${D} or ${L}?`, why: 'The evidence is split and cannot be resolved by observing more. Either answer is valid; they lead to different fixes.', options: [opt(D), opt(L)] } };
+  }
   return { finding, hypotheses: [hD, hL], conclusion: `The intended address is ${est}, established by Google's canonical, internal links and sibling convention agreeing. Signals that disagree with it need correcting.`, sufficient: true, missing_evidence: [], intended: est };
 }
 
@@ -96,7 +130,7 @@ export function selectAction(d: Diagnosis, facts: Fact[]): ActionPlan {
   if (!d.sufficient || !d.intended) {
     const reasonFor = (a: string) => ({ FIX_SITEMAP_ENTRY: `would put ${D} in the sitemap; the destination's canonical (${canon ?? 'absent'}) does not establish that this is the intended address`, CHANGE_CANONICAL: 'the evidence does not establish which address is intended, so changing the canonical could point it the wrong way', CHANGE_REDIRECT: 'the evidence does not establish which address is intended, so changing the redirect could break working links' } as Record<string, string>)[a];
     return { candidates: [{ action: 'INVESTIGATE', addresses: 'missing evidence', preconditions: [], expected_outcome: [], verification: 'Re-run the diagnosis after the missing evidence is gathered.', fallback: 'INVESTIGATE' }], selected: 'INVESTIGATE', why: d.conclusion,
-      rejected: ['FIX_SITEMAP_ENTRY', 'CHANGE_CANONICAL', 'CHANGE_REDIRECT'].map(a => ({ action: a, reason: reasonFor(a) })), investigate_next: d.missing_evidence.map(m => `Gather: ${m}`) };
+      rejected: ['FIX_SITEMAP_ENTRY', 'CHANGE_CANONICAL', 'CHANGE_REDIRECT'].map(a => ({ action: a, reason: reasonFor(a) })), investigate_next: d.decision_needed ? [`Ask the site owner: ${d.decision_needed.question}`] : d.missing_evidence.map(m => `Gather: ${m}`) };
   }
   const X = d.intended, cands: Candidate[] = [];
   if ((canon ?? null) !== X) cands.push({ action: 'CHANGE_CANONICAL', addresses: `destination canonical (${canon ?? 'absent'}) disagrees with ${X}`, preconditions: ['the intended address is established by independent evidence'], expected_outcome: [{ kind: 'destination_canonical', subject: D, equals: X }], verification: `Re-fetch ${D} and confirm its canonical is ${X}.`, fallback: 'ROLLBACK' });

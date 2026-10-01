@@ -15,6 +15,16 @@ import { AiCrawlerAccess, resolveAiCrawlerAccess } from './aiCrawlerPolicy.js';
 import { findRetiredSchemaTypes } from './retiredRichResults.js';
 import { staticVisibleText, staticBodyWordCount, countWords } from './staticText.js';
 
+/** url / @id / item string values anywhere in a JSON-LD document. */
+function collectDeclared(node: any, out: Set<string>): void {
+  if (Array.isArray(node)) { node.forEach(n => collectDeclared(n, out)); return; }
+  if (!node || typeof node !== 'object') return;
+  for (const [k, v] of Object.entries(node)) {
+    if ((k === 'url' || k === '@id' || k === 'item') && typeof v === 'string' && /^https?:\/\//.test(v)) out.add(v.replace(/#.*$/, ''));
+    else if (v && typeof v === 'object') collectDeclared(v, out);
+  }
+}
+
 export const THIN_STATIC_WORD_THRESHOLD = 100; // same threshold as the THIN_CONTENT_DETECTED rule
 
 export interface PublishedPageObservation {
@@ -28,6 +38,8 @@ export interface PublishedPageObservation {
   canonical?: string | null;
   /** Same-host hrefs in the delivered HTML (fragments removed, deduplicated, capped). */
   internalLinks?: string[];
+  /** Addresses the page declares for itself besides the canonical: og:url and JSON-LD url / @id / item strings (same host, as written). */
+  declaredUrls?: string[];
   redirected: boolean;
   title: string;
   h1Text: string;
@@ -108,6 +120,10 @@ export async function auditPublishedPages(domain: string, opts: PublishedPageAud
       $('script[type="application/ld+json"]').each((_: number, el: any) => {
         try { typesOf(JSON.parse($(el).html() || '{}'), types); } catch { /* invalid JSON-LD is ignored here */ }
       });
+      const declared = new Set<string>();
+      const og = $('meta[property="og:url"]').first().attr('content')?.trim();
+      if (og) declared.add(og);
+      $('script[type="application/ld+json"]').each((_: number, el: any) => { try { collectDeclared(JSON.parse($(el).html() || '{}'), declared); } catch { /* invalid JSON-LD is ignored here */ } });
       audit.pages.push({
         url, status: res.status,
         staticWords: countWords(staticVisibleText($)),
@@ -115,6 +131,7 @@ export async function auditPublishedPages(domain: string, opts: PublishedPageAud
         finalUrl: res.url || url,
         canonical: $('link[rel="canonical"]').first().attr('href')?.trim() || null,
         internalLinks: [...new Set($('a[href]').map((_: number, el: any) => { try { const u = new URL($(el).attr('href') || '', res.url || url); return u.hostname === domain ? `${u.origin}${u.pathname}` : ''; } catch { return ''; } }).get().filter(Boolean))].slice(0, 200) as string[],
+        declaredUrls: [...declared].filter(u => { try { return new URL(u).hostname === domain; } catch { return false; } }).sort().slice(0, 50),
         redirected: Boolean(res.redirected),
         title: $('title').first().text().trim().slice(0, 200),
         h1Text: $('h1').first().text().trim().slice(0, 200),
