@@ -15,6 +15,8 @@ Environment=SEO_WORKER_PORT=8089
 Environment=GSC_SERVICE_ACCOUNT_PATH=/etc/sanocea/gsc_service_account.json
 Environment=GSC_PROPERTY_URL=sc-domain:sanocea.com
 Environment=GA4_PROPERTY_ID=553968706
+# Optional secrets file (mode 600) holding BING_WEBMASTER_API_KEY=...; absent until the site owner generates a key
+EnvironmentFile=-/etc/sanocea/bing.env
 Environment=TIER1_INTERVAL_MS=3600000
 Environment=TIER2_INTERVAL_MS=86400000
 Environment=TIER3_INTERVAL_MS=1209600000
