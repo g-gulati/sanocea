@@ -126,3 +126,12 @@ test('bing: crawl stats, issues and sitemaps are stored as returned; rows withou
   assert.equal(rep.sitemaps[0].Status, 'Success');
   assert.equal(c.crawlReport('other', APEX).provenance, '[NOT AVAILABLE]', 'tenant isolation');
 });
+
+test('bing: a submitted-but-never-crawled sitemap (live shape, 2026-10-01) shows Pending with no fake crawl date', async () => {
+  const db = new SeoDatabase(':memory:');
+  const f = fakeFetch(emptyRoutes({ [ua('GetFeeds')]: ok({ d: [{ Url: 'https://www.sanocea.com/sitemap.xml', Status: 'Pending', Submitted: d(1790862260071), LastCrawled: d(-11644473600000), UrlCount: 0, FileSize: 0 }] }) }));
+  const c = new BingWebmasterCollector(db, { apiKey: KEY, fetchImpl: f });
+  await c.collect('t1', APEX);
+  const sm = c.crawlReport('t1', APEX).sitemaps[0];
+  assert.equal(sm.Status, 'Pending'); assert.equal(sm.LastCrawled, null); assert.equal(sm.Submitted, '2026-10-01');
+});

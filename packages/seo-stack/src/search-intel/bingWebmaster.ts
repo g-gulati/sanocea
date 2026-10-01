@@ -33,6 +33,9 @@ export function parseAspNetDate(v: unknown): string | null {
   return m ? new Date(Number(m[1])).toISOString().split('T')[0] : null;
 }
 
+/** Bing reports "never" as the 1601 epoch; that is not a date. */
+function realDate(v: unknown): string | null { const d = parseAspNetDate(v); return d && d >= '1970-01-01' ? d : null; }
+
 export interface BingCollectResult {
   status: 'OBSERVED' | 'NOT_AVAILABLE';
   positionRowsStored: number;
@@ -172,7 +175,7 @@ export class BingWebmasterCollector {
       provenance: any ? BING_CRAWL_PROVENANCE : '[NOT AVAILABLE]',
       note: any ? 'Rows are shown as Bing returned them.' : 'Bing has returned no page, crawl, issue, sitemap or URL data for this property yet.',
       aiPerformance: { available: false, reason: 'Bing AI Performance (Copilot citations) has no API; it is only a Bing Webmaster Tools dashboard report with CSV export.' },
-      pageStats: pages.map(r => r.payload), crawlStats: crawl.map(r => r.payload), crawlIssues: issues.map(r => r.payload), sitemaps: feeds.map(r => r.payload),
+      pageStats: pages.map(r => r.payload), crawlStats: crawl.map(r => r.payload), crawlIssues: issues.map(r => r.payload), sitemaps: feeds.map(r => ({ ...r.payload, Submitted: realDate(r.payload.Submitted), LastCrawled: realDate(r.payload.LastCrawled) })),
       urlInfo: info.map(r => ({ ...r.payload, DiscoveryDate: parseAspNetDate(r.payload.DiscoveryDate), LastCrawledDate: parseAspNetDate(r.payload.LastCrawledDate) }))
     };
   }
