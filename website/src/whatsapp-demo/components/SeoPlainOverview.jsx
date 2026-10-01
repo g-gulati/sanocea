@@ -1,7 +1,8 @@
 import React, {useState} from 'react'
 import {view, gscNumbers, latestHeartbeat, fmtTime} from '../useSeoOverview.js'
 import {NotAvailable} from './SeoShared.jsx'
-import {opportunitiesFrom, STATUS_GUIDE} from '../seoOpportunities.js'
+import {opportunitiesFrom, STATUS_GUIDE, STEP_GUIDE} from '../seoOpportunities.js'
+import OpportunityLifecycle, {LifecycleDots} from './OpportunityLifecycle.jsx'
 
 // The customer-facing PRIMARY layer of SEO & Commerce Audit. Reading order:
 //   measured reality -> interpretation -> attention -> autonomous monitoring -> limitations; technical evidence is a
@@ -55,12 +56,20 @@ function auditorText(x) {
 }
 const RUN_ORDER = ['TECHNICAL_SEO', 'ANALYTICS_MANAGER', 'COMPETITIVE_INTELLIGENCE', 'AI_CONTENT_AUDITOR', 'SEO_STRATEGIST']
 
+const PILL = {neutral: {background: '#F1F5F9', color: '#475569'}, warn: {background: '#FFFBEB', color: '#B45309'}, ok: {background: '#ECFDF5', color: '#047857'}, info: {background: '#F1F5F9', color: '#2563EB'}}
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
+function breakdown(items) {
+  const n = (label) => items.filter((i) => i.pill && i.pill.label === label).length
+  const parts = [[n('Needs your decision'), 'needs one decision from you', 'need decisions from you'], [n('Needs a person'), 'needs a person', 'need a person'], [n('Investigating'), 'being investigated', 'being investigated'],
+    [n('Monitoring'), 'being monitored after a change', 'being monitored after a change'], [n('Completed'), 'completed', 'completed'], [n('Needs review'), 'needs your review', 'need your review']].filter(([c]) => c > 0)
+  return parts.map(([c, one, many]) => (c === 1 ? `1 ${one}` : `${c} ${many}`)).join(' · ')
+}
+
 // Section 5 operational view: the real opportunities from the worker (views.opportunities), one expandable row each.
 // No priority, severity or score is shown: the order is the worker's deterministic order and means nothing about importance.
 function OpportunityQueue({items, updatedAt}) {
   const [open, setOpen] = useState(() => new Set())
   const toggle = (key) => setOpen((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next })
-  const needReview = items.filter((i) => i.status === 'Needs review').length
   const label = {fontSize: 11, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: '#64748B', marginBottom: 2}
   if (!items.length) {
     return <div style={{...mut, fontSize: 13}}>SANOCEA has not found anything to review in its latest checks{updatedAt ? ` (last checked ${when(updatedAt)})` : ''}.</div>
@@ -69,9 +78,9 @@ function OpportunityQueue({items, updatedAt}) {
     <div id="seo-opportunities">
       <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px 14px', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4}}>
         <b style={{fontSize: 17}}>{items.length === 1 ? '1 thing needs attention' : `${items.length} things need attention`}</b>
-        <span style={{...mut, fontSize: 12}}>{needReview === items.length ? (items.length === 1 ? 'It needs' : `All ${items.length} need`) + ' your review' : `${needReview} need your review`}{updatedAt ? ` · last checked ${when(updatedAt)}` : ''}</span>
+        <span style={{...mut, fontSize: 12}}>{breakdown(items)}{updatedAt ? ` · last checked ${when(updatedAt)}` : ''}</span>
       </div>
-      <div style={{...mut, fontSize: 12, marginBottom: 4}}>Open one to see the evidence. Nothing on this page changes your website.</div>
+      <div style={{...mut, fontSize: 12, marginBottom: 4}}>Open one to see how SANOCEA got from what it found to what it did. SANOCEA changes your website on its own only for low-risk fixes its policy permits; nothing on this page changes it.</div>
       {items.map((it, idx) => {
         const isOpen = open.has(it.key)
         const bodyId = `opp-body-${idx}`
@@ -80,17 +89,32 @@ function OpportunityQueue({items, updatedAt}) {
             <button type="button" aria-expanded={isOpen} aria-controls={bodyId} onClick={() => toggle(it.key)}
               style={{all: 'unset', boxSizing: 'border-box', width: '100%', cursor: 'pointer', padding: '10px 0', display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '4px 10px', alignItems: 'start'}}>
               <span style={{fontWeight: 700}}>{it.title}</span>
-              <span style={{fontSize: 11.5, fontWeight: 700, color: '#475569', background: '#F1F5F9', borderRadius: 99, padding: '2px 10px', whiteSpace: 'nowrap'}}>{it.status}</span>
+              <span style={{fontSize: 11.5, fontWeight: 700, borderRadius: 99, padding: '2px 10px', whiteSpace: 'nowrap', ...PILL[(it.pill && it.pill.tone) || 'neutral']}}>{it.pill ? it.pill.label : it.status}</span>
               <span aria-hidden="true" style={{color: '#64748B', alignSelf: 'center', display: 'inline-block', transform: isOpen ? 'rotate(90deg)' : 'none'}}>›</span>
               {it.sub ? <span style={{gridColumn: '1 / 2', color: '#64748B', fontSize: 12}}>{it.checkedAt ? `${it.observedVerb} ${it.checkedAt} · ` : ''}{it.sub}</span> : null}
+              {it.lifecycle ? <span style={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, color: '#64748B', fontSize: 12}}><LifecycleDots stages={it.lifecycle.stages} /><span>{it.lifecycle.summary}</span></span> : null}
             </button>
             {isOpen ? (
               <div id={bodyId} style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '10px 18px', padding: '2px 0 14px'}}>
+                {it.lifecycle ? <OpportunityLifecycle lifecycle={it.lifecycle} /> : null}
+                {it.lifecycle ? (
+                  <details style={{gridColumn: '1 / -1', borderTop: '1px dashed #E2E8F0', paddingTop: 6}}>
+                    <summary style={{cursor: 'pointer', fontSize: 12, color: '#64748B'}}>The evidence behind this</summary>
+                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '10px 18px', paddingTop: 8}}>
+                      <div><div style={label}>Opportunity</div><div>{it.what}</div></div>
+                      <div><div style={label}>Evidence</div><div>{it.evidence}</div></div>
+                      <div><div style={label}>Why it matters</div><div>{it.why}</div></div>
+                      <div><div style={label}>Status</div><div>{it.pill ? it.pill.label : it.status}{it.status === 'Needs review' ? ' · nothing has been changed' : ''}</div></div>
+                      <div style={{gridColumn: '1 / -1', background: '#ECFDF5', color: '#047857', borderRadius: 6, padding: '7px 11px'}}><b>Recommended action:</b> {it.action}</div>
+                    </div>
+                  </details>
+                ) : (<>
                 <div><div style={label}>Opportunity</div><div>{it.what}</div></div>
                 <div><div style={label}>Evidence</div><div>{it.evidence}</div></div>
                 <div><div style={label}>Why it matters</div><div>{it.why}</div></div>
-                <div><div style={label}>Status</div><div>{it.status}{it.status === 'Needs review' ? ' · nothing has been changed' : ''}</div></div>
+                <div><div style={label}>Status</div><div>{it.pill ? it.pill.label : it.status}{it.status === 'Needs review' ? ' · nothing has been changed' : ''}</div></div>
                 <div style={{gridColumn: '1 / -1', background: '#ECFDF5', color: '#047857', borderRadius: 6, padding: '7px 11px'}}><b>Recommended action:</b> {it.action}</div>
+                </>)}
                 {it.checkedAt ? <div><div style={label}>Last checked</div><div>{it.checkedAt}</div></div> : null}
                 {it.tech.length ? (
                   <details style={{gridColumn: '1 / -1', borderTop: '1px dashed #E2E8F0', paddingTop: 6}}>
@@ -106,7 +130,11 @@ function OpportunityQueue({items, updatedAt}) {
         )
       })}
       <details style={{marginTop: 12, borderTop: '1px solid #E2E8F0', paddingTop: 8}}>
-        <summary style={{cursor: 'pointer', fontSize: 12, color: '#64748B'}}>What the statuses mean</summary>
+        <summary style={{cursor: 'pointer', fontSize: 12, color: '#64748B'}}>What the six steps mean</summary>
+        <dl style={{margin: '8px 0 0', display: 'grid', gridTemplateColumns: 'max-content 1fr', gap: '6px 12px', fontSize: 12}}>
+          {STEP_GUIDE.map(([k, v]) => (<React.Fragment key={k}><dt style={{fontWeight: 700}}>{k}</dt><dd style={{margin: 0, color: '#64748B'}}>{v}</dd></React.Fragment>))}
+        </dl>
+        <div style={{marginTop: 10, fontSize: 12, color: '#64748B'}}>What the statuses mean</div>
         <dl style={{margin: '8px 0 0', display: 'grid', gridTemplateColumns: 'max-content 1fr', gap: '6px 12px', fontSize: 12, alignItems: 'center'}}>
           {STATUS_GUIDE.map(([k, v]) => (<React.Fragment key={k}><dt><span style={{fontSize: 11.5, fontWeight: 700, color: '#475569', background: '#F1F5F9', borderRadius: 99, padding: '2px 10px'}}>{k}</span></dt><dd style={{margin: 0, color: '#64748B'}}>{v}</dd></React.Fragment>))}
         </dl>

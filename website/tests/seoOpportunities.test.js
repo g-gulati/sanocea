@@ -74,3 +74,55 @@ test('a missing or failed opportunities view yields nothing (never a default or 
   assert.deepEqual(opportunitiesFrom({views: {opportunities: {ok: false, error: 'x'}}}), {ok: false, items: []})
   assert.equal(opportunitiesFrom({views: {opportunities: {ok: true, data: {opportunities: []}}}}).items.length, 0)
 })
+
+// ── Section 5 lifecycle (worker shapes copied from GET /opportunities, 2026-10-01) ──
+import {lifecycleOf, pillOf, STEP_GUIDE} from '../src/whatsapp-demo/seoOpportunities.js'
+const stage = (key, label, state, headline, detail, at) => ({key, label, state, headline, detail, at})
+const LC_DECISION = {
+  summary: 'Waiting for one decision from the owner.',
+  decisionNeeded: {question: `Which address should be the public address of this page: ${solutionsUrl}/ or ${solutionsUrl}?`, why: 'The evidence is split and cannot be resolved by observing more.',
+    options: [{address: `${solutionsUrl}/`, signals: ['the web server redirects visitors to it', '1 internal link(s) use it'], consequence: 'SANOCEA would correct the sitemap. The web server already serves this address, so no server change is needed.'},
+      {address: solutionsUrl, signals: ['the sitemap lists it'], consequence: `${solutionsUrl} is not served today, so using it needs a web-server change, which SANOCEA never makes on its own.`}]},
+  stages: [stage('found', 'Found', 'done', `The sitemap lists ${solutionsUrl}, which redirects to ${solutionsUrl}/.`, undefined, '2026-10-01T10:33:24.536Z'),
+    stage('concluded', 'Concluded', 'blocked', 'The evidence is split; the owner needs to choose'), stage('selected', 'Selected', 'waiting', 'No action chosen yet'),
+    stage('policy', 'Policy decision', 'not_applicable', 'Nothing to authorise yet'), stage('executed', 'Executed', 'waiting', 'Nothing has been changed'), stage('verified', 'Verified', 'waiting', 'Nothing to verify yet')],
+}
+const withLc = (o, lifecycle, status = 'AWAITING_APPROVAL') => ({...o, status, lifecycle})
+
+test('lifecycle: six steps in order, full addresses shortened to paths, nothing but strings and known states reach the page', () => {
+  const lc = lifecycleOf(withLc(OPPS[3], LC_DECISION))
+  assert.deepEqual(lc.stages.map((s) => s.label), ['Found', 'Concluded', 'Selected', 'Policy decision', 'Executed', 'Verified'])
+  assert.match(lc.stages[0].headline, /^The sitemap lists \/solutions\/marketplace-reconciliation, which redirects to \/solutions\/marketplace-reconciliation\/\.$/)
+  assert.equal(JSON.stringify(lc).includes('https://'), false)
+  assert.deepEqual(STEP_GUIDE.map(([k]) => k), lc.stages.map((s) => s.label))
+})
+
+test('lifecycle: a step the worker did not supply or with an unknown state is dropped, never invented; no lifecycle means no panel', () => {
+  const odd = lifecycleOf(withLc(OPPS[3], {summary: 's', stages: [stage('found', 'Found', 'done', 'x'), {key: 'zz', label: 'Weird', state: 'exploded', headline: 'y'}, {label: 5}]}))
+  assert.deepEqual(odd.stages.map((s) => s.label), ['Found'])
+  assert.equal(lifecycleOf(OPPS[3]), null); assert.equal(lifecycleOf(null), null); assert.equal(lifecycleOf({lifecycle: {stages: []}}), null)
+})
+
+test('decision card: the one question with both options, the server-change consequence flagged, addresses as paths', () => {
+  const d = lifecycleOf(withLc(OPPS[3], LC_DECISION)).decision
+  assert.match(d.question, /Which address should be the public address of this page: \/solutions\/marketplace-reconciliation\/ or \/solutions\/marketplace-reconciliation\?/)
+  assert.deepEqual(d.options.map((o) => [o.address, o.needsServerChange]), [['/solutions/marketplace-reconciliation/', false], ['/solutions/marketplace-reconciliation', true]])
+})
+
+test('pill: what the customer needs to know first', () => {
+  const pill = (lifecycle, st) => pillOf({}, st, lifecycleOf({lifecycle}))
+  assert.deepEqual(pill(LC_DECISION, 'Needs review'), {label: 'Needs your decision', tone: 'warn'})
+  const base = LC_DECISION.stages.map((s) => ({...s})); const mk = (over) => ({summary: 's', stages: base.map((s) => ({...s, ...(over[s.key] ? {state: over[s.key]} : {})}))})
+  assert.equal(pill(mk({policy: 'blocked'}), 'Needs review').label, 'Needs a person')
+  assert.equal(pill(mk({policy: 'not_applicable'}), 'Needs review').label, 'Investigating')
+  assert.equal(pill(mk({policy: 'done', executed: 'done', verified: 'current'}), 'Monitoring').label, 'Monitoring')
+  assert.equal(pill(mk({policy: 'done', executed: 'done', verified: 'done'}), 'Completed').label, 'Completed')
+  assert.deepEqual(pillOf({}, 'Needs review', null), {label: 'Needs review', tone: 'neutral'}, 'no lifecycle: the backend status words, as before')
+})
+
+test('the item carries the lifecycle and pill; no id, actor, policy or file path appears anywhere in it', () => {
+  const it = describeOpportunity(withLc(OPPS[3], LC_DECISION))
+  assert.equal(it.pill.label, 'Needs your decision')
+  const text = JSON.stringify(it.lifecycle)
+  for (const bad of ['OPP-', 'autonomous:', 'agent:', 'sanocea-autonomy-policy', '/opt/', 'chg_']) assert.equal(text.includes(bad), false, bad)
+})

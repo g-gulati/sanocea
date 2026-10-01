@@ -19,6 +19,16 @@ const STATUS_MAP = {
 }
 export const statusLabel = (s) => STATUS_MAP[s] || 'Needs review'
 
+// The six steps every opportunity moves through (what SANOCEA did, in order). Wording shown under "What the six steps mean".
+export const STEP_GUIDE = [
+  ['Found', 'What SANOCEA observed.'],
+  ['Concluded', 'What the evidence shows, and which explanation it ruled out.'],
+  ['Selected', 'The action SANOCEA chose, and why.'],
+  ['Policy decision', 'Whether SANOCEA may do it on its own, and why.'],
+  ['Executed', 'What changed on the live website.'],
+  ['Verified', 'Whether SANOCEA re-checked the live site and the change worked.'],
+]
+
 export const STATUS_GUIDE = [
   ['Needs review', 'SANOCEA found it and recommends an action. Nothing has been changed.'],
   ['Approved', 'You agreed the action should go ahead.'],
@@ -64,12 +74,14 @@ const DESCRIBE = {
     action: `Ask your web team to include one main heading in the delivered HTML. ${NO_CHANGE}`,
     tech: [['Method', e.method], ['Main headings found', e.h1Count], ['Source', 'Live page fetch']],
   }),
-  SITEMAP_URL_REDIRECTS: (o, e) => o.recommendedAction === 'INVESTIGATE' && o.diagnosis ? ({
+  SITEMAP_URL_REDIRECTS: (o, e) => o.diagnosis ? ({
     title: 'The address in your sitemap, the redirect and the page\'s preferred address do not agree',
-    what: o.diagnosis.conclusion,
-    evidence: `${o.diagnosis.finding} SANOCEA has not yet established which address is intended.`,
-    why: 'Changing the wrong one could point search engines at the wrong address, so SANOCEA is gathering more evidence first. Nothing is being changed.',
-    action: `Nothing is needed from you now. SANOCEA is gathering: ${(o.actionPlan && o.actionPlan.investigate_next || []).map((x) => x.replace(/^Gather: /, '')).join('; ') || 'more evidence'}.`,
+    what: pathify(o.diagnosis.conclusion),
+    evidence: pathify(`${o.diagnosis.finding} ${o.diagnosis.sufficient ? 'SANOCEA has established which address is intended.' : o.diagnosis.decision_needed ? 'SANOCEA has gathered every signal it can observe.' : 'SANOCEA has not yet established which address is intended.'}`),
+    why: o.diagnosis.sufficient || o.diagnosis.decision_needed ? 'The page, the sitemap and the redirect should agree on one address, so search engines are not sent in circles.' : 'Changing the wrong one could point search engines at the wrong address, so SANOCEA is gathering more evidence first. Nothing is being changed.',
+    action: o.diagnosis.decision_needed ? 'One decision is needed from you; it is shown above. Nothing is changed until you answer.'
+      : o.diagnosis.sufficient ? 'SANOCEA makes the corrections its policy and your approval allow, and tells you when it needs you. Nothing on this page changes your website.'
+      : `Nothing is needed from you now. SANOCEA is gathering: ${(o.actionPlan && o.actionPlan.investigate_next || []).map((x) => x.replace(/^Gather: /, '')).join('; ') || 'more evidence'}.`,
     tech: [['Method', e.method], ['Listed address', pathOf(e.listedUrl)], ['Final address', pathOf(e.finalUrl)], ['Destination canonical', e.destinationCanonical ? pathOf(e.destinationCanonical) : 'none found'], ['Source', 'Live page fetch']],
     sub: `${pathOf(e.listedUrl)} → ${pathOf(e.finalUrl)} (redirect)`,
   }) : ({
@@ -122,6 +134,40 @@ const DESCRIBE = {
 
 const clean = (tech) => (tech || []).filter(([, v]) => v !== null && v !== undefined && v !== '').map(([k, v]) => [k, String(v)])
 
+// Full addresses read as noise in a sentence: show the path, as the rest of this page does. Pure text transform, never invents anything.
+const pathify = (t) => (typeof t === 'string' ? t.replace(/https?:\/\/[^\s,;)"]*[^\s,;)".?!]/g, (u) => { const p = pathOf(u); return p === 'homepage' ? 'the homepage' : p || u }) : t)
+const STATE_OK = new Set(['done', 'current', 'waiting', 'blocked', 'not_applicable'])
+
+// The worker's lifecycle for one opportunity, reduced to the six customer-facing steps. A step the worker did not supply is omitted, not filled in.
+export function lifecycleOf(o) {
+  const lc = o && o.lifecycle
+  if (!lc || !Array.isArray(lc.stages) || !lc.stages.length) return null
+  const stages = lc.stages.filter((s) => s && typeof s.label === 'string' && STATE_OK.has(s.state)).map((s) => ({
+    key: s.key, label: s.label, state: s.state, headline: pathify(s.headline) || '', detail: pathify(s.detail) || '', at: dateLabel(s.at),
+  }))
+  const dn = lc.decisionNeeded
+  return {
+    stages,
+    summary: pathify(lc.summary) || '',
+    decision: dn && Array.isArray(dn.options) ? {
+      question: pathify(dn.question), why: pathify(dn.why),
+      options: dn.options.map((x) => ({address: pathOf(x.address), signals: (x.signals || []).map(pathify), consequence: pathify(x.consequence), needsServerChange: /web-server change/i.test(x.consequence || '')})),
+    } : null,
+  }
+}
+
+// One pill per row: what the customer needs to know first. Falls back to the backend status words when there is no lifecycle.
+export function pillOf(o, baseStatus, lc) {
+  if (!lc) return {label: baseStatus, tone: 'neutral'}
+  if (lc.decision) return {label: 'Needs your decision', tone: 'warn'}
+  const st = Object.fromEntries(lc.stages.map((x) => [x.key, x.state]))
+  if (st.verified === 'done') return {label: 'Completed', tone: 'ok'}
+  if (st.executed === 'done') return {label: baseStatus, tone: 'ok'}
+  if (st.policy === 'blocked' || st.executed === 'blocked') return {label: 'Needs a person', tone: 'warn'}
+  if (st.policy === 'not_applicable') return {label: 'Investigating', tone: 'info'}
+  return {label: baseStatus, tone: 'neutral'}
+}
+
 // Returns the customer-facing record for one backend opportunity. Unknown types fall back to the worker's own plain text.
 export function describeOpportunity(o) {
   const e = (o && o.evidence) || {}
@@ -131,7 +177,10 @@ export function describeOpportunity(o) {
     action: `Review this with your web team. ${NO_CHANGE}`, tech: [['Source', o && o.source]],
   }
   const target = e.url || e.page || e.listedUrl || e.sitemap || o.target
+  const lc = lifecycleOf(o)
+  const base = statusLabel(o.status)
   return {
+    lifecycle: lc, pill: pillOf(o, base, lc),
     key: `${o.type}|${o.target}`,
     title: d.title,
     sub: d.sub || (target && /^https?:/.test(String(target)) ? pathOf(target) : e.query ? `"${e.query}"` : ''),

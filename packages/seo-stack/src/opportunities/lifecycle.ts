@@ -24,8 +24,24 @@ const MODE_WORDS: Record<string, string> = {
   AUTONOMOUS_CONTENT: 'Autonomous content mode', AUTONOMOUS_DISTRIBUTION: 'Autonomous distribution mode'
 };
 const CLASS_WORDS: Record<string, string> = { A: 'low-risk technical fix', B: 'change to page content or search behaviour', C: 'change that always needs a person', D: 'publication outside the website' };
+/** Why this action was chosen, in customer words. Planner rationale text names internal actions, so diagnosed opportunities use these instead. */
+const WHY_CHOSEN: Record<string, string> = {
+  CHANGE_CANONICAL: 'The page’s own preferred address disagrees with the intended one, so that is corrected first; the sitemap follows.',
+  FIX_SITEMAP_ENTRY: 'The sitemap lists an address that redirects, so it is corrected to the final address the page is served from.',
+  CHANGE_REDIRECT: 'The web server redirects away from the intended address, which only a person can change.',
+};
 const word = (a: string) => ACTION_WORDS[a] ?? 'Take the recommended action';
-const strip = (s: string) => s.replace(/^[A-Z_]+(?: \([^)]*\))?:\s*/, '');
+/** Plain sentence for why work was held back or could not be confirmed. Written here; audit-note text (gate names, file paths, action names) is never copied to a customer. */
+function plainHold(note: string): string {
+  if (/source_of_truth/.test(note)) return 'The website’s source files and the live site did not match, so SANOCEA held back rather than risk overwriting something.';
+  if (/tenant mode no longer permits|tenant_authorization/.test(note)) return 'The current autonomy mode no longer allows SANOCEA to make this change on its own.';
+  if (/not_permitted|NOT_PERMITTED/.test(note)) return 'SANOCEA’s policy no longer allows it to make this change on its own.';
+  if (/ROLLBACK_UNAVAILABLE/.test(note)) return 'The website has changed since, so SANOCEA cannot undo this change automatically. A person needs to look.';
+  if (/VERIFICATION_ABANDONED/.test(note)) return 'SANOCEA could not read the live site often enough to confirm the result. A person needs to look.';
+  if (/VERIFICATION_INVESTIGATE|NOT_MET|INCONCLUSIVE/.test(note)) return 'The live site did not clearly match what SANOCEA expected, so it is being looked at further.';
+  if (/EXECUTION_ERROR|EXECUTION_ERROR/.test(note)) return 'Something went wrong while making the change; SANOCEA will try again.';
+  return 'One of SANOCEA’s safety checks did not pass, so it did not make the change. Nothing was changed.';
+}
 
 export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode): Lifecycle {
   const action = o.decision?.action ?? o.recommendedAction;
@@ -51,7 +67,7 @@ export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode
   const selectedAction = plan?.selected ?? action;
   stages.push({ key: 'selected', label: 'Selected', state: dn || selectedAction === 'INVESTIGATE' && !plan?.investigate_next?.length ? 'waiting' : 'done',
     headline: dn ? 'No action chosen yet: waiting for the owner’s answer' : word(selectedAction),
-    detail: dn ? undefined : (plan?.why ?? o.decision?.rationale) || undefined, at: o.updatedAt });
+    detail: dn ? undefined : (o.diagnosis ? WHY_CHOSEN[selectedAction] : o.decision?.rationale) || undefined, at: o.updatedAt });
 
   const denied = last(/^POLICY_DENIED:/), appr = o.approval;
   const investigating = selectedAction === 'INVESTIGATE' || selectedAction === 'NO_ACTION' || !!dn;
@@ -62,7 +78,7 @@ export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode
       headline: appr.actorType === 'AUTONOMOUS_AGENT' ? 'Permitted automatically' : 'Approved by a person',
       detail: appr.actorType === 'AUTONOMOUS_AGENT' ? `This is a ${CLASS_WORDS[appr.actionClass] ?? 'change'}. ${MODE_WORDS[mode] ?? 'The tenant mode'} allows it, the evidence and decision were on record, and nothing about it needed a person.` : 'A person approved this action.' });
   } else if (denied) {
-    stages.push({ key: 'policy', label: 'Policy decision', state: 'blocked', at: denied.at, headline: cls === 'C' ? 'Not permitted automatically: this always needs a person' : 'Not permitted automatically in the current mode', detail: strip(denied.note).replace(/\bClass [A-D]\b/g, 'This kind of change') });
+    stages.push({ key: 'policy', label: 'Policy decision', state: 'blocked', at: denied.at, headline: cls === 'C' ? 'Not permitted automatically: this always needs a person' : 'Not permitted automatically in the current mode', detail: cls === 'C' ? 'This kind of change affects how your website is built or served, so SANOCEA never makes it on its own.' : `${MODE_WORDS[mode] ?? 'The current mode'} does not allow SANOCEA to make this change on its own.` });
   } else {
     const m = modeAllows(mode, classifyAction(selectedAction), selectedAction);
     stages.push({ key: 'policy', label: 'Policy decision', state: m.allowed ? 'current' : 'blocked', headline: m.allowed ? 'About to be authorised' : 'Not permitted automatically in the current mode',
@@ -71,7 +87,7 @@ export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode
 
   const exec = last(/^EXECUTED /), blocked = last(/^EXECUTION_(BLOCKED|NOT_PERMITTED|ERROR)/);
   stages.push(exec ? { key: 'executed', label: 'Executed', state: 'done', at: exec.at, headline: 'The change was made on the live website', detail: exec.note.replace(/^EXECUTED [A-Z_]+: /, '').replace(/release \S+ -> \S+; /, '').replace(/; source .*$/, '') ? 'Done as a new release; the previous version is kept so it can be restored.' : undefined }
-    : blocked ? { key: 'executed', label: 'Executed', state: 'blocked', at: blocked.at, headline: 'Authorised, but SANOCEA held back from making the change', detail: strip(blocked.note) }
+    : blocked ? { key: 'executed', label: 'Executed', state: 'blocked', at: blocked.at, headline: 'Authorised, but SANOCEA held back from making the change', detail: plainHold(blocked.note) }
     : appr ? { key: 'executed', label: 'Executed', state: 'current', headline: 'Waiting for the next execution cycle' }
     : { key: 'executed', label: 'Executed', state: 'waiting', headline: 'Nothing has been changed' });
 
@@ -81,7 +97,7 @@ export function buildLifecycle(o: Opportunity, history: Ev[], mode: AutonomyMode
   stages.push(rolled ? { key: 'verified', label: 'Verified', state: 'blocked', at: rolled.at, headline: 'Re-checking showed the change did not work, so it was undone', detail: 'The previous version of the website was restored automatically.' }
     : met.length >= 2 ? { key: 'verified', label: 'Verified', state: 'done', at: met[1].at, headline: 'Confirmed twice on the live site: right after the change and again a day later' }
     : met.length === 1 ? { key: 'verified', label: 'Verified', state: 'current', at: met[0].at, headline: 'Confirmed on the live site; one more check is scheduled for a day later' }
-    : vbad ? { key: 'verified', label: 'Verified', state: 'blocked', at: vbad.at, headline: 'The result could not be confirmed and needs a look', detail: strip(vbad.note) }
+    : vbad ? { key: 'verified', label: 'Verified', state: 'blocked', at: vbad.at, headline: 'The result could not be confirmed and needs a look', detail: plainHold(vbad.note) }
     : exec ? { key: 'verified', label: 'Verified', state: 'current', at: deferred?.at ?? null, headline: deferred ? 'The live site could not be read yet; SANOCEA will retry' : 'Being re-checked on the live site' }
     : { key: 'verified', label: 'Verified', state: 'waiting', headline: 'Nothing to verify yet' });
 

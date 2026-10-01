@@ -5,7 +5,7 @@ import { buildLifecycle } from '../src/opportunities/lifecycle.js';
 const base: any = { opportunityId: 'OPP-SECRET-1', tenantId: 'a', type: 'SITEMAP_URL_REDIRECTS', target: 'https://a.test/x', status: 'AWAITING_APPROVAL', plainEnglish: 'A web address listed in the sitemap sends visitors on to a different address.',
   reason: 'r', recommendedAction: 'FIX_SITEMAP_ENTRY', decision: { action: 'FIX_SITEMAP_ENTRY', rationale: 'because', checks: [] }, detectedAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z', approval: null, diagnosis: null, actionPlan: null, resultingAction: null };
 const diag: any = { finding: 'f', hypotheses: [{ status: 'ESTABLISHED' }, { status: 'RULED_OUT' }], conclusion: 'The intended address is https://a.test/x/.', sufficient: true, missing_evidence: [], intended: 'https://a.test/x/' };
-const plan: any = { selected: 'FIX_SITEMAP_ENTRY', why: 'Selected the sitemap fix.', candidates: [], rejected: [], investigate_next: [] };
+const plan: any = { selected: 'FIX_SITEMAP_ENTRY', why: 'Selected FIX_SITEMAP_ENTRY first: sitemap entry https://a.test/x disagrees with https://a.test/x/.', candidates: [], rejected: [], investigate_next: [] };
 const appr: any = { by: 'autonomous:sanocea-autonomy-policy@1.0.0', at: '2026-10-02T00:00:00Z', actorType: 'AUTONOMOUS_AGENT', policy: 'sanocea-autonomy-policy@1.0.0', reason: 'ok', actionClass: 'A', approvedAction: 'FIX_SITEMAP_ENTRY' };
 const ev = (note: string, at = '2026-10-02T01:00:00Z') => ({ at, actor: 'agent:executor', from: 'APPROVED', to: 'APPROVED', note });
 const states = (l: any) => l.stages.map((s: any) => s.state);
@@ -37,6 +37,7 @@ test('class C in an autonomous mode: policy stage is blocked with a plain reason
   assert.equal(l.stages[3].state, 'blocked'); assert.match(l.stages[3].headline, /always needs a person/);
   assert.equal(l.stages[4].state, 'waiting'); assert.match(l.summary, /Policy decision/);
   assert.equal(JSON.stringify(l).includes('Class C'), false);
+  assert.equal(JSON.stringify(l).includes('CHANGE_REDIRECT'), false, 'internal action names never reach the customer');
 });
 
 test('decision needed: concluded is blocked, no action chosen, policy not applicable, and the one question is surfaced', () => {
@@ -57,4 +58,18 @@ test('a mode lowered after approval and an executor hold are shown honestly; ver
 test('non-diagnosed observations say they were observed directly, not concluded by inference', () => {
   const l = buildLifecycle({ ...base, type: 'MISSING_STATIC_H1', recommendedAction: 'CHANGE_SERVER_RENDERING', decision: { ...base.decision, action: 'CHANGE_SERVER_RENDERING' } }, [], 'AUTONOMOUS_SEO');
   assert.match(l.stages[1].headline, /Observed directly/);
+});
+
+test('held-back and failure reasons are written for customers: no gate names, file paths or internal codes', () => {
+  const o = { ...base, status: 'APPROVED', diagnosis: diag, actionPlan: plan, approval: appr };
+  for (const note of ['EXECUTION_BLOCKED (source_of_truth_matches_live): website/public/sitemap.xml differs from the live sitemap', 'EXECUTION_NOT_PERMITTED: the tenant mode no longer permits it: Class A action ...', 'EXECUTION_ERROR: ConnectionRefusedError']) {
+    const t = JSON.stringify(buildLifecycle(o, [ev(note)], 'AUTONOMOUS_SEO').stages);
+    for (const bad of ['source_of_truth', 'sitemap.xml', 'website/public', 'Class A', 'ConnectionRefused', 'EXECUTION_']) assert.equal(t.includes(bad), false, `${note} leaked ${bad}`);
+  }
+});
+
+test('the reason an action was chosen is written for customers; the planner\'s internal rationale is never shown for diagnosed opportunities', () => {
+  const l = buildLifecycle({ ...base, status: 'APPROVED', diagnosis: diag, actionPlan: plan, approval: appr }, [], 'AUTONOMOUS_SEO');
+  assert.match(l.stages[2].detail!, /sitemap lists an address that redirects/);
+  assert.equal(JSON.stringify(l).includes('FIX_SITEMAP_ENTRY'), false);
 });
