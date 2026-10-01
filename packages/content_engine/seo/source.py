@@ -69,5 +69,9 @@ class OpportunityControl:
         """Ask the worker's policy to authorise (AUTONOMOUS_AGENT) an opportunity awaiting approval."""
         return self._post("/opportunities/authorize", {"opportunityId": opportunity_id})
 
+    def verify(self, opportunity_id: str, observed: list, rollback_available: bool) -> Dict[str, Any]:
+        """Hand RE-OBSERVED facts to the worker, whose verifyOutcome() decides MET / NOT_MET / INCONCLUSIVE and records the outcome."""
+        return self._post("/opportunities/verify", {"opportunityId": opportunity_id, "observed": observed, "rollbackAvailable": rollback_available})
+
     def link_result(self, opportunity_id: str, ref: str, actor: str) -> Dict[str, Any]:
         return self._post("/opportunities/link-result", {"opportunityId": opportunity_id, "ref": ref, "actor": actor})

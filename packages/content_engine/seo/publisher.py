@@ -43,6 +43,7 @@ class PublishRequest(BaseModel):
     file_changes: Dict[str, str]  # relative path -> new full text
     before_sha256: str
     after_sha256: str
+    expected_outcome: List[Dict] = Field(default_factory=list)  # from the action plan; what verification must observe
     source_path: Optional[str] = None  # repository source of the file, for the recorded source-sync patch
 
 
@@ -63,6 +64,9 @@ class PublishReceipt(BaseModel):
     changed_files: List[ChangedFile]
     published_at: str
     rollback_ref: str  # the previous release directory name
+    opportunity_id: str = ""
+    expected_outcome: List[Dict] = Field(default_factory=list)
+    verification_required: bool = True
     source_sync_patch: str = ""  # the repository source must be updated or the next full build reverts this change
 
 
@@ -177,7 +181,7 @@ class StaticSiteReleasePublisher:
             raise PublisherError("HEALTH_CHECK_FAILED", "The new release failed its health check; switched back to the previous release.")
         patch = "".join(difflib.unified_diff(open(os.path.join(prev, "sitemap.xml")).read().splitlines(True), req.file_changes["sitemap.xml"].splitlines(True), "a/" + (req.source_path or "sitemap.xml"), "b/" + (req.source_path or "sitemap.xml")))
         receipt = PublishReceipt(change_id=req.change_id, tenant_id=self.tenant_id, action=req.action, target=req.target, status="PUBLISHED", previous_release=os.path.basename(prev), new_release=os.path.basename(new),
-                                 changed_files=[ChangedFile(path=p, before_sha256=before[p], after_sha256=after[p]) for p in changed], published_at=now.isoformat(), rollback_ref=os.path.basename(prev), source_sync_patch=patch)
+                                 changed_files=[ChangedFile(path=p, before_sha256=before[p], after_sha256=after[p]) for p in changed], published_at=now.isoformat(), rollback_ref=os.path.basename(prev), source_sync_patch=patch, opportunity_id=req.opportunity_id, expected_outcome=req.expected_outcome)
         store.record_publication(self.tenant_id, req.change_id, receipt.model_dump())
         store.append_audit(self.tenant_id, "evt_pub_" + req.change_id, {"type": "SITEMAP_PUBLISHED", "change_id": req.change_id, "opportunity_id": req.opportunity_id, "action": req.action, "actor_type": "AUTONOMOUS_AGENT",
                                                                        "previous_release": receipt.previous_release, "new_release": receipt.new_release, "before_sha256": req.before_sha256, "after_sha256": req.after_sha256, "at": receipt.published_at})

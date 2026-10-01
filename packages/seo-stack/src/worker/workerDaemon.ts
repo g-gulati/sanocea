@@ -141,7 +141,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === 'POST' && (req.url === '/opportunities/transition' || req.url === '/opportunities/link-result' || req.url === '/opportunities/authorize' || req.url === '/autonomy/mode')) {
+  if (req.method === 'POST' && (req.url === '/opportunities/transition' || req.url === '/opportunities/link-result' || req.url === '/opportunities/authorize' || req.url === '/autonomy/mode' || req.url === '/opportunities/verify')) {
     if (!controlAuthorized(req.headers['x-seo-control-token'] as string | undefined, process.env.SEO_WORKER_CONTROL_TOKEN)) {
       res.writeHead(403, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'control token required' }));
@@ -153,7 +153,9 @@ const server = http.createServer(async (req, res) => {
       const b = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
       const out = req.url === '/opportunities/transition'
         ? worker.transitionOpportunity(String(b.opportunityId), b.to, String(b.actor ?? ''), String(b.note ?? ''))
-        : req.url === '/opportunities/authorize'
+        : req.url === '/opportunities/verify'
+          ? worker.verifyOpportunity(String(b.opportunityId), Array.isArray(b.observed) ? b.observed : [], Boolean(b.rollbackAvailable))
+          : req.url === '/opportunities/authorize'
           ? worker.authorizeOpportunity(String(b.opportunityId))
           : req.url === '/autonomy/mode'
             ? { mode: worker.setAutonomyMode(String(b.mode), String(b.actor ?? '')) }

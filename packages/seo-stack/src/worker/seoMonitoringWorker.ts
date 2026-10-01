@@ -859,6 +859,7 @@ export class SeoMonitoringWorker {
   public transitionOpportunity(opportunityId: string, to: any, actor: string, note: string) {
     return this.opportunities.transition(this.config.tenantId, opportunityId, to, actor, note);
   }
+  public verifyOpportunity(opportunityId: string, observed: any[], rollbackAvailable: boolean) { return this.opportunities.verify(this.config.tenantId, opportunityId, observed, rollbackAvailable); }
   public authorizeOpportunity(opportunityId: string) { return this.opportunities.authorize(this.config.tenantId, opportunityId); }
   public setAutonomyMode(mode: string, actor: string) { return this.opportunities.setAutonomyMode(this.config.tenantId, mode, actor); }
   public getAutonomy() { return { tenantId: this.config.tenantId, mode: this.opportunities.getAutonomyMode(this.config.tenantId), policy: POLICY_REF, modes: AUTONOMY_MODES }; }
