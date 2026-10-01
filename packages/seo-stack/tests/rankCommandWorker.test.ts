@@ -145,24 +145,25 @@ test('worker+scheduler: one tick executes every scheduled job with honest outcom
       trackedQueries: ['q one'], bingApiKey: '', authorityFetch, authorityRelease: REL, modelHarness: { model: '' } },
     scheduler: { retryBaseMs: 1 } });
   const t = await worker.scheduler.tick();
-  assert.equal(t.due, 6);
-  assert.equal(t.ran, 6);
+  assert.equal(t.due, 7);
+  assert.equal(t.ran, 7);
   const by = Object.fromEntries(t.results.map(r => [r.job, r]));
   assert.equal(by['rankcommand-agents'].status, 'OK');
   assert.equal(by['gsc-position'].status, 'UNAVAILABLE', 'no service account => not live');
   assert.equal(by['bing-webmaster'].status, 'UNAVAILABLE');
+  assert.equal(by['seo-execution'].status, 'UNAVAILABLE', 'no executor bridge configured => nothing is executed');
   assert.equal(by['ga4-analytics'].status, 'UNAVAILABLE', 'no GA4 property id / live service account => nothing collected');
   assert.equal(by['model-visibility'].status, 'UNAVAILABLE');
   assert.equal(by['authority-graph'].status, 'OK');
   assert.equal(sitemapFetch.calls.length, 1, 'the agents job polled the competitor sitemap exactly once');
 
   const st = worker.getSchedulerStatus();
-  assert.equal(st.lastHeartbeat!.ranJobs, 6);
+  assert.equal(st.lastHeartbeat!.ranJobs, 7);
   assert.ok(st.jobs.every(j => Date.parse(j.nextRunAt) > Date.now()), 'every job has a persisted future next_run_at');
   assert.equal(worker.getAuthority().rows.length, 2);
   assert.equal(worker.getAuthority().rows.find(r => r.domain === 'sanocea.com')!.inGraph, false);
   assert.equal(worker.getBingReport().configured, false);
-  assert.equal(worker.getHealth().scheduler!.jobs.length, 6);
+  assert.equal(worker.getHealth().scheduler!.jobs.length, 7);
 
   // Roster now carries the REAL persisted next-run time, not a fabricated one.
   const roster = await worker.getAgentRoster();

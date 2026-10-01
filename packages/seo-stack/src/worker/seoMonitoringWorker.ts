@@ -38,6 +38,8 @@ import { buildLiveSerpRankMovement, verifiedSerpTrajectories, LiveSerpRankMoveme
 import { GscPositionTracker, GscPositionCollectResult, GscPositionTrajectory } from '../search-intel/gscPositionTracker.js';
 import { BingWebmasterCollector } from '../search-intel/bingWebmaster.js';
 import { Ga4Collector } from '../search-intel/ga4.js';
+import { ExecutionLoop } from '../opportunities/executionLoop.js';
+import { ExecutorBridge, bridgeFromEnv } from '../opportunities/executorBridge.js';
 import { CommonCrawlAuthorityCollector } from '../search-intel/commonCrawlGraph.js';
 import { ModelVisibilityHarness, ModelHarnessOptions } from '../search-intel/aeoModelHarness.js';
 import { JobScheduler, JobDefinition } from '../scheduler/jobScheduler.js';
@@ -77,6 +79,7 @@ export interface SeoWorkerConfig {
     competitors?: CompetitorConfig[];
     competitorOptions?: CompetitorEngineOptions;
     trackedQueries?: string[];
+    executorBridge?: ExecutorBridge | null;
     ga4PropertyId?: string;
     ga4Fetch?: typeof fetch;
     bingApiKey?: string;
@@ -145,6 +148,7 @@ export class SeoMonitoringWorker {
   private googleProperty: GscPropertyService;
   private bing: BingWebmasterCollector;
   private ga4: Ga4Collector;
+  private executionLoop: ExecutionLoop;
   private authority: CommonCrawlAuthorityCollector;
   private modelHarness: ModelVisibilityHarness;
   public readonly scheduler: JobScheduler;
@@ -253,6 +257,7 @@ export class SeoMonitoringWorker {
       geoEngine: this.geoEngine,
       competitorEngine: this.competitorEngine
     });
+    this.executionLoop = new ExecutionLoop(this.opportunities, rc.executorBridge === undefined ? bridgeFromEnv() : rc.executorBridge);
     this.ga4 = new Ga4Collector(this.db, { auth: this.isLiveGsc ? this.config.gscClient?.auth : undefined, propertyId: rc.ga4PropertyId, fetchImpl: rc.ga4Fetch });
     this.bing = new BingWebmasterCollector(this.db, { apiKey: rc.bingApiKey, fetchImpl: rc.bingFetch });
     this.authority = new CommonCrawlAuthorityCollector(this.db, { fetchImpl: rc.authorityFetch, release: rc.authorityRelease });
@@ -731,6 +736,16 @@ export class SeoMonitoringWorker {
           const r = await this.runGscPositionTracking();
           if (r.status !== 'OBSERVED') throw new Error(r.unavailable?.reason ?? 'GSC position collection failed');
           return { status: 'OK', summary: `${prop}; stored ${r.rowsStored} rows (site=${r.levels.SITE.rowsStored}, page=${r.levels.PAGE.rowsStored}, query=${r.levels.QUERY.rowsStored})`, output: r.levels };
+        }
+      },
+      {
+        // Carries out what the autonomy policy already authorised and re-observes the live result. It never authorises anything itself.
+        name: 'seo-execution', intervalMs: 15 * 60 * 1000,
+        run: async () => {
+          if (!this.executionLoop.configured) return { status: 'UNAVAILABLE', summary: 'executor bridge is not configured (SEO_EXECUTOR_PYTHON / SEO_EXECUTOR_CWD)' };
+          const s = await this.executionLoop.run(tenantId);
+          if (s.errors > 0) throw new Error(`execution cycle had ${s.errors} error(s): executed ${s.executed}, blocked ${s.blocked}, verified ${s.verified}, rolled back ${s.rolledBack}, deferred ${s.deferred}`);
+          return { status: 'OK', summary: `executed ${s.executed}, blocked ${s.blocked}, verified ${s.verified}, rolled back ${s.rolledBack}, deferred ${s.deferred}`, output: s as any };
         }
       },
       {

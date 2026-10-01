@@ -1,0 +1,16 @@
+{
+  "_comment": "Authoritative SEO publish targets, one per tenant. A tenant without an entry cannot be published to. Static-site mechanism: <www_root>/releases/<id> + atomic <www_root>/current symlink served by nginx (the same layout scripts/deploy_website.sh produces). source_files maps a published file to the repository file the site build copies into the release; it must equal the live file before anything is published, and it is updated with every publication so the next deploy_website.sh does not revert the change.",
+  "targets": {
+    "sanocea": {
+      "kind": "static-site",
+      "host": "www.sanocea.com",
+      "base_url": "https://www.sanocea.com",
+      "www_root": "/var/www/sanocea",
+      "path_prefixes": ["/sitemap.xml"],
+      "source_repo": "/opt/sanocea/repo",
+      "source_files": { "sitemap.xml": "website/public/sitemap.xml" },
+      "commit_source": true,
+      "health_urls": ["https://www.sanocea.com/", "https://www.sanocea.com/sitemap.xml"]
+    }
+  }
+}

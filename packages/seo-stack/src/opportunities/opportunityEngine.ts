@@ -468,6 +468,13 @@ export class OpportunityEngine {
     return this.get(tenantId, opportunityId)!;
   }
 
+  /** Records an audit event on an opportunity without changing its status (execution/verification observations). */
+  public annotate(tenantId: string, opportunityId: string, actor: string, note: string, now = new Date().toISOString()): void {
+    const r = this.db.handle.prepare(`SELECT status FROM seo_opportunities WHERE tenant_id = ? AND opportunity_id = ?`).get(tenantId, opportunityId) as any;
+    if (!r) throw new Error('opportunity not found for this tenant');
+    this.event(tenantId, opportunityId, r.status, r.status, actor, note, now);
+  }
+
   public get(tenantId: string, opportunityId: string): Opportunity | undefined {
     const r = this.db.handle.prepare(`SELECT * FROM seo_opportunities WHERE tenant_id = ? AND opportunity_id = ?`).get(tenantId, opportunityId);
     return r ? this.rowToOpp(r) : undefined;

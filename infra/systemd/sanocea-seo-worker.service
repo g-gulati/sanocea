@@ -15,6 +15,11 @@ Environment=SEO_WORKER_PORT=8089
 Environment=GSC_SERVICE_ACCOUNT_PATH=/etc/sanocea/gsc_service_account.json
 Environment=GSC_PROPERTY_URL=sc-domain:sanocea.com
 Environment=GA4_PROPERTY_ID=553968706
+# Executor bridge: the worker hands policy-authorised changes to the Python publisher (packages/content_engine/seo/executor.py)
+Environment=SEO_EXECUTOR_PYTHON=/opt/sanocea/shared/venvs/2cf5bc0dc1da2bd1f5ce7911e40b8b4c2007004011ae9e94f0c8033d84e59679/bin/python
+Environment=SEO_EXECUTOR_CWD=/opt/sanocea/repo
+Environment=SEO_PUBLISH_TARGETS=/opt/sanocea/repo/config/seo_publish_targets.json
+Environment=SEO_WORKER_URL=http://127.0.0.1:8089
 # Optional secrets file (mode 600) holding BING_WEBMASTER_API_KEY=...; absent until the site owner generates a key
 EnvironmentFile=-/etc/sanocea/bing.env
 Environment=TIER1_INTERVAL_MS=3600000
