@@ -284,3 +284,9 @@ def test_redact_keeps_whole_string_identifiers_but_still_scrubs_setting_names_in
                   "err": "BING_WEBMASTER_API_KEY is not configured", "type": "GSC_SIGNAL_SEARCH_VELOCITY"})
     assert out == {"role": "AI_CONTENT_AUDITOR", "status": "AWAITING_PROVIDER", "r2": "LINK_BUILDING_MANAGER",
                    "err": "a required setting is not configured", "type": "GSC_SIGNAL_SEARCH_VELOCITY"}
+
+
+def test_opportunity_internal_ids_never_reach_the_browser():
+    from sanocea.packages.seo_bridge import redact
+    out = redact({"opportunities": [{"opportunityId": "OPP-1234", "type": "MISSING_STATIC_H1", "target": "https://x/", "status": "DISCOVERED"}]})
+    assert out == {"opportunities": [{"type": "MISSING_STATIC_H1", "target": "https://x/", "status": "DISCOVERED"}]}

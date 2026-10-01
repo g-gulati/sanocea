@@ -50,7 +50,7 @@ VIEWS: dict[str, str] = {
 }
 
 # Worker-internal fields that must never reach a browser: process owner (hostname:pid) and filesystem/DB paths.
-_REDACT_KEYS = {"owner", "dbPath", "db_path", "hostname", "pid"}
+_REDACT_KEYS = {"owner", "dbPath", "db_path", "hostname", "pid", "opportunityId"}  # opportunityId: internal reference, never sent to a browser
 _REDACT_STR = re.compile(
     r"(?:/(?:opt|root|home|var|etc|usr|srv|tmp)/[^\s\"',}]+)"          # filesystem paths
     r"|(?:\b[A-Za-z][A-Za-z0-9-]*:\d{2,7}\b(?=$|[\s,;]))"            # host:pid
