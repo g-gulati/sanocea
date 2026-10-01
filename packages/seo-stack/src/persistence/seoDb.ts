@@ -613,6 +613,10 @@ export class SeoDatabase {
       CREATE INDEX IF NOT EXISTS idx_agent_tasks_tenant ON agent_task_executions(tenant_id, agent_id);
     `);
     this.migrateRankCommandColumns();
+    for (const col of ['diagnosis_json', 'action_plan_json']) {
+      const have = (this.db.prepare(`PRAGMA table_info(seo_opportunities)`).all() as any[]).some(c => c.name === col);
+      if (!have) this.db.exec(`ALTER TABLE seo_opportunities ADD COLUMN ${col} TEXT`);
+    }
   }
 
   private dropLegacyGscPositionTable(): void {

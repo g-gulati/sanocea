@@ -17,6 +17,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { ActionPlan, Diagnosis, Fact, collectRedirectFamilyFacts, diagnoseRedirectFamily, selectAction, verifyOutcome, Verification } from './diagnosis.js';
 import { AUTONOMOUS_ACTOR, AuthorizationDecision, AutonomyMode, DEFAULT_MODE, POLICY_REF, classifyAction, evaluateAuthorization, isAutonomyMode } from './autonomyPolicy.js';
 import { SeoDatabase } from '../persistence/seoDb.js';
 import { GscPropertyService, InspectionRecord, SitemapRecord } from '../search-intel/gscProperty.js';
@@ -98,6 +99,8 @@ export interface Opportunity {
   contentEligibilityReason: string;
   /** Who approved it, from the audit trail (null until a human approves). */
   approval: ApprovalRecord | null;
+  diagnosis: Diagnosis | null;
+  actionPlan: ActionPlan | null;
 }
 
 /** Persisted authorisation record. actorType distinguishes HUMAN from AUTONOMOUS_AGENT and is never inferred from free text. */
@@ -107,6 +110,7 @@ export interface Candidate {
   type: OpportunityType; target: string; confidence: Opportunity['confidence']; source: string;
   reason: string; plainEnglish: string; evidence: Record<string, unknown>; objective: string;
   decision: Decision;
+  diagnosis?: Diagnosis; actionPlan?: ActionPlan;
 }
 
 // ── Thresholds (copied into evidence so no number is unexplained) ────────────
@@ -177,18 +181,18 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
     }
   }
 
+  // Redirecting sitemap URL: the detector supplies FACTS only. The action is derived downstream (diagnose -> selectAction).
   for (const p of input.pages) {
-    if (p.redirected && p.finalUrl && p.finalUrl !== p.url) {
-      out.push({
-        type: 'SITEMAP_URL_REDIRECTS', target: p.url, confidence: 'OBSERVED', source: crawlSource,
-        reason: `${p.url} (listed in the sitemap) redirects to ${p.finalUrl}.`,
-        plainEnglish: 'A web address listed in the sitemap sends visitors on to a different address. The sitemap should list the final address.',
-        evidence: { listedUrl: p.url, finalUrl: p.finalUrl, method: 'HTTP GET following redirects', observedAt: checkedAt },
-        objective: 'Re-fetch the sitemap entry and confirm it returns HTTP 200 without a redirect.',
-        decision: { action: 'FIX_SITEMAP_ENTRY', requiresApproval: true,
-          rationale: 'Replace the sitemap entry with the final address. The redirect itself is NOT changed (that is a Class C server change).', checks: ['Observed redirect on the sitemap-listed URL', 'Before execution: verify the destination returns HTTP 200 and is its own canonical, on the same host', 'Before execution: verify the sitemap publisher is authorised for this tenant', 'Capture before/after sitemap state and rollback information; run sitemap QA before publication'] }
-      });
-    }
+    if (!(p.redirected && p.finalUrl && p.finalUrl !== p.url)) continue;
+    const facts = collectRedirectFamilyFacts(p as any, input.pages as any, (input.inspections ?? []).map(i => ({ url: i.url, googleCanonical: i.googleCanonical })), crawlSource);
+    out.push({
+      type: 'SITEMAP_URL_REDIRECTS', target: p.url, confidence: 'OBSERVED', source: crawlSource,
+      reason: `${p.url} (listed in the sitemap) redirects to ${p.finalUrl}.`,
+      plainEnglish: 'A web address listed in the sitemap sends visitors on to a different address.',
+      evidence: { listedUrl: p.url, finalUrl: p.finalUrl, destinationCanonical: p.canonical ?? null, method: 'HTTP GET following redirects, canonical read from the delivered HTML', observedAt: checkedAt, facts },
+      objective: 'The signals about this page (sitemap, redirect, canonical, links, Google) agree on one address.',
+      decision: { action: 'INVESTIGATE', requiresApproval: true, rationale: 'pending diagnosis', checks: [] }
+    });
   }
 
   const GSC_API = '[OBSERVED: GOOGLE SEARCH CONSOLE API]';
@@ -254,7 +258,17 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
       }
     });
   }
-  return out;
+  return out.map(applyDiagnosis);
+}
+
+/** Diagnosis and action selection, downstream of the detectors. Only the redirect/canonical/sitemap family is diagnosed so far. */
+function applyDiagnosis(c: Candidate): Candidate {
+  const facts = (c.evidence as any).facts as Fact[] | undefined;
+  if (c.type !== 'SITEMAP_URL_REDIRECTS' || !facts) return c;
+  const diagnosis = diagnoseRedirectFamily(facts), actionPlan = selectAction(diagnosis, facts);
+  const sel = actionPlan.candidates.find(x => x.action === actionPlan.selected)!;
+  return { ...c, diagnosis, actionPlan, reason: `${diagnosis.finding} ${diagnosis.conclusion}`, plainEnglish: diagnosis.sufficient ? `SANOCEA worked out that ${diagnosis.intended} is the intended address and chose: ${actionPlan.selected}.` : 'SANOCEA is gathering more evidence to work out which address of this page is the intended one. Nothing is being changed.',
+    decision: { action: actionPlan.selected as any, requiresApproval: true, rationale: actionPlan.why, checks: [...sel.preconditions, sel.verification, ...actionPlan.investigate_next] } };
 }
 
 export class OpportunityEngine {
@@ -273,7 +287,9 @@ export class OpportunityEngine {
       resultingAction: r.resulting_action, resultingMeasurement: r.resulting_measurement,
       contentEligible: contentEligibility(r.type, r.recommended_action).eligible,
       contentEligibilityReason: contentEligibility(r.type, r.recommended_action).reason,
-      approval: this.approvalOf(r.tenant_id, r.opportunity_id)
+      approval: this.approvalOf(r.tenant_id, r.opportunity_id),
+      diagnosis: r.diagnosis_json ? JSON.parse(r.diagnosis_json) : null,
+      actionPlan: r.action_plan_json ? JSON.parse(r.action_plan_json) : null
     } as Opportunity & typeof c;
   }
 
@@ -329,6 +345,23 @@ export class OpportunityEngine {
     return { decision, opportunity: this.get(tenantId, opportunityId)! };
   }
 
+  /** LEARN: stores the verification outcome on the opportunity (resulting_measurement) and audits it. Never changes status. */
+  public recordVerification(tenantId: string, opportunityId: string, v: Verification, now = new Date().toISOString()): void {
+    const r = this.db.handle.prepare(`SELECT status FROM seo_opportunities WHERE tenant_id = ? AND opportunity_id = ?`).get(tenantId, opportunityId) as any;
+    if (!r) throw new Error('opportunity not found for this tenant');
+    this.db.handle.prepare(`UPDATE seo_opportunities SET resulting_measurement = ?, updated_at = ? WHERE tenant_id = ? AND opportunity_id = ?`).run(JSON.stringify(v), now, tenantId, opportunityId);
+    this.event(tenantId, opportunityId, r.status, r.status, 'agent:verification', `VERIFICATION ${v.status}: ${v.reason} Next: ${v.next}`, now);
+  }
+
+  /** Verify an opportunity's selected action against freshly re-observed facts, then record the outcome. */
+  public verify(tenantId: string, opportunityId: string, observed: Fact[], rollbackAvailable: boolean, now = new Date().toISOString()): Verification {
+    const o = this.get(tenantId, opportunityId);
+    if (!o?.actionPlan) throw new Error('no action plan to verify');
+    const v = verifyOutcome(o.actionPlan, observed, rollbackAvailable);
+    this.recordVerification(tenantId, opportunityId, v, now);
+    return v;
+  }
+
   /** Records the artefact (brief/draft reference) an approved opportunity produced. Never changes status. */
   public linkResult(tenantId: string, opportunityId: string, ref: string, actor: string, now = new Date().toISOString()): Opportunity {
     const r = this.db.handle.prepare(`SELECT status FROM seo_opportunities WHERE tenant_id = ? AND opportunity_id = ?`).get(tenantId, opportunityId) as any;
@@ -371,8 +404,8 @@ export class OpportunityEngine {
         const ev = JSON.stringify({ ...c.evidence, __plain: c.plainEnglish });
         if (!existing) {
           const id = `OPP-${randomUUID()}`;
-          this.db.handle.prepare(`INSERT INTO seo_opportunities (opportunity_id, tenant_id, type, target, dedupe_key, status, confidence, source, reason, evidence_json, recommended_action, decision_json, objective, detected_at, last_seen_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-            .run(id, tenantId, c.type, c.target, key, 'DISCOVERED', c.confidence, c.source, c.reason, ev, c.decision.action, JSON.stringify(c.decision), c.objective, now, now, now);
+          this.db.handle.prepare(`INSERT INTO seo_opportunities (opportunity_id, tenant_id, type, target, dedupe_key, status, confidence, source, reason, evidence_json, recommended_action, decision_json, objective, detected_at, last_seen_at, updated_at, diagnosis_json, action_plan_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+            .run(id, tenantId, c.type, c.target, key, 'DISCOVERED', c.confidence, c.source, c.reason, ev, c.decision.action, JSON.stringify(c.decision), c.objective, now, now, now, c.diagnosis ? JSON.stringify(c.diagnosis) : null, c.actionPlan ? JSON.stringify(c.actionPlan) : null);
           this.event(tenantId, id, null, 'DISCOVERED', 'agent:opportunity-engine', 'First detected from persisted evidence', now);
           created++;
           continue;
@@ -382,8 +415,8 @@ export class OpportunityEngine {
           this.event(tenantId, existing.opportunity_id, status, 'DISCOVERED', 'agent:opportunity-engine', 'Observed again after being marked done; reopened', now);
           status = 'DISCOVERED'; reopened++;
         }
-        this.db.handle.prepare(`UPDATE seo_opportunities SET status = ?, reason = ?, evidence_json = ?, recommended_action = ?, decision_json = ?, objective = ?, source = ?, confidence = ?, last_seen_at = ?, updated_at = ? WHERE tenant_id = ? AND opportunity_id = ?`)
-          .run(status, c.reason, ev, c.decision.action, JSON.stringify(c.decision), c.objective, c.source, c.confidence, now, now, tenantId, existing.opportunity_id);
+        this.db.handle.prepare(`UPDATE seo_opportunities SET status = ?, reason = ?, evidence_json = ?, recommended_action = ?, decision_json = ?, objective = ?, source = ?, confidence = ?, last_seen_at = ?, updated_at = ?, diagnosis_json = ?, action_plan_json = ? WHERE tenant_id = ? AND opportunity_id = ?`)
+          .run(status, c.reason, ev, c.decision.action, JSON.stringify(c.decision), c.objective, c.source, c.confidence, now, now, c.diagnosis ? JSON.stringify(c.diagnosis) : null, c.actionPlan ? JSON.stringify(c.actionPlan) : null, tenantId, existing.opportunity_id);
         updated++;
       }
     });

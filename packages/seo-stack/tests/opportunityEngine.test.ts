@@ -109,7 +109,7 @@ test('engine reads the persisted GSC snapshot (pages) and labels the result CALC
 });
 
 test('a sitemap-listed URL that redirects is an observed opportunity; a shell page is described as a shell, not as empty', () => {
-  const c = detectOpportunities({ pages: [page('https://s.test/a', { redirected: true, finalUrl: 'https://s.test/a/', staticWords: 0, bodyWords: 14 })], gscPages: [], gscQueries: [] });
+  const c = detectOpportunities({ pages: [page('https://s.test/a', { redirected: true, finalUrl: 'https://s.test/a/', canonical: 'https://s.test/a/', staticWords: 0, bodyWords: 14 })], gscPages: [], gscQueries: [] });
   const r = c.find(x => x.type === 'SITEMAP_URL_REDIRECTS')!;
   assert.equal(r.evidence.finalUrl, 'https://s.test/a/');
   const g = c.find(x => x.type === 'SERVER_RENDERED_CONTENT_GAP')!;
@@ -142,7 +142,7 @@ test('content eligibility: only search-wording/page-content opportunities with a
 
 test('every opportunity the real crawler/Google detectors produce is content-ineligible; the listing exposes eligibility and approval', () => {
   const db = new SeoDatabase(':memory:');
-  seed(db, 'a', [page('https://a.test/', { staticWords: 0, h1Count: 0, redirected: true, finalUrl: 'https://a.test/x' })]);
+  seed(db, 'a', [page('https://a.test/', { staticWords: 0, h1Count: 0, redirected: true, finalUrl: 'https://a.test/x', canonical: 'https://a.test/x' })]);
   const eng = new OpportunityEngine(db);
   eng.refresh('a');
   const all = eng.list('a').opportunities;

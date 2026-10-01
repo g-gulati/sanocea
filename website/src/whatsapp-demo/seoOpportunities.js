@@ -64,7 +64,15 @@ const DESCRIBE = {
     action: `Ask your web team to include one main heading in the delivered HTML. ${NO_CHANGE}`,
     tech: [['Method', e.method], ['Main headings found', e.h1Count], ['Source', 'Live page fetch']],
   }),
-  SITEMAP_URL_REDIRECTS: (o, e) => ({
+  SITEMAP_URL_REDIRECTS: (o, e) => o.recommendedAction === 'INVESTIGATE' && o.diagnosis ? ({
+    title: 'The address in your sitemap, the redirect and the page\'s preferred address do not agree',
+    what: o.diagnosis.conclusion,
+    evidence: `${o.diagnosis.finding} SANOCEA has not yet established which address is intended.`,
+    why: 'Changing the wrong one could point search engines at the wrong address, so SANOCEA is gathering more evidence first. Nothing is being changed.',
+    action: `Nothing is needed from you now. SANOCEA is gathering: ${(o.actionPlan && o.actionPlan.investigate_next || []).map((x) => x.replace(/^Gather: /, '')).join('; ') || 'more evidence'}.`,
+    tech: [['Method', e.method], ['Listed address', pathOf(e.listedUrl)], ['Final address', pathOf(e.finalUrl)], ['Destination canonical', e.destinationCanonical ? pathOf(e.destinationCanonical) : 'none found'], ['Source', 'Live page fetch']],
+    sub: `${pathOf(e.listedUrl)} → ${pathOf(e.finalUrl)} (redirect)`,
+  }) : ({
     title: 'A page address in your sitemap redirects',
     what: 'The sitemap lists an address that sends visitors on to a different address.',
     evidence: `Requesting ${pathOf(e.listedUrl)} returned a redirect to ${pathOf(e.finalUrl)}.`,

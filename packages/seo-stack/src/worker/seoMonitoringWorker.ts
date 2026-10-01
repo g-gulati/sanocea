@@ -804,7 +804,7 @@ export class SeoMonitoringWorker {
     if (conn.state !== 'CONNECTED') return `connection ${conn.state}`;
     const sm = await this.googleProperty.collectSitemaps(tenantId, site);
     const auditor = this.db.getLatestAgentRoster(tenantId).find(a => a.agentId === 'agent-ai-content-auditor');
-    const pages: string[] = Array.isArray((auditor?.details as any)?.pages) ? (auditor!.details as any).pages.map((p: any) => p.url) : [`https://${this.config.domain}/`];
+    const pages: string[] = Array.isArray((auditor?.details as any)?.pages) ? (auditor!.details as any).pages.flatMap((p: any) => (p.redirected && p.finalUrl ? [p.url, p.finalUrl] : [p.url])) : [`https://${this.config.domain}/`];
     const insp = await this.googleProperty.inspectUrls(tenantId, site, pages);
     this.opportunities.refresh(tenantId);
     return `connection CONNECTED; sitemaps ${sm.status === 'OBSERVED' ? sm.count : 'unavailable'}; inspected ${insp.inspected}, skipped ${insp.skipped}, failed ${insp.failed.length}`;

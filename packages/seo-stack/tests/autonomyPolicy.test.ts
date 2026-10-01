@@ -72,19 +72,17 @@ test('Class C is refused even in the most permissive mode, and a technical fix i
   assert.equal(d.allowed, false); assert.equal(d.actionClass, 'C'); assert.match(d.reason, /Class C/);
 });
 
-test('technical opportunities carry the most specific supported action: server rendering = Class C, sitemap entry = Class A, unknown cause = INVESTIGATE (Class C)', () => {
+test('technical opportunities: server rendering = Class C; a redirecting sitemap URL is DIAGNOSED (insufficient evidence => INVESTIGATE); FIX_SITEMAP_ENTRY stays Class A', () => {
   const db = new SeoDatabase(':memory:');
-  db.recordAgentTaskExecution({ taskId: 'tt', tenantId: 'a', agentId: 'agent-ai-content-auditor', agentName: 'x', role: 'AI_CONTENT_AUDITOR', status: 'COMPLETED', currentTask: 'x', outputSummary: 'x', provenance: '[OBSERVED: LIVE PAGE FETCH]', executedAt: new Date().toISOString(), nextScheduledAt: '', details: { checkedAt: 'x', pages: [{ ...PAGES[0], url: 'https://a.test/s', staticWords: 0, bodyWords: 0, h1Count: 0, redirected: true, finalUrl: 'https://a.test/s/' }] } } as any);
+  db.recordAgentTaskExecution({ taskId: 'tt', tenantId: 'a', agentId: 'agent-ai-content-auditor', agentName: 'x', role: 'AI_CONTENT_AUDITOR', status: 'COMPLETED', currentTask: 'x', outputSummary: 'x', provenance: '[OBSERVED: LIVE PAGE FETCH]', executedAt: new Date().toISOString(), nextScheduledAt: '', details: { checkedAt: 'x', pages: [{ ...PAGES[0], url: 'https://a.test/s', staticWords: 0, bodyWords: 0, h1Count: 0, redirected: true, finalUrl: 'https://a.test/s/', canonical: 'https://a.test/s/' }] } } as any);
   const eng = new OpportunityEngine(db); eng.refresh('a');
   const act = (t: string) => eng.list('a').opportunities.find(o => o.type === t)!.recommendedAction;
   assert.equal(act('SERVER_RENDERED_CONTENT_GAP'), 'CHANGE_SERVER_RENDERING');
   assert.equal(act('MISSING_STATIC_H1'), 'CHANGE_SERVER_RENDERING');
-  assert.equal(act('SITEMAP_URL_REDIRECTS'), 'FIX_SITEMAP_ENTRY');
+  assert.equal(act('SITEMAP_URL_REDIRECTS'), 'INVESTIGATE', 'derived from evidence: the signals are split, so the action is not chosen by type');
   assert.equal(classifyAction('FIX_SITEMAP_ENTRY'), 'A');
   assert.equal(classifyAction('CHANGE_REDIRECT'), 'C', 'the redirect itself is never changed autonomously');
-  const sm = eng.list('a').opportunities.find(o => o.type === 'SITEMAP_URL_REDIRECTS')!;
-  assert.ok(sm.decision.checks.some(c => /verify the destination/i.test(c)) && sm.decision.checks.some(c => /before\/after/i.test(c)), 'pre-execution verification is recorded in the decision');
-  assert.match(sm.decision.rationale, /redirect itself is NOT changed/);
+  assert.ok(eng.list('a').opportunities.find(o => o.type === 'SITEMAP_URL_REDIRECTS')!.diagnosis, 'a diagnosis is persisted');
 });
 
 test('gates: no evidence, a decision that disagrees with the action, or an overlapping page each block authorisation', () => {

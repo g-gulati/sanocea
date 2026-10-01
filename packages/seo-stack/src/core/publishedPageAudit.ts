@@ -24,6 +24,10 @@ export interface PublishedPageObservation {
   /** All body words in the delivered HTML including header/nav/footer (staticWords excludes those). */
   bodyWords: number;
   finalUrl: string;
+  /** The <link rel=canonical> in the delivered HTML of the final page (null if none). Never inferred. */
+  canonical?: string | null;
+  /** Same-host hrefs in the delivered HTML (fragments removed, deduplicated, capped). */
+  internalLinks?: string[];
   redirected: boolean;
   title: string;
   h1Text: string;
@@ -109,6 +113,8 @@ export async function auditPublishedPages(domain: string, opts: PublishedPageAud
         staticWords: countWords(staticVisibleText($)),
         bodyWords: staticBodyWordCount($),
         finalUrl: res.url || url,
+        canonical: $('link[rel="canonical"]').first().attr('href')?.trim() || null,
+        internalLinks: [...new Set($('a[href]').map((_: number, el: any) => { try { const u = new URL($(el).attr('href') || '', res.url || url); return u.hostname === domain ? `${u.origin}${u.pathname}` : ''; } catch { return ''; } }).get().filter(Boolean))].slice(0, 200) as string[],
         redirected: Boolean(res.redirected),
         title: $('title').first().text().trim().slice(0, 200),
         h1Text: $('h1').first().text().trim().slice(0, 200),
