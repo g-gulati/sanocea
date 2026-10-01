@@ -393,6 +393,34 @@ export class SeoDatabase {
         PRIMARY KEY (tenant_id, site_url, page_url, fetched_at)
       );
 
+      CREATE TABLE IF NOT EXISTS ga4_landing_observations (
+        tenant_id TEXT NOT NULL,
+        property_id TEXT NOT NULL,
+        observed_date TEXT NOT NULL,
+        channel_group TEXT NOT NULL,
+        landing_page TEXT NOT NULL,
+        sessions INTEGER NOT NULL,
+        users INTEGER NOT NULL,
+        engaged_sessions INTEGER NOT NULL,
+        engagement_seconds REAL NOT NULL,
+        key_events REAL NOT NULL,
+        fetched_at TEXT NOT NULL,
+        PRIMARY KEY (tenant_id, property_id, observed_date, channel_group, landing_page)
+      );
+
+      CREATE TABLE IF NOT EXISTS ga4_event_inventory (
+        tenant_id TEXT NOT NULL,
+        property_id TEXT NOT NULL,
+        event_name TEXT NOT NULL,
+        is_key_event INTEGER NOT NULL,
+        event_count INTEGER NOT NULL,
+        key_event_count REAL NOT NULL,
+        window_start TEXT NOT NULL,
+        window_end TEXT NOT NULL,
+        fetched_at TEXT NOT NULL,
+        PRIMARY KEY (tenant_id, property_id, event_name)
+      );
+
       CREATE TABLE IF NOT EXISTS llm_model_observations (
         observation_id TEXT PRIMARY KEY,
         tenant_id TEXT NOT NULL,
@@ -1190,6 +1218,42 @@ export class SeoDatabase {
     if (!latest) return [];
     return (this.db.prepare(`SELECT * FROM bing_link_counts WHERE tenant_id = ? AND site_url = ? AND fetched_at = ? ORDER BY inbound_links DESC`).all(tenantId, siteUrl, latest) as any[])
       .map(r => ({ pageUrl: r.page_url, inboundLinks: r.inbound_links, fetchedAt: r.fetched_at }));
+  }
+
+  // ── GA4 observations (own property, read-only Data API) ────────────────────
+
+  public upsertGa4LandingObservations(rows: Array<{ tenantId: string; propertyId: string; observedDate: string; channelGroup: string; landingPage: string; sessions: number; users: number; engagedSessions: number; engagementSeconds: number; keyEvents: number; fetchedAt: string }>): void {
+    const stmt = this.db.prepare(`
+      INSERT INTO ga4_landing_observations (tenant_id, property_id, observed_date, channel_group, landing_page, sessions, users, engaged_sessions, engagement_seconds, key_events, fetched_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(tenant_id, property_id, observed_date, channel_group, landing_page) DO UPDATE SET sessions = excluded.sessions, users = excluded.users, engaged_sessions = excluded.engaged_sessions, engagement_seconds = excluded.engagement_seconds, key_events = excluded.key_events, fetched_at = excluded.fetched_at`);
+    this.db.transaction(() => { for (const r of rows) stmt.run(r.tenantId, r.propertyId, r.observedDate, r.channelGroup, r.landingPage, r.sessions, r.users, r.engagedSessions, r.engagementSeconds, r.keyEvents, r.fetchedAt); })();
+  }
+
+  public getGa4LandingObservations(tenantId: string, propertyId: string): Array<{ observedDate: string; channelGroup: string; landingPage: string; sessions: number; users: number; engagedSessions: number; engagementSeconds: number; keyEvents: number; fetchedAt: string }> {
+    return (this.db.prepare(`SELECT * FROM ga4_landing_observations WHERE tenant_id = ? AND property_id = ? ORDER BY observed_date, channel_group, landing_page`).all(tenantId, propertyId) as any[])
+      .map(r => ({ observedDate: r.observed_date, channelGroup: r.channel_group, landingPage: r.landing_page, sessions: r.sessions, users: r.users, engagedSessions: r.engaged_sessions, engagementSeconds: r.engagement_seconds, keyEvents: r.key_events, fetchedAt: r.fetched_at }));
+  }
+
+  /** Per-landing-page totals from the most recently fetched GA4 property of this tenant (path as GA4 reports it). */
+  public getGa4LandingTotals(tenantId: string): Array<{ landingPage: string; sessions: number; engagedSessions: number; organicSessions: number; windowStart: string; windowEnd: string; fetchedAt: string }> {
+    const pid = (this.db.prepare(`SELECT property_id FROM ga4_landing_observations WHERE tenant_id = ? ORDER BY fetched_at DESC LIMIT 1`).get(tenantId) as any)?.property_id;
+    if (!pid) return [];
+    return (this.db.prepare(`SELECT landing_page, SUM(sessions) AS s, SUM(engaged_sessions) AS e, SUM(CASE WHEN channel_group = 'Organic Search' THEN sessions ELSE 0 END) AS o, MIN(observed_date) AS ws, MAX(observed_date) AS we, MAX(fetched_at) AS f
+      FROM ga4_landing_observations WHERE tenant_id = ? AND property_id = ? GROUP BY landing_page ORDER BY s DESC`).all(tenantId, pid) as any[])
+      .map(r => ({ landingPage: r.landing_page, sessions: r.s, engagedSessions: r.e, organicSessions: r.o, windowStart: r.ws, windowEnd: r.we, fetchedAt: r.f }));
+  }
+
+  public replaceGa4EventInventory(tenantId: string, propertyId: string, rows: Array<{ eventName: string; isKeyEvent: boolean; eventCount: number; keyEventCount: number; windowStart: string; windowEnd: string; fetchedAt: string }>): void {
+    const stmt = this.db.prepare(`INSERT INTO ga4_event_inventory (tenant_id, property_id, event_name, is_key_event, event_count, key_event_count, window_start, window_end, fetched_at) VALUES (?,?,?,?,?,?,?,?,?)`);
+    this.db.transaction(() => {
+      this.db.prepare(`DELETE FROM ga4_event_inventory WHERE tenant_id = ? AND property_id = ?`).run(tenantId, propertyId);
+      for (const r of rows) stmt.run(tenantId, propertyId, r.eventName, r.isKeyEvent ? 1 : 0, r.eventCount, r.keyEventCount, r.windowStart, r.windowEnd, r.fetchedAt);
+    })();
+  }
+
+  public getGa4EventInventory(tenantId: string, propertyId: string): Array<{ eventName: string; isKeyEvent: boolean; eventCount: number; keyEventCount: number; windowStart: string; windowEnd: string; fetchedAt: string }> {
+    return (this.db.prepare(`SELECT * FROM ga4_event_inventory WHERE tenant_id = ? AND property_id = ? ORDER BY event_count DESC`).all(tenantId, propertyId) as any[])
+      .map(r => ({ eventName: r.event_name, isKeyEvent: Boolean(r.is_key_event), eventCount: r.event_count, keyEventCount: r.key_event_count, windowStart: r.window_start, windowEnd: r.window_end, fetchedAt: r.fetched_at }));
   }
 
   // ── Local/open model observations (model-specific) ─────────────────────────

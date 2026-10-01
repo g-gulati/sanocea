@@ -1,0 +1,29 @@
+[Unit]
+Description=SANOCEA SEO Operations & Monitoring Worker — 24/7 Autonomous Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/sanocea/repo/packages/seo-stack
+Environment=NODE_ENV=production
+Environment=SEO_TENANT_ID=sanocea
+Environment=SEO_MONITORED_DOMAIN=www.sanocea.com
+Environment=SEO_DB_PATH=/opt/sanocea/repo/packages/seo-stack/data/seo_monitoring.sqlite
+Environment=SEO_WORKER_PORT=8089
+Environment=GSC_SERVICE_ACCOUNT_PATH=/etc/sanocea/gsc_service_account.json
+Environment=GSC_PROPERTY_URL=sc-domain:sanocea.com
+Environment=GA4_PROPERTY_ID=553968706
+Environment=TIER1_INTERVAL_MS=3600000
+Environment=TIER2_INTERVAL_MS=86400000
+Environment=TIER3_INTERVAL_MS=1209600000
+ExecStart=/usr/bin/node dist/src/worker/workerDaemon.js
+Restart=always
+RestartSec=10
+LimitNOFILE=65536
+KillSignal=SIGTERM
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target

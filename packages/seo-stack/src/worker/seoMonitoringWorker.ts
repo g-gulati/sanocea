@@ -37,6 +37,7 @@ import { AgentRosterManager } from '../agents/agentRoster.js';
 import { buildLiveSerpRankMovement, verifiedSerpTrajectories, LiveSerpRankMovement } from '../search-intel/serpRankMovement.js';
 import { GscPositionTracker, GscPositionCollectResult, GscPositionTrajectory } from '../search-intel/gscPositionTracker.js';
 import { BingWebmasterCollector } from '../search-intel/bingWebmaster.js';
+import { Ga4Collector } from '../search-intel/ga4.js';
 import { CommonCrawlAuthorityCollector } from '../search-intel/commonCrawlGraph.js';
 import { ModelVisibilityHarness, ModelHarnessOptions } from '../search-intel/aeoModelHarness.js';
 import { JobScheduler, JobDefinition } from '../scheduler/jobScheduler.js';
@@ -76,6 +77,8 @@ export interface SeoWorkerConfig {
     competitors?: CompetitorConfig[];
     competitorOptions?: CompetitorEngineOptions;
     trackedQueries?: string[];
+    ga4PropertyId?: string;
+    ga4Fetch?: typeof fetch;
     bingApiKey?: string;
     bingFetch?: typeof fetch;
     /** HTTP client for the AI Content Auditor's published-page checks. */
@@ -141,6 +144,7 @@ export class SeoMonitoringWorker {
   private opportunities: OpportunityEngine;
   private googleProperty: GscPropertyService;
   private bing: BingWebmasterCollector;
+  private ga4: Ga4Collector;
   private authority: CommonCrawlAuthorityCollector;
   private modelHarness: ModelVisibilityHarness;
   public readonly scheduler: JobScheduler;
@@ -249,6 +253,7 @@ export class SeoMonitoringWorker {
       geoEngine: this.geoEngine,
       competitorEngine: this.competitorEngine
     });
+    this.ga4 = new Ga4Collector(this.db, { auth: this.isLiveGsc ? this.config.gscClient?.auth : undefined, propertyId: rc.ga4PropertyId, fetchImpl: rc.ga4Fetch });
     this.bing = new BingWebmasterCollector(this.db, { apiKey: rc.bingApiKey, fetchImpl: rc.bingFetch });
     this.authority = new CommonCrawlAuthorityCollector(this.db, { fetchImpl: rc.authorityFetch, release: rc.authorityRelease });
     this.modelHarness = new ModelVisibilityHarness(this.db, rc.modelHarness);
@@ -729,6 +734,15 @@ export class SeoMonitoringWorker {
         }
       },
       {
+        name: 'ga4-analytics', intervalMs: DAY,
+        run: async () => {
+          if (!this.ga4.configured) return { status: 'UNAVAILABLE', summary: this.ga4.propertyId ? 'GA4 needs the live Google service account' : 'GA4_PROPERTY_ID is not configured' };
+          const r = await this.ga4.collect(tenantId);
+          if (r.status !== 'OBSERVED') throw new Error(r.unavailable?.reason ?? 'GA4 collection failed');
+          return { status: 'OK', summary: `stored ${r.landingRowsStored} landing-page rows, ${r.eventsStored} events (${r.keyEventsConfigured} key events configured)`, output: r.notes };
+        }
+      },
+      {
         name: 'bing-webmaster', intervalMs: DAY,
         run: async () => {
           if (!this.bing.configured) return { status: 'UNAVAILABLE', summary: 'BING_WEBMASTER_API_KEY is not configured' };
@@ -784,6 +798,12 @@ export class SeoMonitoringWorker {
     const rows = this.authority.latest(this.config.tenantId);
     return { provenance: rows.length ? '[OBSERVED: COMMON CRAWL DOMAIN REFERENCE GRAPH]' : '[NOT AVAILABLE]', rows };
   }
+
+  /** Persisted-only. GA4 first-party behaviour evidence (own property). */
+  public getGa4Report() { return this.ga4.report(this.config.tenantId); }
+
+  /** Persisted GA4 landing-page behaviour, for the diagnosis engine. */
+  public getGa4LandingPages() { return this.ga4.landingPages(this.config.tenantId); }
 
   /** Persisted-only. Bing Webmaster (own property) query positions + inbound link counts. */
   public getBingReport() {

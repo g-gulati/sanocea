@@ -129,6 +129,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.url === '/ga4') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(worker.getGa4Report(), null, 2));
+    return;
+  }
+
   if (req.url === '/bing') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(worker.getBingReport(), null, 2));
@@ -250,6 +256,7 @@ const server = http.createServer(async (req, res) => {
       '/serp-rank-movement',
       '/scheduler',
       '/authority',
+      '/ga4',
       '/bing',
       '/model-visibility',
       '/agent-roster',

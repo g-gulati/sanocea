@@ -20,6 +20,9 @@ export interface ActionPlan { candidates: Candidate[]; selected: string; why: st
 
 export interface PageObs { url: string; status: number; finalUrl?: string; redirected?: boolean; canonical?: string | null; internalLinks?: string[] }
 export interface InspectionObs { url: string; googleCanonical: string | null }
+/** GA4 first-party behaviour for one landing path over a window. Behaviour evidence only: it never establishes an intended address. */
+export interface Ga4LandingObs { landingPage: string; sessions: number; engagedSessions: number; organicSessions: number; windowStart: string; windowEnd: string }
+export const GA4_SOURCE = '[OBSERVED: GOOGLE ANALYTICS 4 DATA API]';
 
 const fid = (kind: string, subject: string, value: string | null) => `fact:${kind}:${createHash('sha1').update(`${subject}|${value}`).digest('hex').slice(0, 8)}`;
 const mk = (kind: string, subject: string, value: string | null, source: string): Fact => ({ id: fid(kind, subject, value), kind, subject, value, source });
@@ -28,12 +31,20 @@ const form = (u: string) => (new URL(u).pathname.endsWith('/') ? 'slash' : 'no-s
 const stripSlash = (u: string) => norm(u).replace(/\/+$/, '');
 
 /** Facts for one redirecting sitemap URL, from what the audit and Google inspection already observed. Observation only. */
-export function collectRedirectFamilyFacts(page: PageObs, allPages: PageObs[], inspections: InspectionObs[], crawlSource = '[OBSERVED: LIVE PAGE FETCH]'): Fact[] {
+export function collectRedirectFamilyFacts(page: PageObs, allPages: PageObs[], inspections: InspectionObs[], crawlSource = '[OBSERVED: LIVE PAGE FETCH]', ga4: Ga4LandingObs[] = []): Fact[] {
   const L = page.url, D = page.finalUrl!;
   const facts: Fact[] = [mk('sitemap_lists', L, L, crawlSource), mk('redirects_to', L, D, crawlSource), mk('destination_status', D, String(page.status), crawlSource), mk('destination_canonical', D, page.canonical ?? null, crawlSource)];
   for (const p of allPages) for (const href of p.internalLinks ?? []) if (stripSlash(href) === stripSlash(L) || stripSlash(href) === stripSlash(D)) facts.push(mk('internal_link', `${p.url}->`, norm(href), crawlSource));
   const insp = inspections.find(i => i.url === D);
   if (insp) facts.push(mk('google_canonical', D, insp.googleCanonical, '[OBSERVED: GOOGLE SEARCH CONSOLE API]'));
+  // Where real visitors actually land (GA4 reports a path). Recorded for both addresses, including zero when GA4 saw no landings.
+  if (ga4.length) {
+    for (const addr of [L, D]) {
+      const path = new URL(addr).pathname;
+      const row = ga4.find(g => g.landingPage === path);
+      facts.push(mk('ga4_landing_sessions', addr, row ? `${row.sessions} sessions (${row.organicSessions} organic search), ${row.engagedSessions} engaged, ${row.windowStart} to ${row.windowEnd}` : `0 sessions, ${ga4[0].windowStart} to ${ga4[0].windowEnd}`, GA4_SOURCE));
+    }
+  }
   for (const p of allPages) {
     if (p.url === L) continue;
     const u = new URL(p.finalUrl ?? p.url);
@@ -53,6 +64,8 @@ export function diagnoseRedirectFamily(facts: Fact[]): Diagnosis {
   });
   const g = by('google_canonical')[0];
   const links = by('internal_link'), sibs = by('sibling_form');
+  const landings = by('ga4_landing_sessions');
+  const visited = (addr: string) => landings.filter(f => f.subject === addr && !f.value!.startsWith('0 sessions')).map(f => f.id); // behaviour: supports, never establishes
   const sameForm = L !== D && stripSlash(L) === stripSlash(D); // L and D differ only by a trailing slash
   const practiceFor = (addr: string): { present: string[]; agree: string[]; against: string[] } => {
     const present: string[] = [], agree: string[] = [], against: string[] = [];
@@ -68,8 +81,8 @@ export function diagnoseRedirectFamily(facts: Fact[]): Diagnosis {
   const independent = (addr: string) => { const p = practiceFor(addr); return p.present.length === 3 && p.agree.length >= 3 && p.against.length === 0; };
   // RULED_OUT only when the other address is ESTABLISHED by independent evidence; a single contradicting signal never rules anything out.
   const status = (addr: string, other: string): HypothesisStatus => (independent(addr) ? 'ESTABLISHED' : independent(other) ? 'RULED_OUT' : practiceFor(addr).agree.length >= 2 && practiceFor(addr).against.length === 0 ? 'LIKELY' : 'POSSIBLE');
-  const hD: Hypothesis = { statement: `The intended address of this page is ${D} (the redirect destination).`, supported_by: [...votes(D).for, ...practiceFor(D).agree], contradicted_by: [...votes(L).for.filter(i => !votes(D).for.includes(i)), ...practiceFor(D).against], status: status(D, L) };
-  const hL: Hypothesis = { statement: `The intended address of this page is ${L} (the address listed in the sitemap).`, supported_by: [...votes(L).for, ...practiceFor(L).agree], contradicted_by: [...votes(D).for.filter(i => !votes(L).for.includes(i)), ...practiceFor(L).against], status: status(L, D) };
+  const hD: Hypothesis = { statement: `The intended address of this page is ${D} (the redirect destination).`, supported_by: [...votes(D).for, ...practiceFor(D).agree, ...visited(D)], contradicted_by: [...votes(L).for.filter(i => !votes(D).for.includes(i)), ...practiceFor(D).against], status: status(D, L) };
+  const hL: Hypothesis = { statement: `The intended address of this page is ${L} (the address listed in the sitemap).`, supported_by: [...votes(L).for, ...practiceFor(L).agree, ...visited(L)], contradicted_by: [...votes(D).for.filter(i => !votes(L).for.includes(i)), ...practiceFor(L).against], status: status(L, D) };
   const finding = `The sitemap lists ${L}, which redirects to ${D}; the destination's canonical is ${canon.value ?? 'absent'}.`;
   const est = hD.status === 'ESTABLISHED' ? D : hL.status === 'ESTABLISHED' ? L : null;
   if (!est) return { finding, hypotheses: [hD, hL], conclusion: 'The sitemap, the redirect and the canonical disagree, and the available evidence does not establish which address is intended.', sufficient: false, missing_evidence: missing };

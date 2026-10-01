@@ -17,7 +17,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { ActionPlan, Diagnosis, Fact, collectRedirectFamilyFacts, diagnoseRedirectFamily, selectAction, verifyOutcome, Verification } from './diagnosis.js';
+import { ActionPlan, Diagnosis, Fact, collectRedirectFamilyFacts, Ga4LandingObs, diagnoseRedirectFamily, selectAction, verifyOutcome, Verification } from './diagnosis.js';
 import { AUTONOMOUS_ACTOR, modeAllows, AuthorizationDecision, AutonomyMode, DEFAULT_MODE, POLICY_REF, classifyAction, evaluateAuthorization, isAutonomyMode } from './autonomyPolicy.js';
 import { SeoDatabase } from '../persistence/seoDb.js';
 import { GscPropertyService, InspectionRecord, SitemapRecord } from '../search-intel/gscProperty.js';
@@ -142,6 +142,7 @@ export interface DetectionInput {
   gscCapturedAt?: string;
   inspections?: InspectionRecord[];
   sitemaps?: SitemapRecord[];
+  ga4Landings?: Ga4LandingObs[];
 }
 
 const CRAWL_SOURCE = '[OBSERVED: LIVE PAGE FETCH]';
@@ -184,7 +185,7 @@ export function detectOpportunities(input: DetectionInput): Candidate[] {
   // Redirecting sitemap URL: the detector supplies FACTS only. The action is derived downstream (diagnose -> selectAction).
   for (const p of input.pages) {
     if (!(p.redirected && p.finalUrl && p.finalUrl !== p.url)) continue;
-    const facts = collectRedirectFamilyFacts(p as any, input.pages as any, (input.inspections ?? []).map(i => ({ url: i.url, googleCanonical: i.googleCanonical })), crawlSource);
+    const facts = collectRedirectFamilyFacts(p as any, input.pages as any, (input.inspections ?? []).map(i => ({ url: i.url, googleCanonical: i.googleCanonical })), crawlSource, input.ga4Landings);
     out.push({
       type: 'SITEMAP_URL_REDIRECTS', target: p.url, confidence: 'OBSERVED', source: crawlSource,
       reason: `${p.url} (listed in the sitemap) redirects to ${p.finalUrl}.`,
@@ -416,7 +417,7 @@ export class OpportunityEngine {
     const inspections = props.flatMap(p => gsvc.latestInspections(tenantId, p.property));
     const sitemaps = props.flatMap(p => gsvc.getSitemaps(tenantId, p.property));
     const candidates = detectOpportunities({
-      inspections, sitemaps,
+      inspections, sitemaps, ga4Landings: this.db.getGa4LandingTotals(tenantId),
       pages, pagesObservedAt: (auditor?.details as any)?.checkedAt, pagesSource: auditor?.provenance,
       gscPages: snap?.pageRows?.map((r: any) => ({ page: r.page ?? r.keys?.[0] ?? '', clicks: r.clicks, impressions: r.impressions, ctr: r.ctr, position: r.position })).filter(r => r.page) ?? [],
       gscQueries: snap?.queryRows?.map((r: any) => ({ query: r.query ?? r.keys?.[0] ?? '', clicks: r.clicks, impressions: r.impressions, ctr: r.ctr, position: r.position })).filter(r => r.query) ?? [],

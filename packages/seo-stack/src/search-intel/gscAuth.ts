@@ -12,6 +12,9 @@
 import * as crypto from 'node:crypto';
 import { GscPropertyVerification } from '../core/types.js';
 
+export const GSC_SCOPE = 'https://www.googleapis.com/auth/webmasters.readonly';
+export const ANALYTICS_READONLY_SCOPE = 'https://www.googleapis.com/auth/analytics.readonly';
+
 export interface ServiceAccountCredentials {
   client_email: string;
   private_key: string;
@@ -36,6 +39,7 @@ export interface GscAuthConfig {
 export class GscAuthManager {
   private config: GscAuthConfig;
   private cachedToken: { token: string; expiresAt: number } | null = null;
+  private scopedTokens = new Map<string, { token: string; expiresAt: number }>();
 
   constructor(config: GscAuthConfig) {
     this.config = config;
@@ -96,7 +100,7 @@ export class GscAuthManager {
   /**
    * Generates a signed JWT assertion for Google Service Account authentication
    */
-  private generateServiceAccountJwt(): string {
+  private generateServiceAccountJwt(scope: string = GSC_SCOPE): string {
     if (!this.config.serviceAccount) {
       throw new Error('Service account credentials not provided');
     }
@@ -109,7 +113,7 @@ export class GscAuthManager {
 
     const claimSet = {
       iss: this.config.serviceAccount.client_email,
-      scope: 'https://www.googleapis.com/auth/webmasters.readonly',
+      scope,
       aud: 'https://oauth2.googleapis.com/token',
       exp: now + 3600,
       iat: now
@@ -124,6 +128,25 @@ export class GscAuthManager {
     const signature = signer.sign(this.config.serviceAccount.private_key, 'base64url');
 
     return `${unsignedToken}.${signature}`;
+  }
+
+  /**
+   * Service-account token for another read-only Google scope (e.g. GA4), same credential and JWT path as Search Console.
+   * Returns null when no service account is configured; never falls back to a fixture token.
+   */
+  public async getServiceAccountTokenForScope(scope: string): Promise<string | null> {
+    if (this.config.authType !== 'SERVICE_ACCOUNT' || !this.config.serviceAccount) return null;
+    const hit = this.scopedTokens.get(scope);
+    if (hit && hit.expiresAt > Date.now() + 60000) return hit.token;
+    const resp = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: this.generateServiceAccountJwt(scope) })
+    });
+    if (!resp.ok) throw new Error(`Google Service Account token exchange failed (HTTP ${resp.status})`);
+    const data = await resp.json() as any;
+    this.scopedTokens.set(scope, { token: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 });
+    return data.access_token;
   }
 
   /**
