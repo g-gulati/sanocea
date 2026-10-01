@@ -135,3 +135,24 @@ test('tenant isolation: tenant B cannot be authorised by tenant A\'s mode, id or
   a.eng.authorize('a', oa.opportunityId);
   assert.equal(b.eng.list('b').opportunities.every(o => o.approval === null), true);
 });
+
+test('internal autonomy pass: class-agnostic, mode decides, denials audited once, INVESTIGATE never queued, tenants isolated', () => {
+  const mk = (tenant: string, action: string, mode: any) => {
+    const { db, eng, by } = setup(tenant);
+    eng.setAutonomyMode(tenant, mode, 'human:owner');
+    const o = by('QUERY_PAGE_MATCH_GAP');
+    (db as any).handle.prepare(`UPDATE seo_opportunities SET recommended_action = ?, decision_json = json_set(decision_json, '$.action', ?) WHERE opportunity_id = ?`).run(action, action, o.opportunityId);
+    return { eng, id: o.opportunityId };
+  };
+  const a = mk('a', 'FIX_SITEMAP_ENTRY', 'AUTONOMOUS_SEO');
+  assert.deepEqual(a.eng.autonomyPass('a').authorized >= 1, true);
+  const ao = a.eng.get('a', a.id)!; assert.equal(ao.status, 'APPROVED'); assert.equal(ao.approval!.actorType, 'AUTONOMOUS_AGENT');
+  for (const [action, mode, expectAuth] of [['CREATE_SEO_PAGE', 'AUTONOMOUS_SEO', false], ['CREATE_SEO_PAGE', 'AUTONOMOUS_CONTENT', true], ['CHANGE_REDIRECT', 'AUTONOMOUS_DISTRIBUTION', false], ['INVESTIGATE', 'AUTONOMOUS_DISTRIBUTION', false], ['FIX_SITEMAP_ENTRY', 'RECOMMEND_ONLY', false]] as const) {
+    const t = mk('a', action, mode);
+    t.eng.autonomyPass('a'); const o = t.eng.get('a', t.id)!;
+    assert.equal(o.status === 'APPROVED', expectAuth, `${action}/${mode}`);
+    if (!expectAuth) { assert.ok(['DISCOVERED'].includes(o.status), 'a denied opportunity is not queued for approval'); const n = t.eng.history('a', t.id).length; t.eng.autonomyPass('a'); assert.equal(t.eng.history('a', t.id).length, n, 'denial audited once (idempotent)'); }
+  }
+  const b = mk('b', 'FIX_SITEMAP_ENTRY', 'RECOMMEND_ONLY'); b.eng.autonomyPass('b');
+  assert.equal(b.eng.get('b', b.id)!.approval, null, 'tenant b is governed by its own mode');
+});

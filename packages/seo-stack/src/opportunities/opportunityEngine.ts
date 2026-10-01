@@ -18,7 +18,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { ActionPlan, Diagnosis, Fact, collectRedirectFamilyFacts, diagnoseRedirectFamily, selectAction, verifyOutcome, Verification } from './diagnosis.js';
-import { AUTONOMOUS_ACTOR, AuthorizationDecision, AutonomyMode, DEFAULT_MODE, POLICY_REF, classifyAction, evaluateAuthorization, isAutonomyMode } from './autonomyPolicy.js';
+import { AUTONOMOUS_ACTOR, modeAllows, AuthorizationDecision, AutonomyMode, DEFAULT_MODE, POLICY_REF, classifyAction, evaluateAuthorization, isAutonomyMode } from './autonomyPolicy.js';
 import { SeoDatabase } from '../persistence/seoDb.js';
 import { GscPropertyService, InspectionRecord, SitemapRecord } from '../search-intel/gscProperty.js';
 import { PublishedPageObservation, THIN_STATIC_WORD_THRESHOLD } from '../core/publishedPageAudit.js';
@@ -310,6 +310,33 @@ export class OpportunityEngine {
     if (!isAutonomyMode(mode)) throw new Error(`unknown autonomy mode ${mode}`);
     this.db.handle.prepare(`INSERT INTO tenant_autonomy (tenant_id, mode, updated_at, updated_by) VALUES (?,?,?,?) ON CONFLICT(tenant_id) DO UPDATE SET mode=excluded.mode, updated_at=excluded.updated_at, updated_by=excluded.updated_by`).run(tenantId, mode, now, actor);
     return mode;
+  }
+
+  /**
+   * INTERNAL autonomous path (no external token, in-process, audited as the autonomous policy actor): for every open
+   * opportunity, classify its selected action, apply the tenant mode, and authorise what the policy permits. Denials are audited
+   * once. INVESTIGATE and anything the mode does not permit are never queued for approval or executed. Class-agnostic: the
+   * mode matrix alone decides which classes pass; nothing here assumes a maximum class.
+   */
+  public autonomyPass(tenantId: string, now = new Date().toISOString()): { authorized: number; denied: number; unchanged: number } {
+    const mode = this.getAutonomyMode(tenantId);
+    let authorized = 0, denied = 0, unchanged = 0;
+    for (const o of this.list(tenantId).opportunities) {
+      if (!['DISCOVERED', 'QUALIFIED', 'ACTIONABLE', 'AWAITING_APPROVAL'].includes(o.status) || o.approval) { unchanged++; continue; }
+      const action = o.recommendedAction, m = modeAllows(mode, classifyAction(action), action);
+      if (!m.allowed) {
+        const note = `POLICY_DENIED: ${m.reason}`;
+        const seen = this.db.handle.prepare(`SELECT 1 FROM seo_opportunity_events WHERE tenant_id = ? AND opportunity_id = ? AND note = ? LIMIT 1`).get(tenantId, o.opportunityId, note);
+        if (!seen) this.event(tenantId, o.opportunityId, o.status, o.status, AUTONOMOUS_ACTOR, note, now);
+        denied++; continue;
+      }
+      for (const st of ['QUALIFIED', 'ACTIONABLE', 'AWAITING_APPROVAL'] as const) {
+        const cur = this.get(tenantId, o.opportunityId)!.status;
+        if (['DISCOVERED', 'QUALIFIED', 'ACTIONABLE'].includes(cur) && TRANSITIONS[cur as OpportunityStatus].includes(st)) this.transition(tenantId, o.opportunityId, st, 'agent:autonomy-pass', 'prepared for policy authorisation', now);
+      }
+      if (this.authorize(tenantId, o.opportunityId, now).decision.allowed) authorized++; else denied++;
+    }
+    return { authorized, denied, unchanged };
   }
 
   private insertApproval(tenantId: string, r: any, type: 'HUMAN' | 'AUTONOMOUS_AGENT', actor: string, policy: string, reason: string, gates: unknown, now: string): void {

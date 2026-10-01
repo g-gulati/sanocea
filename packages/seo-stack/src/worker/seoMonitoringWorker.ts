@@ -689,6 +689,7 @@ export class SeoMonitoringWorker {
     // Reports below are then read from persisted state, so a sync never double-bills a provider.
     await this.agentRoster.executeAll(tenantId);
     this.opportunities.refresh(tenantId);
+    this.opportunities.autonomyPass(tenantId);
     return {
       keywords: this.keywordEngine.latestReport(tenantId, this.trackedQueries),
       aeo: this.aeoEngine.latestSummary(tenantId, this.trackedQueries),
@@ -712,7 +713,8 @@ export class SeoMonitoringWorker {
           const counts: Record<string, number> = {};
           for (const r of runs) counts[r.status] = (counts[r.status] ?? 0) + 1;
           const opp = this.opportunities.refresh(tenantId);
-          return { status: 'OK', summary: `ran ${runs.length} agents: ${Object.entries(counts).map(([k, v]) => `${k}=${v}`).join(', ')}; opportunities +${opp.created} new, ${opp.updated} re-seen`, output: { ...counts, opportunitiesCreated: opp.created } };
+          const pass = this.opportunities.autonomyPass(tenantId);
+          return { status: 'OK', summary: `ran ${runs.length} agents: ${Object.entries(counts).map(([k, v]) => `${k}=${v}`).join(', ')}; opportunities +${opp.created} new, ${opp.updated} re-seen; autonomy pass: ${pass.authorized} authorised, ${pass.denied} denied`, output: { ...counts, opportunitiesCreated: opp.created } };
         }
       },
       {
