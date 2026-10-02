@@ -1,58 +1,40 @@
 ---
-gsd_state_version: '1.0'
-status: ready_to_plan
-progress:
-  total_phases: 9
-  completed_phases: 6
-  total_plans: 2
-  completed_plans: 0
-  percent: 66
+gsd_state_version: "1.0"
+status: needs_decision
+last_updated: "2026-10-02"
+state_head: f80ea8a
+note: Rewritten from git history on 2026-10-02. The old "Phase 7 ready to plan" state was stale.
 ---
 
 # Project State
 
-## Project Reference
+See `.planning/ROADMAP.md` for phases and `CLAUDE.md` for standing rules.
 
-See: `.planning/PROJECT.md` (updated 2026-09-30)
+## Current position
 
-**Core value:** Verifiable, evidence-backed autonomous commerce operations and search visibility with absolute truth integrity — zero fabricated or conflated metrics.
-**Current focus:** Phase 7: SERP Trajectory Engine & External Provider Adapters
+- Last commit: `f80ea8a` (2026-10-01) — Bing never-crawled sentinel date shown as no date.
+- Phases 1–6 and the 2026-09-30 → 10-01 work (zero-cost SEO stack, single `/demo.html` UI, autonomous
+  SEO execution loop and lifecycle UI) are committed.
+- Phase 7 as written (paid SERP provider) conflicts with the zero-cost-only SEO rule. It is not the
+  next action until that is decided.
+- Large uncommitted working tree (demo sessions, domain/approvals/notifications, website, CLAUDE.md).
+  See ROADMAP "In progress".
 
-## Current Position
+## Not recorded here (verify live, don't trust this file)
 
-Phase: 7 of 9 (SERP Trajectory Engine & External Provider Adapters)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-09-30 — GSD Core Brownfield Onboarding completed, 7 codebase documents generated, 4 ADRs ingested with zero conflicts, 125 tests passing.
+- Test counts: the old figure (125) is from 2026-09-30 and has not been re-run.
+- Deployment state: whether `sanocea-api` and `sanocea-seo-worker` run the latest commit.
+- GSC telemetry numbers: read them from `GET /demo/seo/overview`; do not copy them into docs.
 
-Progress: [██████░░░░] 66%
+## Invariants
 
-## Performance Metrics
+1. Truth provenance: observed, calculated and modeled values stay segregated and labelled.
+2. No fabricated data: a value the worker does not supply renders NOT AVAILABLE with its reason.
+3. Tenant isolation: autonomous mutations only on the `sanocea` tenant; prospect tenants stay quarantined.
+4. One canonical UI: `/demo.html` (see `CLAUDE.md`).
 
-**Test Suite Health:**
-- Total passing tests: 125
-  - `@sanocea/seo-stack`: 73 passing tests (`node --test`)
-  - `website`: 52 passing tests (`node --test`)
-  - Regressions: 0 failing
-- Active Production Daemons:
-  - `sanocea-seo-worker.service`: ACTIVE (hourly/daily audit loop + live GSC sync)
-  - `sanocea-api.service`: ACTIVE
+## Next action
 
-**Verified Telemetry Snapshot (sc-domain:sanocea.com, 28 days):**
-- Total Clicks: 11 `[OBSERVED]`
-- Total Impressions: 28 `[OBSERVED]`
-- Average CTR: 39.29% `[CALCULATED]`
-- Average Position: 2.43 `[CALCULATED]`
-- Query Rows: 0 (withheld by Google Search Console privacy threshold)
-- Primary Device: Desktop (26/28 impressions) `[OBSERVED]`
-
-## Key Invariants Maintained
-
-1. **Truth Provenance:** Direct segregation of Observed GSC Telemetry, Calculated metrics, and Modeled Opportunity projections.
-2. **Zero Query Fabrication:** When GSC withholds query rows, 0 queries are displayed with privacy threshold documentation.
-3. **Tenant Isolation:** Autonomous mutations strictly locked to `sanocea` tenant; prospect tenants quarantined.
-4. **SQLite WAL Persistence:** All crawl snapshots, SERP movements, and remediation receipts written to ACID WAL tables.
-
-## Next Action
-
-Execute `/gsd-plan-phase 7` to plan the SERP Trajectory Engine & External Provider Adapters.
+1. Decide Phase 7: drop, redefine on free sources, or ADR for a paid provider.
+2. Review the uncommitted tree and commit or discard.
+3. Demo session leasing Slice 2; fix the channel-id collision bug.
